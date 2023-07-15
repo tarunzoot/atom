@@ -45,9 +45,9 @@ cargo r --release
 
 ## Limitations
 
-Atom is tested and used on Windows only. Atom may or may not work as intende on Linux or macOS.
+Atom is tested and used on Windows only. Atom may or may not work as intended on Linux or macOS.
 
-## Contributing & Limitations
+## Contributing
 
 Contributions are greatly appreciated! Being a newbie at Rust and Iced, I would very highly value your suggestions and feedback.
 
