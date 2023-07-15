@@ -1,0 +1,20 @@
+{
+    "name": "ATOM Download Accelerator",
+    "action": {},
+    "description": "Extension to capture downloads from browser",
+    "version": "1.0",
+    "manifest_version": 3,
+    "background": {
+        "service_worker": "background.js"
+    },
+    "permissions": [
+        "downloads",
+        "tabs",
+        "webRequest",
+        "storage",
+        "unlimitedStorage"
+    ],
+    "host_permissions": [
+        "<all_urls>"
+    ]
+}

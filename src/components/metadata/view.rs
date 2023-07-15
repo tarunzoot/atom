@@ -1,0 +1,229 @@
+use super::AtomDownloadMetadata;
+use crate::{
+    font::{file_type_icon, icon, CustomFont},
+    messages::Message,
+    style::{AtomStyleButton, AtomStyleContainer, AtomStyleText, Theme},
+    utils::helpers::{
+        atom_button, get_file_type, get_formatted_time, get_relative_file_size, ButtonType,
+    },
+};
+use iced::{
+    widget::{button, column, container, image, row, text, text_input},
+    Element, Length, Renderer,
+};
+use std::{path::Path, time::Duration};
+
+impl AtomDownloadMetadata {
+    pub fn view(&self) -> Element<'static, Message, Renderer<Theme>> {
+        let file_path = Path::new(&self.file_path);
+        let mut open_btn = atom_button(
+            ButtonType::IconWithText,
+            vec![
+                icon('\u{ef13}', CustomFont::IcoFont).size(12),
+                text("open").size(14),
+            ],
+        )
+        .padding(7)
+        .width(Length::Fill);
+
+        let mut delete_btn = atom_button(
+            ButtonType::IconWithText,
+            vec![
+                icon('\u{ec53}', CustomFont::IcoFont).size(12),
+                text("delete").size(14),
+            ],
+        )
+        .padding(7)
+        .width(Length::Fill);
+
+        if file_path.exists() {
+            open_btn = open_btn.on_press(Message::PreviewFile(self.file_path.clone()));
+            delete_btn = delete_btn.on_press(Message::DeleteFile(self.file_path.clone()));
+        }
+
+        let mut preview_column = column!()
+            .width(Length::Fill)
+            .height(Length::Fixed(200.0))
+            .align_items(iced::Alignment::Center)
+            .spacing(10)
+            .push(
+                row!()
+                    .width(Length::Fill)
+                    .align_items(iced::Alignment::Center)
+                    .push(
+                        file_type_icon(&self.extension)
+                            .size(20)
+                            .horizontal_alignment(iced::alignment::Horizontal::Left)
+                            .width(Length::Fill),
+                    ), // .push(text(self.extension.to_uppercase())),
+            );
+        preview_column = match &self.extension[..] {
+            "jpg" | "jpeg" | "png" | "gif" => preview_column.push(
+                image(&self.file_path)
+                    .height(Length::Fill)
+                    .content_fit(iced::ContentFit::Cover),
+            ),
+            _ => preview_column.push(
+                container(text("No preview available.").size(14))
+                    .width(Length::Fill)
+                    .height(Length::Fill)
+                    .center_x()
+                    .center_y()
+                    .style(AtomStyleContainer::Transparent),
+            ),
+        };
+        preview_column = preview_column.push(
+            column!()
+                .width(Length::Fill)
+                .align_items(iced::Alignment::End)
+                .push(text(&self.extension.to_uppercase()).size(14)),
+        );
+
+        let (time_created, time_accessed, time_modified) =
+            if let Ok(metadata) = Path::new(&self.file_path).metadata() {
+                let created = if let Ok(created) = metadata.created() {
+                    let mut formatted_time = get_formatted_time(
+                        created
+                            .elapsed()
+                            .unwrap_or_else(|_| Duration::from_secs(0))
+                            .as_secs(),
+                    );
+                    formatted_time.push_str(" ago");
+                    formatted_time
+                } else {
+                    String::default()
+                };
+
+                let accessed = if let Ok(accessed) = metadata.accessed() {
+                    let mut formatted_time = get_formatted_time(
+                        accessed
+                            .elapsed()
+                            .unwrap_or_else(|_| Duration::from_secs(0))
+                            .as_secs(),
+                    );
+                    formatted_time.push_str(" ago");
+                    formatted_time
+                } else {
+                    String::default()
+                };
+
+                let modified = if let Ok(modified) = metadata.modified() {
+                    let mut formatted_time = get_formatted_time(
+                        modified
+                            .elapsed()
+                            .unwrap_or_else(|_| Duration::from_secs(0))
+                            .as_secs(),
+                    );
+
+                    formatted_time.push_str(" ago");
+                    formatted_time
+                } else {
+                    String::default()
+                };
+
+                (created, accessed, modified)
+            } else {
+                (String::default(), String::default(), String::default())
+            };
+
+        container(
+            column!()
+                .spacing(20)
+                .push(
+                    column!()
+                        .spacing(5)
+                        .push(
+                            row!()
+                                .width(Length::Fill)
+                                .spacing(20)
+                                .push(text("Resources").width(Length::Fill))
+                                .push(
+                                    button(
+                                        container(icon('\u{eee1}', CustomFont::IcoFont).size(15))
+                                            .style(AtomStyleContainer::Transparent)
+                                            .width(iced::Length::Fill),
+                                    )
+                                    .on_press(Message::ClosePreview)
+                                    .padding(2)
+                                    .style(AtomStyleButton::RoundButton),
+                                ),
+                        )
+                        .push(
+                            text(format!(
+                                "{} • {}",
+                                get_file_type(&self.extension),
+                                get_relative_file_size(self.size)
+                            ))
+                            .style(AtomStyleText::Dimmed)
+                            .size(12),
+                        ),
+                )
+                .push(
+                    column!()
+                        .push(row!().spacing(10).push(text("Link").width(Length::Fill)))
+                        .push(
+                            text_input("", &self.url)
+                                .size(14)
+                                .on_input(|_| Message::Ignore),
+                        )
+                        .spacing(5),
+                )
+                .push(
+                    container(preview_column)
+                        .padding(10)
+                        .style(AtomStyleContainer::PreviewContainer),
+                )
+                .push(
+                    column!()
+                        .spacing(5)
+                        .width(Length::Fill)
+                        .push(text("Information"))
+                        .push(
+                            row!()
+                                .width(Length::Fill)
+                                .push(
+                                    text("Created")
+                                        .style(AtomStyleText::Dimmed)
+                                        .size(12)
+                                        .width(Length::FillPortion(1)),
+                                )
+                                .push(text(time_created).size(12)),
+                        )
+                        .push(
+                            row!()
+                                .width(Length::Fill)
+                                .push(
+                                    text("Modified")
+                                        .style(AtomStyleText::Dimmed)
+                                        .size(12)
+                                        .width(Length::FillPortion(1)),
+                                )
+                                .push(text(time_modified).size(12)),
+                        )
+                        .push(
+                            row!()
+                                .width(Length::Fill)
+                                .push(
+                                    text("Last Opened")
+                                        .style(AtomStyleText::Dimmed)
+                                        .size(12)
+                                        .width(Length::FillPortion(1)),
+                                )
+                                .push(text(time_accessed).size(12)),
+                        ),
+                )
+                .push(
+                    row!()
+                        .width(Length::Fill)
+                        .spacing(10)
+                        .push(open_btn)
+                        .push(delete_btn),
+                ),
+        )
+        .padding(15)
+        .style(AtomStyleContainer::ListContainer)
+        .width(Length::Fixed(200.0))
+        .height(Length::Fill)
+        .into()
+    }
+}

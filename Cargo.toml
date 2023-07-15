@@ -1,0 +1,50 @@
+[package]
+name = "atom"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = "0.11"
+sha2 = "0.10"
+directories = "5"
+urlencoding = "2"
+rfd = "0.11"
+toml = "0.7"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = "0.4"
+single-instance = "0.3"
+iced = {version="0.9", features=["image", "tokio"]}
+iced_native = "0.10"
+env_logger = "0.10"
+log = "0.4"
+tray-icon = "0.6"
+image = "0.24"
+notify-rust = "4.8"
+
+
+[profile.dev]
+opt-level = 0
+debug = true
+rpath = false
+lto = false
+debug-assertions = true
+codegen-units = 256
+panic = 'unwind'
+incremental = true
+overflow-checks = true
+
+
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = "fat"
+debug-assertions = false
+codegen-units = 1
+panic = "abort"
+incremental = false
+overflow-checks = false

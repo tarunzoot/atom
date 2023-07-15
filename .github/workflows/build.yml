@@ -1,0 +1,13 @@
+name: Build
+on:
+    push:
+        branches:
+            - master
+
+jobs:
+    windows:
+        runs-on: windows-latest
+        steps:
+        - uses: actions/checkout@v3
+        - name: Build release
+          run: cargo b --release
