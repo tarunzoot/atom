@@ -1,11 +1,11 @@
 mod view;
-use crate::messages::{Message, SideBarActiveButton, SideBarState, SidebarMessage};
+use crate::messages::{SideBarActiveButton, SideBarState, SidebarMessage};
 
 #[derive(Debug)]
 struct SidebarButton<'a> {
     text: &'a str,
     icon: char,
-    message: Message,
+    message: SidebarMessage,
     tooltip: &'a str,
     name: SideBarActiveButton,
 }
@@ -23,63 +23,63 @@ impl<'a> Default for AtomSidebar<'a> {
             SidebarButton {
                 text: "Overview",
                 icon: '\u{e944}',
-                message: Message::GotoHomePage,
+                message: SidebarMessage::GotoHomePage,
                 tooltip: "Home",
                 name: SideBarActiveButton::Overview,
             },
             SidebarButton {
                 text: "Add Download",
                 icon: '\u{efc0}',
-                message: Message::Sidebar(SidebarMessage::NewDownloadForm),
+                message: SidebarMessage::NewDownloadForm,
                 tooltip: "Add new download",
                 name: SideBarActiveButton::AddDownload,
             },
             SidebarButton {
                 text: "Pause All",
                 icon: '\u{eca5}',
-                message: Message::Sidebar(SidebarMessage::PauseAll),
+                message: SidebarMessage::PauseAll,
                 tooltip: "Pause all downloads",
                 name: SideBarActiveButton::PauseAll,
             },
             SidebarButton {
                 text: "Resume All",
                 icon: '\u{eca8}',
-                message: Message::Sidebar(SidebarMessage::ResumeAll),
+                message: SidebarMessage::ResumeAll,
                 tooltip: "Resume all downloads",
                 name: SideBarActiveButton::ResumeAll,
             },
             SidebarButton {
                 text: "Delete All",
                 icon: '\u{edec}',
-                message: Message::Sidebar(SidebarMessage::DeleteConfirm),
+                message: SidebarMessage::DeleteConfirm,
                 tooltip: "Delete all downloads",
                 name: SideBarActiveButton::DeleteAll,
             },
             SidebarButton {
                 text: "Import",
                 icon: '\u{ec84}',
-                message: Message::Sidebar(SidebarMessage::Import),
+                message: SidebarMessage::Import,
                 tooltip: "Import file with links",
                 name: SideBarActiveButton::Import,
             },
             SidebarButton {
                 text: "Settings",
                 icon: '\u{ec83}',
-                message: Message::Sidebar(SidebarMessage::Settings),
+                message: SidebarMessage::Settings,
                 tooltip: "Settings",
                 name: SideBarActiveButton::Settings,
             },
             SidebarButton {
                 text: "Shortcuts",
                 icon: '\u{ea54}',
-                message: Message::Sidebar(SidebarMessage::Shortcuts),
+                message: SidebarMessage::Shortcuts,
                 tooltip: "Shortcuts",
                 name: SideBarActiveButton::Shortcuts,
             },
             SidebarButton {
                 text: "Collapse",
                 icon: '\u{ef1e}',
-                message: Message::Sidebar(SidebarMessage::Expand),
+                message: SidebarMessage::Expand,
                 tooltip: "Expand sidebar",
                 name: SideBarActiveButton::Null,
             },

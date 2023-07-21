@@ -1,7 +1,7 @@
 mod subscription;
 mod update;
 mod view;
-use crate::messages::DownloadStateMessage;
+use crate::messages::DownloadMessage;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::Path, time::SystemTime};
 
@@ -149,10 +149,6 @@ impl AtomDownload {
 
     pub fn get_download_size(&self) -> usize {
         self.size
-    }
-
-    pub fn set_deleted(&mut self, is_deleted: bool) {
-        self.is_deleted = is_deleted;
     }
 
     pub fn is_downloaded(&self) -> bool {

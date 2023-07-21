@@ -1,7 +1,7 @@
 use super::AtomSidebar;
 use crate::{
     font::{icon, CustomFont},
-    messages::{Message, SideBarState, SidebarMessage},
+    messages::{SideBarState, SidebarMessage},
     style::{AtomStyleButton, AtomStyleContainer, Theme},
 };
 use iced::{
@@ -10,7 +10,7 @@ use iced::{
 };
 
 impl<'a> AtomSidebar<'a> {
-    pub fn get_sidebar_button(&self) -> Element<'static, Message, Renderer<Theme>> {
+    pub fn get_sidebar_button(&self) -> Element<SidebarMessage, Renderer<Theme>> {
         let icon_size = 20;
         let button_padding = 0;
 
@@ -63,7 +63,7 @@ impl<'a> AtomSidebar<'a> {
                 .padding(1)
                 .on_press(
                     if mb.text == "Collapse" && matches!(self.state, SideBarState::Full) {
-                        Message::Sidebar(SidebarMessage::Collapse)
+                        SidebarMessage::Collapse
                     } else {
                         mb.message.to_owned()
                     },
@@ -86,7 +86,7 @@ impl<'a> AtomSidebar<'a> {
             .into()
     }
 
-    pub fn view(&self) -> Element<'static, Message, Renderer<Theme>> {
+    pub fn view(&self) -> Element<SidebarMessage, Renderer<Theme>> {
         let menu_buttons = self.get_sidebar_button();
 
         container(

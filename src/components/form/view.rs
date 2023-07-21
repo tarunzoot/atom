@@ -1,10 +1,10 @@
 use super::AtomDownloadForm;
 use crate::{
-    components::download::{AtomDownload, DownloadType},
     font::{icon, CustomFont},
-    messages::{DownloadFormMessage, Message},
+    gui::GuiElements,
+    messages::DownloadFormMessage,
     style::{AtomStyleButton, AtomStyleContainer, AtomStyleInput, Theme},
-    utils::helpers::{atom_button, ButtonType, ATOM_INPUT_DEFAULT_PADDING},
+    utils::helpers::ATOM_INPUT_DEFAULT_PADDING,
 };
 use iced::{
     widget::{
@@ -15,7 +15,7 @@ use iced::{
 };
 
 impl AtomDownloadForm {
-    pub fn view(&self) -> Element<'static, Message, Renderer<Theme>> {
+    pub fn view(&self) -> Element<DownloadFormMessage, Renderer<Theme>> {
         let http_headers = vec![
             "accept".to_string(),
             "accept_charset".to_string(),
@@ -98,29 +98,13 @@ impl AtomDownloadForm {
             "x_xss_protection".to_string(),
         ];
 
-        let mut download_btn = atom_button(
-            ButtonType::IconWithText,
-            vec![icon('\u{eee5}', CustomFont::IcoFont), text("download")],
-        );
+        let mut download_btn = GuiElements::primary_button(vec![
+            icon('\u{eee5}', CustomFont::IcoFont),
+            text("download"),
+        ]);
 
-        if !self.url.is_empty() && !self.file_name.is_empty() && self.is_valid_url {
-            match AtomDownload::new()
-                .url(&self.url)
-                .auto_set_file_name_path(&self.file_name)
-                .file_size(self.size)
-                .headers(self.headers.clone())
-                .download_type(if self.sequential {
-                    DownloadType::Sequential
-                } else {
-                    DownloadType::Threaded
-                })
-                .build()
-            {
-                Ok(atom_download) => {
-                    download_btn = download_btn.on_press(Message::AddNewDownload(atom_download));
-                }
-                Err(e) => log::warn!("Error: new download error, {:#?}", e),
-            }
+        if self.is_valid_url {
+            download_btn = download_btn.on_press(DownloadFormMessage::AddNewDownload);
         }
 
         let headers = self.headers.iter().fold(
@@ -140,16 +124,14 @@ impl AtomDownloadForm {
                             .push(text(header.1).width(iced::Length::Fill).size(14))
                             .push(
                                 button(icon('\u{ec55}', CustomFont::IcoFont).size(14))
-                                    .on_press(Message::DownloadForm(
-                                        DownloadFormMessage::EditHeader(header.0.to_string()),
-                                    ))
+                                    .on_press(DownloadFormMessage::EditHeader(header.0.to_string()))
                                     .style(AtomStyleButton::RoundButton)
                                     .width(iced::Length::Shrink),
                             )
                             .push(
                                 button(icon('\u{ec53}', CustomFont::IcoFont).size(14))
-                                    .on_press(Message::DownloadForm(
-                                        DownloadFormMessage::DeleteHeader(header.0.to_string()),
+                                    .on_press(DownloadFormMessage::DeleteHeader(
+                                        header.0.to_string(),
                                     ))
                                     .style(AtomStyleButton::RoundButton)
                                     .width(iced::Length::Shrink),
@@ -164,7 +146,7 @@ impl AtomDownloadForm {
             toggler(
                 Some("Download Sequentially".to_string()),
                 self.sequential,
-                |checked| Message::DownloadForm(DownloadFormMessage::DownloadSequentially(checked)),
+                DownloadFormMessage::DownloadSequentially,
             )
             .spacing(10)
             .text_alignment(iced::alignment::Horizontal::Left)
@@ -178,7 +160,7 @@ impl AtomDownloadForm {
                             .to_string(),
                     ),
                     self.auto_referer,
-                    |checked| Message::DownloadForm(DownloadFormMessage::AutoReferer(checked)),
+                    DownloadFormMessage::AutoReferer,
                 )
                 .spacing(10)
                 .text_alignment(iced::alignment::Horizontal::Left)
@@ -199,9 +181,7 @@ impl AtomDownloadForm {
                 .push(
                     column!().spacing(5).push(text("URL")).push(
                         text_input("e.g: https://www.example.org/file.mp4", &self.url)
-                            .on_input(|value| {
-                                Message::DownloadForm(DownloadFormMessage::UrlChange(value))
-                            })
+                            .on_input(DownloadFormMessage::UrlChange)
                             .padding(ATOM_INPUT_DEFAULT_PADDING),
                     ),
                 )
@@ -211,13 +191,11 @@ impl AtomDownloadForm {
                             text_input("e.g: file.mp4", &self.file_name)
                                 .style(AtomStyleInput::Disabled)
                                 .padding(ATOM_INPUT_DEFAULT_PADDING),
-                            atom_button(
-                                ButtonType::IconWithText,
-                                vec![icon('\u{ee00}', CustomFont::IcoFont), text("save as")],
-                            )
-                            .on_press(Message::DownloadForm(
-                                DownloadFormMessage::BrowseSaveAsFolder
-                            ))
+                            GuiElements::primary_button(vec![
+                                icon('\u{ee00}', CustomFont::IcoFont),
+                                text("save as")
+                            ],)
+                            .on_press(DownloadFormMessage::BrowseSaveAsFolder)
                             .padding(Padding::from([7, 15]))
                         ]
                         .spacing(10)
@@ -235,11 +213,7 @@ impl AtomDownloadForm {
                                 .push(pick_list(
                                     http_headers,
                                     Some(self.header_name.to_string()),
-                                    |value: String| {
-                                        Message::DownloadForm(DownloadFormMessage::AddHeaderName(
-                                            value,
-                                        ))
-                                    },
+                                    DownloadFormMessage::AddHeaderName,
                                 ))
                                 .push(
                                     text_input(
@@ -247,19 +221,15 @@ impl AtomDownloadForm {
                                         "header value here ...",
                                         &self.header_value,
                                     )
-                                    .on_input(|value| {
-                                        Message::DownloadForm(DownloadFormMessage::AddHeaderValue(
-                                            value,
-                                        ))
-                                    })
+                                    .on_input(DownloadFormMessage::AddHeaderValue)
                                     .padding(ATOM_INPUT_DEFAULT_PADDING),
                                 )
                                 .push(
-                                    atom_button(
-                                        ButtonType::IconWithText,
-                                        vec![icon('\u{efc2}', CustomFont::IcoFont), text("Add")],
-                                    )
-                                    .on_press(Message::DownloadForm(DownloadFormMessage::AddHeader))
+                                    GuiElements::primary_button(vec![
+                                        icon('\u{efc2}', CustomFont::IcoFont),
+                                        text("Add"),
+                                    ])
+                                    .on_press(DownloadFormMessage::AddHeader)
                                     .padding(Padding::from([7, 15])),
                                 ),
                         ),
@@ -283,11 +253,11 @@ impl AtomDownloadForm {
                         // .align_items(iced::Alignment::Fill)
                         .push(download_btn)
                         .push(
-                            atom_button(
-                                ButtonType::IconWithText,
-                                vec![icon('\u{eede}', CustomFont::IcoFont), text("cancel")],
-                            )
-                            .on_press(Message::GotoHomePage),
+                            GuiElements::primary_button(vec![
+                                icon('\u{eede}', CustomFont::IcoFont),
+                                text("cancel"),
+                            ])
+                            .on_press(DownloadFormMessage::ClosePane),
                         ),
                 )
                 .height(iced::Length::Fill)

@@ -1,9 +1,5 @@
 use crate::{
-    components::{
-        download::{AtomDownload, DownloadType},
-        import::AtomImport,
-        settings::AtomSettings,
-    },
+    components::download::{AtomDownload, DownloadType},
     utils::json_from_browser::JSONFromBrowser,
 };
 use std::path::PathBuf;
@@ -16,7 +12,7 @@ pub struct DownloadProperties {
 }
 
 #[derive(Debug, Clone)]
-pub enum DownloadStateMessage {
+pub enum DownloadMessage {
     SetFileSize(usize, usize),
     Downloading,
     DownloadProgress(usize),
@@ -25,6 +21,10 @@ pub enum DownloadStateMessage {
     DownloadDoneJoining,
     Finished,
     Error(String),
+    DownloadSelected,
+    MarkDeleted,
+    RemoveDownload,
+    Ignore,
 }
 
 #[derive(Debug, Clone)]
@@ -39,10 +39,12 @@ pub enum DownloadFormMessage {
     FileSavePathChanged(Option<PathBuf>),
     BrowseSaveAsFolder,
     AutoReferer(bool),
+    AddNewDownload,
+    ClosePane,
 }
 
 #[derive(Debug, Clone, Default)]
-pub enum DownloadsFilterListMessage {
+pub enum DownloadsListFilterMessage {
     Downloading,
     Paused,
     Finished,
@@ -60,6 +62,9 @@ pub enum SettingsMessage {
     QuitActionToggle(bool),
     AutoStartDownloadToggle(bool),
     // BrowseCacheDirClicked,
+    ClosePane,
+    OpenConfigDir,
+    SaveSettings,
 }
 
 #[derive(Debug, Clone)]
@@ -68,6 +73,9 @@ pub enum ImportMessage {
     DownloadTypeToggled(bool),
     DownloadFolderSelectClicked,
     DownloadFolder(Option<PathBuf>),
+    StartImportDownload,
+    ClosePane,
+    Ignore,
 }
 
 #[derive(Debug, Clone)]
@@ -82,6 +90,7 @@ pub enum SidebarMessage {
     Import,
     Expand,
     Collapse,
+    GotoHomePage,
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -119,35 +128,40 @@ pub enum TrayMessage {
 }
 
 #[derive(Debug, Clone)]
-pub enum Message {
-    EventsOccurred(iced_native::Event),
+pub enum MetadataMessage {
+    PreviewFile,
+    DeleteFile,
+    ClosePane,
+    Ignore,
+}
+
+#[derive(Debug, Clone)]
+pub enum TitleBarMessage {
     AppExit,
     AppHide,
     AppShow,
     AppMaximize,
     AppMinimize,
     SearchDownload(String),
+}
+
+#[derive(Debug, Clone)]
+pub enum Message {
+    EventsOccurred(iced_native::Event),
+    TitleBar(TitleBarMessage),
     Sidebar(SidebarMessage),
     DownloadForm(DownloadFormMessage),
     NewDownloadReceivedFromBrowser(JSONFromBrowser),
     AddNewDownload(AtomDownload),
     SaveDownloads,
     GotoHomePage,
-    DownloadState(DownloadStateMessage, usize),
-    MarkDownloadDeleted(usize),
-    RemoveDownload(usize),
-    FilterList(DownloadsFilterListMessage),
+    Download(DownloadMessage, usize),
+    DownloadsListFilter(DownloadsListFilterMessage),
     Settings(SettingsMessage),
-    DownloadItemSelected(usize),
-    PreviewFile(String),
-    DeleteFile(String),
-    ClosePreview,
-    OpenConfigDir,
-    SaveSettings(AtomSettings),
+    ShowMetadata(usize),
+    Metadata(MetadataMessage),
     Import(ImportMessage),
-    StartImportDownload(AtomImport),
     TrayMessages(TrayMessage),
     TrayEvent(u32),
     Ignore,
-    // Tick,
 }

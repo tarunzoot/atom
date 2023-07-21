@@ -1,15 +1,15 @@
-use super::{AtomDownload, DownloadStateMessage};
+use super::{AtomDownload, DownloadMessage};
 use crate::components::settings::AtomSettings;
 use std::time::SystemTime;
 
 impl AtomDownload {
-    pub fn update(&mut self, state: DownloadStateMessage, settings: &AtomSettings) {
+    pub fn update(&mut self, state: DownloadMessage, settings: &AtomSettings) {
         match state {
-            DownloadStateMessage::SetFileSize(size, file_size) => {
+            DownloadMessage::SetFileSize(size, file_size) => {
                 self.size = size;
                 self.downloaded = file_size
             }
-            DownloadStateMessage::Error(error) => {
+            DownloadMessage::Error(error) => {
                 self.error = error;
                 if settings.show_notifications
                     && notify_rust::Notification::new()
@@ -25,11 +25,11 @@ impl AtomDownload {
                     log::debug!("[ATOM] error notification failed!");
                 }
             }
-            DownloadStateMessage::DownloadDoneJoining => {
+            DownloadMessage::DownloadDoneJoining => {
                 self.is_joining = true;
                 self.is_downloading = false;
             }
-            DownloadStateMessage::Finished => {
+            DownloadMessage::Finished => {
                 self.is_downloading = false;
                 self.is_joining = false;
                 self.download_this_session = 0;
@@ -53,7 +53,7 @@ impl AtomDownload {
                     std::fs::remove_file(file).ok();
                 });
             }
-            DownloadStateMessage::DownloadProgress(downloaded) => {
+            DownloadMessage::DownloadProgress(downloaded) => {
                 if downloaded > self.downloaded {
                     let chunk_len = downloaded - self.downloaded;
                     self.downloaded = downloaded;
@@ -73,21 +73,28 @@ impl AtomDownload {
                     }
                 }
             }
-            DownloadStateMessage::JoiningProgress(bytes) => {
+            DownloadMessage::JoiningProgress(bytes) => {
                 self.joined_bytes += bytes;
                 self.is_joining = true;
                 // self.is_downloading = true;
             }
-            DownloadStateMessage::Downloading => {
+            DownloadMessage::Downloading => {
                 self.is_downloading = true;
                 self.error = String::default();
                 self.elapsed_time = Some(SystemTime::now());
             }
-            DownloadStateMessage::Paused => {
+            DownloadMessage::Paused => {
                 self.is_downloading = false;
                 self.is_joining = false;
                 self.download_this_session = 0;
             }
+            DownloadMessage::DownloadSelected => {
+                // return Command::perform(async {}, |_| Message::ShowMetadata(index))
+            }
+            DownloadMessage::MarkDeleted => {
+                self.is_deleted = true;
+            }
+            _ => {}
         }
     }
 }

@@ -1,9 +1,10 @@
 use super::AtomSettings;
 use crate::{
     font::{icon, CustomFont::IcoFont},
-    messages::{Message, SettingsMessage},
+    gui::GuiElements,
+    messages::SettingsMessage,
     style::{AtomStyleContainer, AtomStyleInput, Theme},
-    utils::helpers::{atom_button, ButtonType, ATOM_INPUT_DEFAULT_PADDING},
+    utils::helpers::ATOM_INPUT_DEFAULT_PADDING,
 };
 use iced::{
     widget::{column as col, container, row, slider, text, text_input, toggler, tooltip},
@@ -11,7 +12,7 @@ use iced::{
 };
 
 impl AtomSettings {
-    pub fn view(&self) -> Element<'static, Message, Renderer<Theme>> {
+    pub fn view(&self) -> Element<SettingsMessage, Renderer<Theme>> {
         let config_dir_col = col!()
             .spacing(5)
             .push(text("Configuration Directory"))
@@ -26,11 +27,8 @@ impl AtomSettings {
                             .padding(ATOM_INPUT_DEFAULT_PADDING),
                     )
                     .push(
-                        atom_button(
-                            ButtonType::IconWithText,
-                            vec![icon('\u{ef36}', IcoFont), text("open")],
-                        )
-                        .on_press(Message::OpenConfigDir),
+                        GuiElements::primary_button(vec![icon('\u{ef36}', IcoFont), text("open")])
+                            .on_press(SettingsMessage::OpenConfigDir),
                     ),
             );
 
@@ -62,44 +60,31 @@ impl AtomSettings {
                     .spacing(10)
                     .push(
                         text_input("", &self.downloads_dir)
-                            .on_input(|_| {
-                                Message::Settings(SettingsMessage::BrowseDownloadsDirClicked)
-                            })
+                            .on_input(|_| SettingsMessage::BrowseDownloadsDirClicked)
                             .padding(ATOM_INPUT_DEFAULT_PADDING),
                     )
                     .push(
-                        atom_button(
-                            ButtonType::IconWithText,
-                            vec![icon('\u{ef13}', IcoFont), text("browse")],
-                        )
-                        .on_press(Message::Settings(
-                            SettingsMessage::BrowseDownloadsDirClicked,
-                        )),
+                        GuiElements::primary_button(vec![
+                            icon('\u{ef13}', IcoFont),
+                            text("browse"),
+                        ])
+                        .on_press(SettingsMessage::BrowseDownloadsDirClicked),
                     ),
             );
 
         let buttons_row = row!()
             .spacing(20)
             .push(
-                atom_button(
-                    ButtonType::IconWithText,
-                    vec![icon('\u{ef43}', IcoFont), text("save")],
-                )
-                .on_press(Message::SaveSettings(self.clone())),
+                GuiElements::primary_button(vec![icon('\u{ef43}', IcoFont), text("save")])
+                    .on_press(SettingsMessage::SaveSettings),
             )
             .push(
-                atom_button(
-                    ButtonType::IconWithText,
-                    vec![icon('\u{efd0}', IcoFont), text("clear cache")],
-                )
-                .on_press(Message::Settings(SettingsMessage::ClearCacheClicked)),
+                GuiElements::primary_button(vec![icon('\u{efd0}', IcoFont), text("clear cache")])
+                    .on_press(SettingsMessage::ClearCacheClicked),
             )
             .push(
-                atom_button(
-                    ButtonType::IconWithText,
-                    vec![icon('\u{eede}', IcoFont), text("cancel")],
-                )
-                .on_press(Message::GotoHomePage),
+                GuiElements::primary_button(vec![icon('\u{eede}', IcoFont), text("cancel")])
+                    .on_press(SettingsMessage::ClosePane),
             );
 
         let options_row = row!()
@@ -110,7 +95,7 @@ impl AtomSettings {
                             Some("Show download completion/error notification".into()),
                             self.show_notifications,
                             |checked| {
-                                Message::Settings(SettingsMessage::NotificationToggle(checked))
+                                SettingsMessage::NotificationToggle(checked)
                             },
                         )
                         .spacing(10)
@@ -121,7 +106,7 @@ impl AtomSettings {
                         toggler(
                             Some("Close button quits app".into()),
                             self.quit_action_closes_app,
-                            |checked| Message::Settings(SettingsMessage::QuitActionToggle(checked)),
+                            SettingsMessage::QuitActionToggle,
                         )
                         .spacing(10)
                         .text_alignment(iced::alignment::Horizontal::Left)
@@ -131,7 +116,7 @@ impl AtomSettings {
                         tooltip(toggler(
                             Some("Auto start download from browser".into()),
                             self.auto_start_download,
-                            |checked| Message::Settings(SettingsMessage::AutoStartDownloadToggle(checked)),
+                            SettingsMessage::AutoStartDownloadToggle
                         )
                         .spacing(10)
                         .text_alignment(iced::alignment::Horizontal::Left)
@@ -155,7 +140,7 @@ impl AtomSettings {
                     .push(text(format!("Threads : {}", self.threads)))
                     .push(
                         slider(2..=8, self.threads, |threads| {
-                            Message::Settings(SettingsMessage::ThreadsChanged(threads))
+                            SettingsMessage::ThreadsChanged(threads)
                         })
                         .width(iced::Length::Fill),
                     ),

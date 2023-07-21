@@ -1,6 +1,6 @@
 use crate::{
     font::{icon, CustomFont},
-    messages::{DownloadsFilterListMessage, Message, SideBarActiveButton},
+    messages::{DownloadsListFilterMessage, Message, SideBarActiveButton},
     style::{AtomStyleButton, AtomStyleContainer, Theme},
 };
 use iced::{
@@ -27,25 +27,25 @@ impl<'a> Default for AtomDownloadStates<'a> {
             FilterButton {
                 icon: '\u{eee5}',
                 text: "Downloading",
-                message: Message::FilterList(DownloadsFilterListMessage::Downloading),
+                message: Message::DownloadsListFilter(DownloadsListFilterMessage::Downloading),
                 state: SideBarActiveButton::Downloading,
             },
             FilterButton {
                 icon: '\u{eca5}',
                 text: "Paused",
-                message: Message::FilterList(DownloadsFilterListMessage::Paused),
+                message: Message::DownloadsListFilter(DownloadsListFilterMessage::Paused),
                 state: SideBarActiveButton::Paused,
             },
             FilterButton {
                 icon: '\u{f00d}',
                 text: "Finished",
-                message: Message::FilterList(DownloadsFilterListMessage::Finished),
+                message: Message::DownloadsListFilter(DownloadsListFilterMessage::Finished),
                 state: SideBarActiveButton::Finished,
             },
             FilterButton {
                 icon: '\u{ec53}',
                 text: "Trash",
-                message: Message::FilterList(DownloadsFilterListMessage::Deleted),
+                message: Message::DownloadsListFilter(DownloadsListFilterMessage::Deleted),
                 state: SideBarActiveButton::Trash,
             },
         ];
@@ -57,7 +57,7 @@ impl<'a> Default for AtomDownloadStates<'a> {
 }
 
 impl<'a> AtomDownloadStates<'a> {
-    pub fn view(&self, active: &SideBarActiveButton) -> Element<'static, Message, Renderer<Theme>> {
+    pub fn view(&self, active: &SideBarActiveButton) -> Element<Message, Renderer<Theme>> {
         let df_buttons_row = self.download_filter_buttons.iter().fold(
             row!()
                 .spacing(0)

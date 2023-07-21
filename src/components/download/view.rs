@@ -1,7 +1,8 @@
 use super::AtomDownload;
 use crate::{
-    font::{file_type_icon, icon, CustomFont},
-    messages::{DownloadStateMessage, Message},
+    font::file_type_icon,
+    gui::GuiElements,
+    messages::DownloadMessage,
     style::{AtomStyleButton, AtomStyleContainer, Theme},
     utils::helpers::get_formatted_time,
 };
@@ -11,7 +12,7 @@ use iced::{
 };
 
 impl AtomDownload {
-    pub fn view(&self, index: usize) -> Element<'static, Message, Renderer<Theme>> {
+    pub fn view(&self) -> Element<DownloadMessage, Renderer<Theme>> {
         let size_format = |size: usize| -> (f64, &str) {
             let suffix = vec!["Bytes", "KB", "MB", "GB"];
             let size_len = size.to_string().len();
@@ -31,13 +32,12 @@ impl AtomDownload {
         let progress = ((self.downloaded * 100) as f64 / self.size as f64) as f32;
 
         let download_state_icon = if self.is_downloading {
-            icon('\u{ec72}', CustomFont::IcoFont)
+            '\u{ec72}'
         } else if self.is_downloaded() {
-            icon('\u{ec7f}', CustomFont::IcoFont)
+            '\u{ec7f}'
         } else {
-            icon('\u{ec74}', CustomFont::IcoFont)
-        }
-        .size(12);
+            '\u{ec74}'
+        };
 
         let transfer_rate = format!("{0:6.2} MB/s", self.transfer_rate);
         let eta = if self.size == 0 || self.transfer_rate == 0.0 {
@@ -108,48 +108,21 @@ impl AtomDownload {
 
         let mut actions_row = row!().spacing(5);
         if !self.is_deleted {
-            let mut start_pause_btn = button(
-                container(download_state_icon)
-                    .width(iced::Length::Fill)
-                    .style(AtomStyleContainer::ButtonContainer),
-            );
+            let mut start_pause_btn = GuiElements::round_button(download_state_icon);
 
             if self.is_downloading {
-                start_pause_btn = start_pause_btn
-                    .on_press(Message::DownloadState(DownloadStateMessage::Paused, index));
+                start_pause_btn = start_pause_btn.on_press(DownloadMessage::Paused);
+            } else if self.is_joining {
             } else {
-                start_pause_btn = start_pause_btn.on_press(Message::DownloadState(
-                    DownloadStateMessage::Downloading,
-                    index,
-                ));
+                start_pause_btn = start_pause_btn.on_press(DownloadMessage::Downloading);
             }
 
             actions_row = actions_row
-                .push(
-                    start_pause_btn
-                        .padding(8)
-                        .style(AtomStyleButton::RoundButton),
-                )
-                .push(
-                    button(
-                        container(icon('\u{ee09}', CustomFont::IcoFont).size(12))
-                            .width(iced::Length::Fill)
-                            .style(AtomStyleContainer::ButtonContainer),
-                    )
-                    .on_press(Message::MarkDownloadDeleted(index))
-                    .padding(8)
-                    .style(AtomStyleButton::RoundButton),
-                );
+                .push(start_pause_btn)
+                .push(GuiElements::round_button('\u{ee09}').on_press(DownloadMessage::MarkDeleted));
         } else {
             actions_row = actions_row.push(
-                button(
-                    container(icon('\u{ee09}', CustomFont::IcoFont).size(12))
-                        .width(iced::Length::Fill)
-                        .style(AtomStyleContainer::ButtonContainer),
-                )
-                .on_press(Message::RemoveDownload(index))
-                .padding(8)
-                .style(AtomStyleButton::RoundButton),
+                GuiElements::round_button('\u{ee09}').on_press(DownloadMessage::RemoveDownload),
             );
         }
 
@@ -188,9 +161,9 @@ impl AtomDownload {
         let mut download_container = container(
             button(main_row)
                 .on_press(if self.is_deleted {
-                    Message::Ignore
+                    DownloadMessage::Ignore
                 } else {
-                    Message::DownloadItemSelected(index)
+                    DownloadMessage::DownloadSelected
                 })
                 .padding(0)
                 .style(AtomStyleButton::Neutral),

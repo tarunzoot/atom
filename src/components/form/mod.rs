@@ -3,6 +3,8 @@ mod view;
 use crate::components::{download::AtomDownload, settings::AtomSettings};
 use std::collections::HashMap;
 
+use super::download::DownloadType;
+
 #[derive(Debug, Default)]
 pub struct AtomDownloadForm {
     pub url: String,
@@ -27,6 +29,20 @@ impl AtomDownloadForm {
             is_valid_url: true,
             ..Default::default()
         }
+    }
+
+    pub fn make_download(&self) -> Result<AtomDownload, &str> {
+        AtomDownload::new()
+            .url(&self.url)
+            .auto_set_file_name_path(&self.file_name)
+            .file_size(self.size)
+            .headers(self.headers.clone())
+            .download_type(if self.sequential {
+                DownloadType::Sequential
+            } else {
+                DownloadType::Threaded
+            })
+            .build()
     }
 
     pub fn reset(&mut self) {

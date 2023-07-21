@@ -4,14 +4,9 @@ use crate::{
         settings::AtomSettings,
     },
     messages::{DownloadProperties, Message},
-    style::{AtomStyleContainer, Theme},
     utils::json_from_browser::JSONFromBrowser,
 };
-use iced::{
-    subscription,
-    widget::{button, container, row, Button},
-    Padding, Renderer,
-};
+use iced::subscription;
 use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue, ACCEPT_RANGES, CONTENT_LENGTH, USER_AGENT},
     Client,
@@ -28,14 +23,6 @@ use tray_icon::menu::MenuEvent;
 
 pub const ATOM_USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.72 Safari/537.36";
 pub const ATOM_INPUT_DEFAULT_PADDING: u16 = 6;
-pub const ATOM_BUTTON_DEFAULT_PADDING: u16 = 7;
-
-pub enum ButtonType {
-    // Rounded,
-    // Regular,
-    // Icon,
-    IconWithText,
-}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TomlDownloads {
@@ -297,38 +284,6 @@ pub fn parse_downloads_toml(downloads_file_path: &PathBuf) -> BTreeMap<usize, At
     }
 
     downloads
-}
-
-/**
- *
- */
-pub fn atom_button(
-    button_type: ButtonType,
-    content: Vec<impl Into<iced::Element<'static, Message, Renderer<Theme>>>>,
-) -> Button<'static, Message, Renderer<Theme>> {
-    let content_row = content
-        .into_iter()
-        .fold(row!(), |row, child| row.push(child))
-        .align_items(iced::Alignment::Center)
-        .spacing(5);
-
-    let button = button(
-        container(content_row)
-            .width(iced::Length::Fill)
-            .center_x()
-            .style(AtomStyleContainer::ButtonContainer),
-    )
-    // .width(iced::Length::Fill)
-    .padding(Padding::from([
-        ATOM_BUTTON_DEFAULT_PADDING,
-        15,
-        ATOM_BUTTON_DEFAULT_PADDING,
-        15,
-    ]));
-
-    match button_type {
-        ButtonType::IconWithText => button,
-    }
 }
 
 pub fn handle_web_request(is_exiting: bool) -> iced_native::subscription::Subscription<Message> {

@@ -1,27 +1,23 @@
 use super::AtomImport;
+use crate::{
+    font::{icon, CustomFont::IcoFont},
+    gui::GuiElements,
+    messages::ImportMessage,
+    style::{AtomStyleContainer, AtomStyleInput, Theme},
+    utils::helpers::ATOM_INPUT_DEFAULT_PADDING,
+};
 use iced::{
     widget::{column as col, container, row, text, text_input, toggler},
     Element, Padding, Renderer,
 };
 
-use crate::{
-    // styles::style::{AtomInputDisabled, AtomToggler},
-    font::{icon, CustomFont::IcoFont},
-    messages::{ImportMessage, Message},
-    style::{AtomStyleContainer, AtomStyleInput, Theme},
-    utils::helpers::{atom_button, ButtonType, ATOM_INPUT_DEFAULT_PADDING},
-};
-
 impl AtomImport {
-    pub fn view(&self) -> Element<'static, Message, Renderer<Theme>> {
-        let mut start_download_btn = atom_button(
-            ButtonType::IconWithText,
-            vec![icon('\u{eee5}', IcoFont), text("start download")],
-        );
+    pub fn view(&self) -> Element<ImportMessage, Renderer<Theme>> {
+        let mut start_download_btn =
+            GuiElements::primary_button(vec![icon('\u{eee5}', IcoFont), text("start download")]);
 
         if !self.import_file.is_empty() {
-            start_download_btn =
-                start_download_btn.on_press(Message::StartImportDownload(self.clone()));
+            start_download_btn = start_download_btn.on_press(ImportMessage::StartImportDownload);
         }
 
         container(
@@ -40,16 +36,16 @@ impl AtomImport {
                             .align_items(iced::Alignment::Center)
                             .push(
                                 text_input("selected file will appear here", &self.import_file)
-                                    .on_input(|_| Message::Ignore)
+                                    .on_input(|_| ImportMessage::Ignore)
                                     .width(iced::Length::Fill)
                                     .padding(ATOM_INPUT_DEFAULT_PADDING),
                             )
                             .push(
-                                atom_button(
-                                    ButtonType::IconWithText,
-                                    vec![icon('\u{ef13}', IcoFont), text("browse")],
-                                )
-                                .on_press(Message::Import(ImportMessage::ImportFileClicked)),
+                                GuiElements::primary_button(vec![
+                                    icon('\u{ef13}', IcoFont),
+                                    text("browse"),
+                                ])
+                                .on_press(ImportMessage::ImportFileClicked),
                             ),
                     ),
                 )
@@ -66,13 +62,11 @@ impl AtomImport {
                                     .padding(ATOM_INPUT_DEFAULT_PADDING),
                             )
                             .push(
-                                atom_button(
-                                    ButtonType::IconWithText,
-                                    vec![icon('\u{ef13}', IcoFont), text("browse")],
-                                )
-                                .on_press(Message::Import(
-                                    ImportMessage::DownloadFolderSelectClicked,
-                                )),
+                                GuiElements::primary_button(vec![
+                                    icon('\u{ef13}', IcoFont),
+                                    text("browse"),
+                                ])
+                                .on_press(ImportMessage::DownloadFolderSelectClicked),
                             ),
                     ),
                 )
@@ -81,7 +75,7 @@ impl AtomImport {
                         toggler(
                             Some("Download Sequentially".to_string()),
                             self.is_sequential,
-                            |checked| Message::Import(ImportMessage::DownloadTypeToggled(checked)),
+                            ImportMessage::DownloadTypeToggled,
                         )
                         .spacing(10)
                         .text_alignment(iced::alignment::Horizontal::Left)
@@ -90,11 +84,11 @@ impl AtomImport {
                 )
                 .push(
                     row!().spacing(20).push(start_download_btn).push(
-                        atom_button(
-                            ButtonType::IconWithText,
-                            vec![icon('\u{eede}', IcoFont), text("cancel")],
-                        )
-                        .on_press(Message::GotoHomePage),
+                        GuiElements::primary_button(vec![
+                            icon('\u{eede}', IcoFont),
+                            text("cancel"),
+                        ])
+                        .on_press(ImportMessage::ClosePane),
                     ),
                 )
                 .width(iced::Length::Fill),

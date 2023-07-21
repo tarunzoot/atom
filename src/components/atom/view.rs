@@ -2,7 +2,7 @@ use super::{Atom, View};
 use crate::{
     components::{delete_downloads, download::AtomDownload, keybindings, listview_header},
     font::icon,
-    messages::{DownloadsFilterListMessage, Message},
+    messages::{DownloadsListFilterMessage, Message},
     style::{AtomStyleContainer, Theme},
 };
 use iced::{
@@ -13,7 +13,7 @@ use iced::{
 type DownloadTuple<'a> = (&'a usize, &'a AtomDownload);
 
 impl<'a> Atom<'a> {
-    fn filter_downloads_view(&self) -> Element<'a, Message, Renderer<Theme>> {
+    fn filter_downloads_view(&self) -> Element<Message, Renderer<Theme>> {
         let deleted_filter: Box<dyn Fn(&DownloadTuple) -> bool> =
             Box::new(|f: &(&usize, &AtomDownload)| f.1.is_deleted);
         let all_filter: Box<dyn Fn(&DownloadTuple) -> bool> =
@@ -38,24 +38,30 @@ impl<'a> Atom<'a> {
             Box::new(|f: &(&usize, &AtomDownload)| f.1.is_downloaded() && !f.1.is_deleted);
 
         let filtered_downloads = match &self.filter_type {
-            DownloadsFilterListMessage::Downloading => {
+            DownloadsListFilterMessage::Downloading => {
                 self.downloads.iter().filter(downloading_filter)
             }
-            DownloadsFilterListMessage::Paused => self.downloads.iter().filter(paused_filter),
-            DownloadsFilterListMessage::Finished => self.downloads.iter().filter(finished_filter),
-            DownloadsFilterListMessage::Deleted => self.downloads.iter().filter(deleted_filter),
-            DownloadsFilterListMessage::All => self.downloads.iter().filter(all_filter),
+            DownloadsListFilterMessage::Paused => self.downloads.iter().filter(paused_filter),
+            DownloadsListFilterMessage::Finished => self.downloads.iter().filter(finished_filter),
+            DownloadsListFilterMessage::Deleted => self.downloads.iter().filter(deleted_filter),
+            DownloadsListFilterMessage::All => self.downloads.iter().filter(all_filter),
         };
 
         let filtered_content = scrollable(filtered_downloads.fold(
             col!().padding(1).spacing(0),
-            |column, (&index, download)| column.push(download.view(index)),
+            |column, (index, download)| {
+                column.push(
+                    download
+                        .view()
+                        .map(|message| Message::Download(message, *index)),
+                )
+            },
         ));
 
         if self.downloads.is_empty()
-            && !matches!(self.filter_type, DownloadsFilterListMessage::Deleted)
+            && !matches!(self.filter_type, DownloadsListFilterMessage::Deleted)
         {
-            self.download_form.view()
+            self.download_form.view().map(Message::DownloadForm)
         } else {
             container(
                 col!()
@@ -94,7 +100,7 @@ impl<'a> Atom<'a> {
                 .height(Length::Fill)
                 .padding(0)
                 .align_items(iced::Alignment::Center)
-                .push(self.titlebar.view(&self.settings))
+                .push(self.titlebar.view(&self.settings).map(Message::TitleBar))
                 .push(
                     container(
                         row!()
@@ -114,18 +120,18 @@ impl<'a> Atom<'a> {
         }
 
         let view = match self.view {
-            View::Import => self.import.view(),
-            View::DeleteConfirm => delete_downloads::view(),
+            View::Import => self.import.view().map(Message::Import),
+            View::DeleteConfirm => delete_downloads::view().map(Message::Sidebar),
             View::Downloads => self.filter_downloads_view(),
-            View::NewDownloadForm => self.download_form.view(),
-            View::Settings => self.settings.view(),
+            View::NewDownloadForm => self.download_form.view().map(Message::DownloadForm),
+            View::Settings => self.settings.view().map(Message::Settings),
             View::Shortcuts => keybindings::view(),
         };
 
         let mut items_row = row!()
             .push(
                 col!().align_items(Alignment::Center).push(
-                    container(self.sidebar.view())
+                    container(self.sidebar.view().map(Message::Sidebar))
                         .padding(Padding::from([20, 15]))
                         .height(iced::Length::Fill),
                 ),
@@ -151,7 +157,7 @@ impl<'a> Atom<'a> {
 
         if self.metadata.enabled {
             items_row = items_row.push(
-                container(self.metadata.view())
+                container(self.metadata.view().map(Message::Metadata))
                     .padding(Padding::from([20, 15]))
                     .height(iced::Length::Fill),
             );
@@ -162,7 +168,7 @@ impl<'a> Atom<'a> {
             .height(Length::Fill)
             .padding(0)
             .align_items(iced::Alignment::Center)
-            .push(self.titlebar.view(&self.settings))
+            .push(self.titlebar.view(&self.settings).map(Message::TitleBar))
             .push(items_row);
 
         container(main_row)

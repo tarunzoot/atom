@@ -1,7 +1,7 @@
 use crate::{
     components::settings::AtomSettings,
     font::{icon, CustomFont},
-    messages::Message,
+    messages::TitleBarMessage,
     style::{AtomStyleButton, AtomStyleContainer, AtomStyleInput, Theme},
 };
 use iced::{
@@ -15,7 +15,7 @@ pub struct AtomTitleBar {
 }
 
 impl AtomTitleBar {
-    pub fn view(&self, settings: &AtomSettings) -> Element<'static, Message, Renderer<Theme>> {
+    pub fn view(&self, settings: &AtomSettings) -> Element<TitleBarMessage, Renderer<Theme>> {
         container(
             row!()
                 .spacing(20)
@@ -40,7 +40,7 @@ impl AtomTitleBar {
                                     .push(
                                         container(
                                             text_input("search downloads...", &self.search_text)
-                                                .on_input(Message::SearchDownload)
+                                                .on_input(TitleBarMessage::SearchDownload)
                                                 .padding(Padding::from([8, 20, 8, 20]))
                                                 .style(AtomStyleInput::Search),
                                         )
@@ -59,7 +59,7 @@ impl AtomTitleBar {
                                                     )
                                                     .padding(17)
                                                     .style(AtomStyleButton::HeaderButtons)
-                                                    .on_press(Message::AppMinimize),
+                                                    .on_press(TitleBarMessage::AppMinimize),
                                                 )
                                                 .push(
                                                     button(
@@ -68,7 +68,7 @@ impl AtomTitleBar {
                                                     )
                                                     .padding(17)
                                                     .style(AtomStyleButton::HeaderButtons)
-                                                    .on_press(Message::AppMaximize),
+                                                    .on_press(TitleBarMessage::AppMaximize),
                                                 )
                                                 .push(
                                                     button(
@@ -78,9 +78,9 @@ impl AtomTitleBar {
                                                     .padding(17)
                                                     .style(AtomStyleButton::HeaderButtons)
                                                     .on_press(if settings.quit_action_closes_app {
-                                                        Message::AppExit
+                                                        TitleBarMessage::AppExit
                                                     } else {
-                                                        Message::AppHide
+                                                        TitleBarMessage::AppHide
                                                     }),
                                                 ),
                                         )

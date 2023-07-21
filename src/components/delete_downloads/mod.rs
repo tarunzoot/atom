@@ -1,15 +1,15 @@
 use crate::{
     font::{icon, CustomFont},
-    messages::{Message, SidebarMessage},
+    gui::GuiElements,
+    messages::SidebarMessage,
     style::{AtomStyleContainer, Theme},
-    utils::helpers::{atom_button, ButtonType},
 };
 use iced::{
     widget::{column, container, row, text},
     Element, Length, Renderer,
 };
 
-pub fn view() -> Element<'static, Message, Renderer<Theme>> {
+pub fn view() -> Element<'static, SidebarMessage, Renderer<Theme>> {
     container(
         column!()
             .spacing(20)
@@ -22,20 +22,20 @@ pub fn view() -> Element<'static, Message, Renderer<Theme>> {
                         .width(Length::Shrink)
                         .align_items(iced::Alignment::Center)
                         .push(
-                            atom_button(
-                                ButtonType::IconWithText,
-                                vec![icon('\u{ec53}', CustomFont::IcoFont), text("delete")],
-                            )
+                            GuiElements::primary_button(vec![
+                                icon('\u{ec53}', CustomFont::IcoFont),
+                                text("delete"),
+                            ])
                             .width(Length::Fixed(170.0))
-                            .on_press(Message::Sidebar(SidebarMessage::DeleteAll)),
+                            .on_press(SidebarMessage::DeleteAll),
                         )
                         .push(
-                            atom_button(
-                                ButtonType::IconWithText,
-                                vec![icon('\u{eede}', CustomFont::IcoFont), text("cancel")],
-                            )
+                            GuiElements::primary_button(vec![
+                                icon('\u{eede}', CustomFont::IcoFont),
+                                text("cancel"),
+                            ])
                             .width(Length::Fixed(170.0))
-                            .on_press(Message::GotoHomePage),
+                            .on_press(SidebarMessage::GotoHomePage),
                         ),
                 )
                 .style(AtomStyleContainer::Transparent)

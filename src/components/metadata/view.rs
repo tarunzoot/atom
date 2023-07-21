@@ -1,11 +1,10 @@
 use super::AtomDownloadMetadata;
 use crate::{
     font::{file_type_icon, icon, CustomFont},
-    messages::Message,
+    gui::GuiElements,
+    messages::MetadataMessage,
     style::{AtomStyleButton, AtomStyleContainer, AtomStyleText, Theme},
-    utils::helpers::{
-        atom_button, get_file_type, get_formatted_time, get_relative_file_size, ButtonType,
-    },
+    utils::helpers::{get_file_type, get_formatted_time, get_relative_file_size},
 };
 use iced::{
     widget::{button, column, container, image, row, text, text_input},
@@ -14,31 +13,25 @@ use iced::{
 use std::{path::Path, time::Duration};
 
 impl AtomDownloadMetadata {
-    pub fn view(&self) -> Element<'static, Message, Renderer<Theme>> {
+    pub fn view(&self) -> Element<'static, MetadataMessage, Renderer<Theme>> {
         let file_path = Path::new(&self.file_path);
-        let mut open_btn = atom_button(
-            ButtonType::IconWithText,
-            vec![
-                icon('\u{ef13}', CustomFont::IcoFont).size(12),
-                text("open").size(14),
-            ],
-        )
+        let mut open_btn = GuiElements::primary_button(vec![
+            icon('\u{ef13}', CustomFont::IcoFont).size(12),
+            text("open").size(14),
+        ])
         .padding(7)
         .width(Length::Fill);
 
-        let mut delete_btn = atom_button(
-            ButtonType::IconWithText,
-            vec![
-                icon('\u{ec53}', CustomFont::IcoFont).size(12),
-                text("delete").size(14),
-            ],
-        )
+        let mut delete_btn = GuiElements::primary_button(vec![
+            icon('\u{ec53}', CustomFont::IcoFont).size(12),
+            text("delete").size(14),
+        ])
         .padding(7)
         .width(Length::Fill);
 
         if file_path.exists() {
-            open_btn = open_btn.on_press(Message::PreviewFile(self.file_path.clone()));
-            delete_btn = delete_btn.on_press(Message::DeleteFile(self.file_path.clone()));
+            open_btn = open_btn.on_press(MetadataMessage::PreviewFile);
+            delete_btn = delete_btn.on_press(MetadataMessage::DeleteFile);
         }
 
         let mut preview_column = column!()
@@ -143,7 +136,7 @@ impl AtomDownloadMetadata {
                                             .style(AtomStyleContainer::Transparent)
                                             .width(iced::Length::Fill),
                                     )
-                                    .on_press(Message::ClosePreview)
+                                    .on_press(MetadataMessage::ClosePane)
                                     .padding(2)
                                     .style(AtomStyleButton::RoundButton),
                                 ),
@@ -164,7 +157,7 @@ impl AtomDownloadMetadata {
                         .push(
                             text_input("", &self.url)
                                 .size(14)
-                                .on_input(|_| Message::Ignore),
+                                .on_input(|_| MetadataMessage::Ignore),
                         )
                         .spacing(5),
                 )

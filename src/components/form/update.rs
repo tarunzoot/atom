@@ -95,6 +95,8 @@ impl AtomDownloadForm {
                     self.file_name = path.to_str().unwrap_or_default().to_string()
                 }
             }
+            DownloadFormMessage::ClosePane => {}
+            DownloadFormMessage::AddNewDownload => {}
         }
         Command::none()
     }
