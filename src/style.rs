@@ -1,14 +1,14 @@
 use iced::{
     application,
+    overlay::menu,
     widget::{
         button, container, pick_list, progress_bar,
         scrollable::{self, Scrollbar, Scroller},
         slider::{self, Handle, Rail},
         text, text_input, toggler,
     },
-    Background, Color,
+    Background, BorderRadius, Color, Vector,
 };
-use iced_native::{overlay::menu, Vector};
 
 #[macro_export]
 macro_rules! color {
@@ -84,7 +84,7 @@ impl button::StyleSheet for Theme {
             AtomStyleButton::PrimaryButton => button::Appearance {
                 shadow_offset: Default::default(),
                 background: Some(Background::Color(ATOM_INPUT_BORDER_COLOR)),
-                border_radius: 5.0,
+                border_radius: BorderRadius::from(5.0),
                 border_width: 1.0,
                 border_color: color!(30, 30, 30, 1),
                 text_color: color!(0, 0, 0, 1),
@@ -92,7 +92,7 @@ impl button::StyleSheet for Theme {
             AtomStyleButton::HeaderButtons => button::Appearance {
                 shadow_offset: Default::default(),
                 background: None,
-                border_radius: 0.0,
+                border_radius: BorderRadius::from(0.0),
                 border_width: 0.0,
                 border_color: color!(50, 50, 50),
                 text_color: ATOM_WHITE,
@@ -100,7 +100,7 @@ impl button::StyleSheet for Theme {
             AtomStyleButton::RoundButton => button::Appearance {
                 shadow_offset: Default::default(),
                 background: Some(Background::Color(ATOM_INPUT_BORDER_COLOR)),
-                border_radius: 50.0,
+                border_radius: BorderRadius::from(50.0),
                 border_width: 1.0,
                 border_color: color!(50, 50, 50),
                 text_color: color!(0, 0, 0),
@@ -108,7 +108,7 @@ impl button::StyleSheet for Theme {
             AtomStyleButton::SidebarButton => button::Appearance {
                 shadow_offset: Default::default(),
                 background: None,
-                border_radius: 5.0,
+                border_radius: BorderRadius::from(5.0),
                 border_width: 1.0,
                 border_color: color!(50, 50, 50, 0),
                 text_color: ATOM_WHITE,
@@ -116,7 +116,7 @@ impl button::StyleSheet for Theme {
             AtomStyleButton::SidebarButtonActive => button::Appearance {
                 shadow_offset: Default::default(),
                 background: Some(Background::Color(color!(30, 30, 30, 0))),
-                border_radius: 5.0,
+                border_radius: BorderRadius::from(5.0),
                 border_width: 1.0,
                 border_color: color!(40, 40, 40, 0),
                 text_color: ATOM_INPUT_BORDER_COLOR,
@@ -124,7 +124,7 @@ impl button::StyleSheet for Theme {
             AtomStyleButton::Neutral => button::Appearance {
                 shadow_offset: Default::default(),
                 background: Some(Background::Color(color!(50, 50, 50, 0))),
-                border_radius: 5.0,
+                border_radius: BorderRadius::from(5.0),
                 border_width: 1.0,
                 border_color: color!(50, 50, 50, 0),
                 text_color: ATOM_WHITE,
@@ -132,14 +132,14 @@ impl button::StyleSheet for Theme {
             AtomStyleButton::ShortcutKeyButton => button::Appearance {
                 shadow_offset: Default::default(),
                 background: Some(Background::Color(color!(50, 50, 50, 0))),
-                border_radius: 5.0,
+                border_radius: BorderRadius::from(5.0),
                 border_width: 1.0,
                 border_color: color!(50, 50, 50, 0),
                 text_color: ATOM_WHITE,
             },
             AtomStyleButton::DownloadFiltersButton => button::Appearance {
                 background: Some(Background::Color(ATOM_INPUT_BORDER_COLOR)),
-                border_radius: 5.0,
+                border_radius: BorderRadius::from(5.0),
                 border_width: 1.0,
                 border_color: color!(30, 30, 30, 1),
                 text_color: color!(0, 0, 0, 1),
@@ -247,7 +247,7 @@ impl button::StyleSheet for Theme {
             AtomStyleButton::PrimaryButton => button::Appearance {
                 shadow_offset: Default::default(),
                 background: Some(Background::Color(color!(50, 50, 50, 0))),
-                border_radius: 5.0,
+                border_radius: BorderRadius::from(5.0),
                 border_width: 1.0,
                 border_color: color!(50, 50, 50, 0),
                 text_color: ATOM_WHITE,
@@ -317,63 +317,63 @@ impl container::StyleSheet for Theme {
             AtomStyleContainer::MainBorderedContainer => container::Appearance {
                 text_color: Some(ATOM_WHITE),
                 background: Some(iced::Background::Color(color!(10, 10, 10))),
-                border_radius: 0.0,
+                border_radius: BorderRadius::from(0.0),
                 border_width: 1.0,
                 border_color: color!(255, 255, 255, 0.02),
             },
             AtomStyleContainer::Transparent => container::Appearance {
                 text_color: Default::default(),
                 background: None,
-                border_radius: 0.0,
+                border_radius: BorderRadius::from(0.0),
                 border_width: 0.0,
                 border_color: color!(30, 30, 30),
             },
             AtomStyleContainer::ButtonContainer => container::Appearance {
                 text_color: Default::default(),
                 background: None,
-                border_radius: 0.0,
+                border_radius: BorderRadius::from(0.0),
                 border_width: 0.0,
                 border_color: color!(30, 30, 30),
             },
             AtomStyleContainer::HeaderContainer => container::Appearance {
                 text_color: Some(ATOM_WHITE),
                 background: Some(iced::Background::Color(color!(20, 20, 20))),
-                border_radius: 0.0,
+                border_radius: BorderRadius::from(0.0),
                 border_width: 0.0,
                 border_color: color!(30, 30, 30),
             },
             AtomStyleContainer::LogoContainer => container::Appearance {
                 text_color: Some(color!(0, 0, 0)),
                 background: Some(iced::Background::Color(ATOM_INPUT_BORDER_COLOR)),
-                border_radius: 0.0,
+                border_radius: BorderRadius::from(0.0),
                 border_width: 0.0,
                 border_color: ACCENT_COLOR_BORDER,
             },
             AtomStyleContainer::ListContainer => container::Appearance {
                 text_color: Some(ATOM_WHITE),
                 background: Some(iced::Background::Color(color!(15, 15, 15))),
-                border_radius: 10.0,
+                border_radius: BorderRadius::from(10.0),
                 border_width: 2.0,
                 border_color: color!(28, 28, 28),
             },
             AtomStyleContainer::ListItemContainer => container::Appearance {
                 text_color: Some(ATOM_WHITE),
                 background: Some(iced::Background::Color(color!(25, 25, 25))),
-                border_radius: 5.0,
+                border_radius: BorderRadius::from(5.0),
                 border_width: 1.0,
                 border_color: color!(40, 40, 40),
             },
             AtomStyleContainer::MainContainer => container::Appearance {
                 text_color: Some(ATOM_WHITE),
                 background: Some(iced::Background::Color(color!(10, 10, 10))),
-                border_radius: 0.0,
+                border_radius: BorderRadius::from(0.0),
                 border_width: 0.0,
                 border_color: ACCENT_COLOR_BORDER,
             },
             AtomStyleContainer::ErrorContainer => container::Appearance {
                 text_color: Some(ATOM_WHITE),
                 background: Some(iced::Background::Color(color!(30, 30, 30))),
-                border_radius: 5.0,
+                border_radius: BorderRadius::from(5.0),
                 border_width: 1.0,
                 border_color: color!(251, 50, 50, 0.7),
             },
@@ -381,35 +381,35 @@ impl container::StyleSheet for Theme {
                 text_color: Some(ATOM_WHITE),
                 // background: Some(iced::Background::Color(color!(232, 50, 116, 0.4))), // red background
                 background: Some(iced::Background::Color(color!(100, 100, 100, 0.1))),
-                border_radius: 5.0,
+                border_radius: BorderRadius::from(5.0),
                 border_width: 0.0,
                 border_color: ACCENT_COLOR_BORDER,
             },
             AtomStyleContainer::HeaderButtonsContainer => container::Appearance {
                 text_color: Some(ATOM_WHITE),
                 background: None,
-                border_radius: 0.0,
+                border_radius: BorderRadius::from(0.0),
                 border_width: 0.0,
                 border_color: color!(48, 48, 48),
             },
             AtomStyleContainer::ListHeaderContainer => container::Appearance {
                 text_color: Some(ATOM_WHITE),
                 background: Some(iced::Background::Color(color!(37, 37, 37, 1))),
-                border_radius: 5.0,
+                border_radius: BorderRadius::from(5.0),
                 border_width: 0.0,
                 border_color: ATOM_INPUT_BORDER_COLOR,
             },
             AtomStyleContainer::ToolTipContainer => container::Appearance {
                 text_color: Some(ATOM_WHITE),
                 background: Some(iced::Background::Color(color!(27, 27, 27, 1))),
-                border_radius: 8.0,
+                border_radius: BorderRadius::from(8.0),
                 border_width: 0.5,
                 border_color: color!(50, 50, 50),
             },
             AtomStyleContainer::MenuBarActiveContainer => container::Appearance {
                 text_color: Some(ATOM_INPUT_BORDER_COLOR),
                 background: Some(iced::Background::Color(ATOM_INPUT_BORDER_COLOR)),
-                border_radius: 8.0,
+                border_radius: BorderRadius::from(8.0),
                 border_width: 0.1,
                 border_color: color!(50, 50, 50),
             },
@@ -460,21 +460,21 @@ impl text_input::StyleSheet for Theme {
         match style {
             AtomStyleInput::Default => text_input::Appearance {
                 background: Background::Color(Color::TRANSPARENT),
-                border_radius: 2.0,
+                border_radius: BorderRadius::from(2.0),
                 border_width: 1.0,
                 border_color: ATOM_INPUT_BORDER_COLOR,
                 icon_color: ATOM_INPUT_BORDER_COLOR,
             },
             AtomStyleInput::Search => text_input::Appearance {
                 background: Background::Color(Color::TRANSPARENT),
-                border_radius: 20.0,
+                border_radius: BorderRadius::from(20.0),
                 border_width: 1.0,
                 border_color: color!(80, 80, 80),
                 icon_color: ATOM_INPUT_BORDER_COLOR,
             },
             AtomStyleInput::Disabled => text_input::Appearance {
                 background: Background::Color(color!(10, 10, 10, 1)),
-                border_radius: 2.0,
+                border_radius: BorderRadius::from(2.0),
                 border_width: 1.0,
                 border_color: color!(100, 100, 100, 0.3),
                 icon_color: ATOM_INPUT_BORDER_COLOR,
@@ -490,21 +490,21 @@ impl text_input::StyleSheet for Theme {
         match style {
             AtomStyleInput::Default => text_input::Appearance {
                 background: Background::Color(Color::TRANSPARENT),
-                border_radius: 2.0,
+                border_radius: BorderRadius::from(2.0),
                 border_width: 1.0,
                 border_color: ATOM_INPUT_BORDER_COLOR,
                 icon_color: ATOM_INPUT_BORDER_COLOR,
             },
             AtomStyleInput::Search => text_input::Appearance {
                 background: Background::Color(Color::TRANSPARENT),
-                border_radius: 20.0,
+                border_radius: BorderRadius::from(20.0),
                 border_width: 1.0,
                 border_color: color!(80, 80, 80),
                 icon_color: ATOM_INPUT_BORDER_COLOR,
             },
             AtomStyleInput::Disabled => text_input::Appearance {
                 background: Background::Color(color!(10, 10, 10, 1)),
-                border_radius: 2.0,
+                border_radius: BorderRadius::from(2.0),
                 border_width: 1.0,
                 border_color: color!(100, 100, 100, 0.3),
                 icon_color: ATOM_INPUT_BORDER_COLOR,
@@ -560,6 +560,7 @@ impl slider::StyleSheet for Theme {
             rail: Rail {
                 colors: (ATOM_INPUT_BORDER_COLOR, ATOM_INPUT_BORDER_COLOR),
                 width: 5.0,
+                border_radius: BorderRadius::default(),
             },
             handle: Handle {
                 shape: slider::HandleShape::Circle { radius: 10.0 },
@@ -578,6 +579,7 @@ impl slider::StyleSheet for Theme {
                     ATOM_INPUT_BORDER_COLOR_HOVERED,
                 ),
                 width: 5.0,
+                border_radius: BorderRadius::default(),
             },
             handle: Handle {
                 shape: slider::HandleShape::Circle { radius: 10.0 },
@@ -596,6 +598,7 @@ impl slider::StyleSheet for Theme {
                     ATOM_INPUT_BORDER_COLOR_HOVERED,
                 ),
                 width: 5.0,
+                border_radius: BorderRadius::default(),
             },
             handle: Handle {
                 shape: slider::HandleShape::Circle { radius: 10.0 },
@@ -615,14 +618,14 @@ impl scrollable::StyleSheet for Theme {
 
     fn active(&self, _style: &Self::Style) -> scrollable::Scrollbar {
         Scrollbar {
-            border_radius: 5.0,
+            border_radius: BorderRadius::from(5.0),
             border_width: 2.0,
             border_color: ATOM_BUTTON_BACKGROUND,
             background: Some(Background::Color(ATOM_BUTTON_BACKGROUND)),
             scroller: Scroller {
                 // color: ATOM_INPUT_BORDER_COLOR,
                 color: color!(50, 50, 50, 0),
-                border_radius: 5.0,
+                border_radius: BorderRadius::from(5.0),
                 border_width: 3.0,
                 // border_color: ATOM_INPUT_BORDER_COLOR,
                 border_color: color!(50, 50, 50, 0),
@@ -647,7 +650,7 @@ impl progress_bar::StyleSheet for Theme {
         progress_bar::Appearance {
             background: Background::Color(color!(100, 100, 100)),
             bar: Background::Color(ATOM_INPUT_BORDER_COLOR),
-            border_radius: 5.0,
+            border_radius: BorderRadius::from(5.0),
         }
     }
 }
@@ -662,7 +665,7 @@ impl pick_list::StyleSheet for Theme {
             text_color: ATOM_WHITE,
             placeholder_color: ATOM_INPUT_PLACEHOLDER_COLOR,
             background: Background::Color(Color::TRANSPARENT),
-            border_radius: 2.0,
+            border_radius: BorderRadius::from(2.0),
             border_width: 1.0,
             border_color: ATOM_INPUT_BORDER_COLOR,
             handle_color: ATOM_INPUT_BORDER_COLOR,
@@ -688,7 +691,7 @@ impl menu::StyleSheet for Theme {
             text_color: ATOM_WHITE,
             background: Background::Color(Color::TRANSPARENT),
             border_width: 1.0,
-            border_radius: 2.0,
+            border_radius: BorderRadius::from(2.0),
             border_color: ATOM_INPUT_BORDER_COLOR,
             selected_text_color: color!(0, 0, 0),
             selected_background: Background::Color(ATOM_INPUT_BORDER_COLOR),
@@ -744,12 +747,12 @@ pub struct AtomStyleRule;
 impl iced::widget::rule::StyleSheet for Theme {
     type Style = AtomStyleRule;
 
-    fn appearance(&self, _style: &Self::Style) -> iced_native::widget::rule::Appearance {
-        iced_native::widget::rule::Appearance {
+    fn appearance(&self, _style: &Self::Style) -> iced::widget::rule::Appearance {
+        iced::widget::rule::Appearance {
             color: ATOM_INPUT_BORDER_COLOR,
             width: 5,
-            radius: 5.0,
-            fill_mode: iced_native::widget::rule::FillMode::Full,
+            radius: BorderRadius::from(5.0),
+            fill_mode: iced::widget::rule::FillMode::Full,
         }
     }
 }

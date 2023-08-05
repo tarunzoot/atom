@@ -107,15 +107,12 @@ impl<'a> AtomSidebar<'a> {
                 ),
         )
         .center_x()
-        // .width(iced::Length::Units(200))
         .width(if matches!(self.state, SideBarState::Collapsed) {
             iced::Length::Shrink
         } else {
-            iced::Length::Fixed(180.0)
+            iced::Length::Fixed(200.0)
         })
         .height(iced::Length::Fill)
-        // .padding(20)
-        // .style(AtomStyleContainer::ErrorContainer)
         .into()
     }
 }

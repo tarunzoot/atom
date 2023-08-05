@@ -3,12 +3,12 @@ use crate::{
     font::{file_type_icon, icon, CustomFont},
     gui::GuiElements,
     messages::MetadataMessage,
-    style::{AtomStyleButton, AtomStyleContainer, AtomStyleText, Theme},
+    style::{AtomStyleContainer, AtomStyleText, Theme},
     utils::helpers::{get_file_type, get_formatted_time, get_relative_file_size},
 };
 use iced::{
-    widget::{button, column, container, image, row, text, text_input},
-    Element, Length, Renderer,
+    widget::{column, container, image, row, text, text_input},
+    Element, Length, Padding, Renderer,
 };
 use std::{path::Path, time::Duration};
 
@@ -131,14 +131,9 @@ impl AtomDownloadMetadata {
                                 .spacing(20)
                                 .push(text("Resources").width(Length::Fill))
                                 .push(
-                                    button(
-                                        container(icon('\u{eee1}', CustomFont::IcoFont).size(15))
-                                            .style(AtomStyleContainer::Transparent)
-                                            .width(iced::Length::Fill),
-                                    )
-                                    .on_press(MetadataMessage::ClosePane)
-                                    .padding(2)
-                                    .style(AtomStyleButton::RoundButton),
+                                    GuiElements::round_button('\u{eee1}')
+                                        .padding(Padding::from([2, 4]))
+                                        .on_press(MetadataMessage::ClosePane),
                                 ),
                         )
                         .push(

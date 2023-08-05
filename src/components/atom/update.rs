@@ -8,7 +8,7 @@ use crate::{
     },
     utils::helpers::{get_epoch_ms, save_downloads_toml, save_settings_toml},
 };
-use iced::{keyboard, window, Command};
+use iced::{keyboard, window, Command, Event};
 use std::path::PathBuf;
 
 impl<'a> Atom<'a> {
@@ -36,7 +36,7 @@ impl<'a> Atom<'a> {
         match message {
             Message::Ignore => {}
             Message::EventsOccurred(event) => {
-                if let iced_native::Event::Keyboard(iced_native::keyboard::Event::KeyPressed {
+                if let Event::Keyboard(keyboard::Event::KeyPressed {
                     key_code,
                     modifiers,
                 }) = event
@@ -69,11 +69,7 @@ impl<'a> Atom<'a> {
                     }
                 }
 
-                if let iced_native::Event::Window(iced_native::window::Event::Resized {
-                    width,
-                    height: _,
-                }) = event
-                {
+                if let Event::Window(window::Event::Resized { width, height: _ }) = event {
                     if width > 1010 {
                         self.scale_factor = 1.20;
                     } else {
@@ -81,15 +77,12 @@ impl<'a> Atom<'a> {
                     }
                 }
 
-                if let iced_native::Event::Mouse(iced_native::mouse::Event::ButtonPressed(
-                    iced_native::mouse::Button::Left,
-                )) = event
+                if let Event::Mouse(iced::mouse::Event::ButtonPressed(iced::mouse::Button::Left)) =
+                    event
                 {
                     return window::drag();
                 }
-                if let iced_native::Event::Window(iced_native::window::Event::CloseRequested) =
-                    event
-                {
+                if let Event::Window(window::Event::CloseRequested) = event {
                     if !save_settings_toml(&self.settings) {
                         eprintln!("Error: saving settings failed!");
                     }
@@ -121,10 +114,10 @@ impl<'a> Atom<'a> {
                             Message::TitleBar(TitleBarMessage::AppExit)
                         });
                     }
-                    return window::change_mode(iced_native::window::Mode::Hidden);
+                    return window::change_mode(window::Mode::Hidden);
                 }
                 TitleBarMessage::AppShow => {
-                    return window::change_mode(iced_native::window::Mode::Windowed);
+                    return window::change_mode(window::Mode::Windowed);
                 }
                 TitleBarMessage::AppExit => {
                     self.should_exit = true;
@@ -459,6 +452,12 @@ impl<'a> Atom<'a> {
                 }
                 log::warn!("Warning: unknown tray event id => {id}");
             }
+            Message::FontLoaded(result) => {
+                if result.is_err() {
+                    log::error!("{result:#?}");
+                }
+            }
+            Message::LoadingComplete => {}
         }
         Command::none()
     }

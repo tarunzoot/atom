@@ -88,7 +88,7 @@ impl AtomSettings {
             );
 
         let options_row = row!()
-                    .align_items(iced_native::Alignment::Center)
+                    .align_items(iced::Alignment::Center)
                     .spacing(10)
                     .push(
                         toggler(

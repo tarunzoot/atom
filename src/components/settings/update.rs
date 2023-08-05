@@ -1,6 +1,6 @@
 use super::AtomSettings;
 use crate::messages::{Message, SettingsMessage};
-use iced_native::Command;
+use iced::Command;
 use rfd::FileDialog;
 
 impl AtomSettings {

@@ -40,7 +40,7 @@ impl GuiElements {
                 .width(iced::Length::Fill)
                 .style(AtomStyleContainer::ButtonContainer),
         )
-        .padding(8)
+        .padding(Padding::from([6, 8, 6, 8]))
         .style(AtomStyleButton::RoundButton)
     }
 }

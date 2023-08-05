@@ -52,7 +52,7 @@ impl AtomDownload {
         sha256_hasher.update(&self.url[..]);
         let sha256_digest = sha256_hasher.finalize();
 
-        iced_native::subscription::unfold(
+        iced::subscription::unfold(
             sha256_digest,
             State::Starting(
                 client,

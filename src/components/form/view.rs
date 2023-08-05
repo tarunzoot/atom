@@ -3,13 +3,13 @@ use crate::{
     font::{icon, CustomFont},
     gui::GuiElements,
     messages::DownloadFormMessage,
-    style::{AtomStyleButton, AtomStyleContainer, AtomStyleInput, Theme},
+    style::{AtomStyleContainer, AtomStyleInput, Theme},
     utils::helpers::ATOM_INPUT_DEFAULT_PADDING,
 };
 use iced::{
     widget::{
-        button, column, container, pick_list, row, scrollable, scrollable::Properties, text,
-        text_input, toggler,
+        column, container, pick_list, row, scrollable, scrollable::Properties, text, text_input,
+        toggler,
     },
     Element, Padding, Renderer,
 };
@@ -113,7 +113,7 @@ impl AtomDownloadForm {
                 column.push(
                     container(
                         row!()
-                            .padding(5)
+                            .padding(Padding::from([5, 10]))
                             .spacing(10)
                             .align_items(iced::Alignment::Center)
                             .push(
@@ -123,17 +123,15 @@ impl AtomDownloadForm {
                             )
                             .push(text(header.1).width(iced::Length::Fill).size(14))
                             .push(
-                                button(icon('\u{ec55}', CustomFont::IcoFont).size(14))
+                                GuiElements::round_button('\u{ec55}')
                                     .on_press(DownloadFormMessage::EditHeader(header.0.to_string()))
-                                    .style(AtomStyleButton::RoundButton)
                                     .width(iced::Length::Shrink),
                             )
                             .push(
-                                button(icon('\u{ec53}', CustomFont::IcoFont).size(14))
+                                GuiElements::round_button('\u{ec53}')
                                     .on_press(DownloadFormMessage::DeleteHeader(
                                         header.0.to_string(),
                                     ))
-                                    .style(AtomStyleButton::RoundButton)
                                     .width(iced::Length::Shrink),
                             ),
                     )
@@ -236,9 +234,9 @@ impl AtomDownloadForm {
                 )
                 .push(
                     container(
-                        scrollable(headers).vertical_scroll(
+                        scrollable(headers).direction(scrollable::Direction::Vertical(
                             Properties::new().margin(0).width(4).scroller_width(5),
-                        ),
+                        )),
                     )
                     .padding(0)
                     .width(iced::Length::Fill)

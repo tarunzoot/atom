@@ -6,8 +6,16 @@ use iced::{
     alignment::Horizontal,
     alignment::Vertical,
     widget::{text, Text},
-    Font, Renderer,
+    Renderer,
 };
+
+pub const DEFAULT_APP_FONT: &[u8] =
+    include_bytes!("../resources/fonts/WorkSans-VariableFont_wght.ttf");
+pub const ICOFONT_BYTES: &[u8] = include_bytes!("../resources/fonts/icofont.ttf");
+pub const SYMBOLS_BYTES: &[u8] =
+    include_bytes!("../resources/fonts/SymbolsNerdFontMono-Regular.ttf");
+pub const ICOFONT: iced::Font = iced::Font::with_name("IcoFont");
+pub const SYMBOLS: iced::Font = iced::Font::with_name("Symbols Nerd Font Mono");
 
 pub fn file_type_icon(file_type: &str) -> Text<'static, Renderer<Theme>> {
     let file_icon = match &file_type.to_lowercase()[..] {
@@ -35,16 +43,6 @@ pub fn file_type_icon(file_type: &str) -> Text<'static, Renderer<Theme>> {
     };
     icon(file_icon, CustomFont::IcoFont)
 }
-
-pub const ICOFONT: Font = Font::External {
-    name: "IcoFont",
-    bytes: include_bytes!("../resources/fonts/icofont.ttf"),
-};
-
-const SYMBOLS: Font = Font::External {
-    name: "FiraCode",
-    bytes: include_bytes!("../resources/fonts/SymbolsNerdFontMono-Regular.ttf"),
-};
 
 pub enum CustomFont {
     Symbols,

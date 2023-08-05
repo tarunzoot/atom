@@ -286,7 +286,7 @@ pub fn parse_downloads_toml(downloads_file_path: &PathBuf) -> BTreeMap<usize, At
     downloads
 }
 
-pub fn handle_web_request(is_exiting: bool) -> iced_native::subscription::Subscription<Message> {
+pub fn handle_web_request(is_exiting: bool) -> iced::subscription::Subscription<Message> {
     enum RequestStates {
         Start,
         Wait,
@@ -369,7 +369,7 @@ pub fn load_tray_icon(image_data: &[u8]) -> tray_icon::icon::Icon {
         .expect("Failed to open icon")
 }
 
-pub fn listen_for_tray_events() -> iced_native::subscription::Subscription<Message> {
+pub fn listen_for_tray_events() -> iced::subscription::Subscription<Message> {
     subscription::unfold(1001, "", move |_| async move {
         if let Ok(event) = MenuEvent::receiver().recv_timeout(std::time::Duration::from_secs(1)) {
             (Message::TrayEvent(event.id), "")

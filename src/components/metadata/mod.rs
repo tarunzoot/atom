@@ -22,12 +22,12 @@ impl AtomDownloadMetadata {
                     .ok();
                 #[cfg(target_os = "macos")]
                 std::process::Command::new("open")
-                    .arg(file_path)
+                    .arg(&self.file_path)
                     .spawn()
                     .ok();
                 #[cfg(target_os = "linux")]
                 std::process::Command::new("xdg-open")
-                    .arg(file_path)
+                    .arg(&self.file_path)
                     .spawn()
                     .ok();
             }

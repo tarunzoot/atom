@@ -73,15 +73,15 @@ impl<'a> Atom<'a> {
                                 .spacing(0)
                                 .push(
                                     col!().push(listview_header::view()).push(
-                                        container(text(" ").size(0))
+                                        container(text(" ").size(10))
                                             .height(iced::Length::Fixed(1.0))
                                             .width(iced::Length::Fill)
                                             .style(AtomStyleContainer::LogoContainer),
                                     ),
                                 )
-                                .push(filtered_content.vertical_scroll(
+                                .push(filtered_content.direction(scrollable::Direction::Vertical(
                                     Properties::new().margin(0).scroller_width(0).width(0),
-                                )),
+                                ))),
                         )
                         .style(AtomStyleContainer::ListHeaderContainer),
                     ),

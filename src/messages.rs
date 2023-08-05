@@ -147,7 +147,7 @@ pub enum TitleBarMessage {
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    EventsOccurred(iced_native::Event),
+    EventsOccurred(iced::Event),
     TitleBar(TitleBarMessage),
     Sidebar(SidebarMessage),
     DownloadForm(DownloadFormMessage),
@@ -163,5 +163,7 @@ pub enum Message {
     Import(ImportMessage),
     TrayMessages(TrayMessage),
     TrayEvent(u32),
+    FontLoaded(Result<(), iced::font::Error>),
+    LoadingComplete,
     Ignore,
 }

@@ -25,8 +25,8 @@ impl AtomTitleBar {
                         row!()
                             .align_items(iced::Alignment::Center)
                             .spacing(10)
-                            .padding(iced::Padding::from([15, 20]))
-                            .push(icon('\u{ead8}', CustomFont::IcoFont))
+                            .padding(iced::Padding::from([11, 20]))
+                            .push(icon('\u{ead8}', CustomFont::IcoFont).size(20))
                             .push(text("A.T.O.M")),
                     )
                     .style(AtomStyleContainer::LogoContainer),
@@ -53,35 +53,28 @@ impl AtomTitleBar {
                                         container(
                                             row!()
                                                 .push(
-                                                    button(
-                                                        icon('\u{ef9a}', CustomFont::IcoFont)
-                                                            .size(15),
-                                                    )
-                                                    .padding(17)
-                                                    .style(AtomStyleButton::HeaderButtons)
-                                                    .on_press(TitleBarMessage::AppMinimize),
+                                                    button(icon('\u{ef9a}', CustomFont::IcoFont))
+                                                        .padding(15)
+                                                        .style(AtomStyleButton::HeaderButtons)
+                                                        .on_press(TitleBarMessage::AppMinimize),
                                                 )
                                                 .push(
-                                                    button(
-                                                        icon('\u{ef8c}', CustomFont::IcoFont)
-                                                            .size(15),
-                                                    )
-                                                    .padding(17)
-                                                    .style(AtomStyleButton::HeaderButtons)
-                                                    .on_press(TitleBarMessage::AppMaximize),
+                                                    button(icon('\u{ef8c}', CustomFont::IcoFont))
+                                                        .padding(15)
+                                                        .style(AtomStyleButton::HeaderButtons)
+                                                        .on_press(TitleBarMessage::AppMaximize),
                                                 )
                                                 .push(
-                                                    button(
-                                                        icon('\u{eee1}', CustomFont::IcoFont)
-                                                            .size(15),
-                                                    )
-                                                    .padding(17)
-                                                    .style(AtomStyleButton::HeaderButtons)
-                                                    .on_press(if settings.quit_action_closes_app {
-                                                        TitleBarMessage::AppExit
-                                                    } else {
-                                                        TitleBarMessage::AppHide
-                                                    }),
+                                                    button(icon('\u{eee1}', CustomFont::IcoFont))
+                                                        .padding(15)
+                                                        .style(AtomStyleButton::HeaderButtons)
+                                                        .on_press(
+                                                            if settings.quit_action_closes_app {
+                                                                TitleBarMessage::AppExit
+                                                            } else {
+                                                                TitleBarMessage::AppHide
+                                                            },
+                                                        ),
                                                 ),
                                         )
                                         .style(AtomStyleContainer::HeaderButtonsContainer),
@@ -104,7 +97,7 @@ impl AtomTitleBar {
         .center_x()
         // .padding(Padding::from([5, 15, 5, 15]))
         .width(iced::Length::Fill)
-        .height(iced::Length::Fixed(48.0))
+        .height(iced::Length::Fixed(50.0))
         .into()
     }
 }

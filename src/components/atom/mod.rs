@@ -7,16 +7,25 @@ use crate::{
         metadata::AtomDownloadMetadata, settings::AtomSettings, sidebar::AtomSidebar,
         titlebar::AtomTitleBar,
     },
+    font::{DEFAULT_APP_FONT, ICOFONT_BYTES, SYMBOLS_BYTES},
     messages::{DownloadsListFilterMessage, Message, SideBarActiveButton, SideBarState},
-    utils::helpers::load_tray_icon,
-};
-use crate::{
     style::Theme,
+    utils::helpers::{
+        get_conf_directory, load_tray_icon, parse_downloads_toml, parse_settings_toml,
+        save_settings_toml,
+    },
     utils::helpers::{handle_web_request, listen_for_tray_events},
 };
-use iced::{executor, Application, Command, Subscription};
+use iced::{
+    executor, subscription,
+    widget::{container, text},
+    Application, Command, Length, Subscription,
+};
 use single_instance::SingleInstance;
-use std::collections::{BTreeMap, HashMap};
+use std::{
+    collections::{BTreeMap, HashMap},
+    fs::create_dir_all,
+};
 use tray_icon::{
     menu::{Menu, MenuItem},
     TrayIcon, TrayIconBuilder,
@@ -31,6 +40,11 @@ pub enum View {
     Downloads,
     DeleteConfirm,
     Import,
+}
+
+pub enum AtomState<'a> {
+    Loading,
+    Loaded(Atom<'a>),
 }
 
 #[derive(Default)]
@@ -54,11 +68,42 @@ pub struct Atom<'a> {
 }
 
 impl<'a> Atom<'a> {
-    pub fn new(
-        settings: AtomSettings,
-        downloads: BTreeMap<usize, AtomDownload>,
-        app_instance: SingleInstance,
-    ) -> Self {
+    pub fn new() -> Self {
+        // check single instance of application
+        let app_instance =
+            single_instance::SingleInstance::new("fade9985-845c-4ca3-84b2-8a1b29a6c636")
+                .map_err(|_| {
+                    log::error!("SingleInstance cannot be initialized!");
+                    std::process::exit(-1);
+                })
+                .unwrap();
+
+        // check if config path can be created or exists
+        let config_dir_path = get_conf_directory()
+            .map_err(|e| {
+                log::error!("{e:#?}");
+                std::process::exit(1);
+            })
+            .unwrap();
+
+        if !config_dir_path.exists() && create_dir_all(&config_dir_path).is_err() {
+            log::error!("Error: cannot create config directory `{config_dir_path:#?}`, exiting.");
+            std::process::exit(1);
+        }
+
+        let settings_path = config_dir_path.join("settings.toml");
+        if !settings_path.exists() {
+            log::warn!("No settings.toml found, using defaults");
+            save_settings_toml(&AtomSettings {
+                ..Default::default()
+            });
+        }
+
+        let settings = parse_settings_toml(&settings_path);
+        let downloads_toml_path =
+            std::path::PathBuf::from(&settings.config_dir).join("downloads.toml");
+        let downloads: BTreeMap<usize, AtomDownload> = parse_downloads_toml(&downloads_toml_path);
+
         let sidebar = AtomSidebar::new(
             if downloads.is_empty() {
                 SideBarActiveButton::AddDownload
@@ -137,14 +182,22 @@ impl<'a> Atom<'a> {
     }
 }
 
-impl<'a> Application for Atom<'a> {
+impl<'a> Application for AtomState<'a> {
     type Message = Message;
-    type Flags = (AtomSettings, BTreeMap<usize, AtomDownload>, SingleInstance);
+    type Flags = ();
     type Executor = executor::Default;
     type Theme = Theme;
 
-    fn new(flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
-        (Self::new(flags.0, flags.1, flags.2), Command::none())
+    fn new(_flags: Self::Flags) -> (Self, iced::Command<Message>) {
+        (
+            AtomState::Loading,
+            Command::batch(vec![
+                iced::font::load(DEFAULT_APP_FONT).map(Message::FontLoaded),
+                iced::font::load(ICOFONT_BYTES).map(Message::FontLoaded),
+                iced::font::load(SYMBOLS_BYTES).map(Message::FontLoaded),
+                Command::perform(async {}, |_| Message::LoadingComplete),
+            ]),
+        )
     }
 
     fn title(&self) -> String {
@@ -152,34 +205,66 @@ impl<'a> Application for Atom<'a> {
     }
 
     fn scale_factor(&self) -> f64 {
-        if self.scale_factor < 1.0 {
-            1.0
-        } else {
-            self.scale_factor
+        match self {
+            AtomState::Loading => 1.0,
+            AtomState::Loaded(atom) => {
+                if atom.scale_factor < 1.0 {
+                    1.0
+                } else {
+                    atom.scale_factor
+                }
+            }
         }
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
-        let mut subscriptions: Vec<_> = self
-            .downloads
-            .iter()
-            .map(|(&index, download)| download.subscription(index, &self.settings.cache_dir))
-            .collect();
+        match self {
+            AtomState::Loading => Subscription::none(),
+            AtomState::Loaded(atom) => {
+                let mut subscriptions: Vec<_> = atom
+                    .downloads
+                    .iter()
+                    .map(|(&index, download)| {
+                        download.subscription(index, &atom.settings.cache_dir)
+                    })
+                    .collect();
 
-        subscriptions.push(iced_native::subscription::events().map(Message::EventsOccurred));
-        // subscriptions.push(iced::window::frames().map(|_| Message::Tick));
-        subscriptions.push(handle_web_request(self.should_exit));
-        if self.tray.is_some() && !self.should_exit {
-            subscriptions.push(listen_for_tray_events());
+                subscriptions.push(subscription::events().map(Message::EventsOccurred));
+                // subscriptions.push(iced::window::frames().map(|_| Message::Tick));
+                subscriptions.push(handle_web_request(atom.should_exit));
+                if atom.tray.is_some() && !atom.should_exit {
+                    subscriptions.push(listen_for_tray_events());
+                }
+                Subscription::batch(subscriptions)
+            }
         }
-        Subscription::batch(subscriptions)
     }
 
     fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
-        self.update(message)
+        match self {
+            AtomState::Loading => {
+                if let Message::LoadingComplete = message {
+                    *self = AtomState::Loaded(Atom::new());
+                }
+                iced::Command::none()
+            }
+            AtomState::Loaded(atom) => atom.update(message),
+        }
     }
 
     fn view(&self) -> iced::Element<'_, Self::Message, iced::Renderer<Self::Theme>> {
-        self.view()
+        match self {
+            AtomState::Loading => container(
+                text("loading...")
+                    .size(50)
+                    .horizontal_alignment(iced::alignment::Horizontal::Center),
+            )
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .center_x()
+            .center_y()
+            .into(),
+            AtomState::Loaded(atom) => atom.view(),
+        }
     }
 }

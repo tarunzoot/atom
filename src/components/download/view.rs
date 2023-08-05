@@ -13,6 +13,7 @@ use iced::{
 
 impl AtomDownload {
     pub fn view(&self) -> Element<DownloadMessage, Renderer<Theme>> {
+        let text_size = 12.0;
         let size_format = |size: usize| -> (f64, &str) {
             let suffix = vec!["Bytes", "KB", "MB", "GB"];
             let size_len = size.to_string().len();
@@ -51,7 +52,7 @@ impl AtomDownload {
                 .align_items(iced::Alignment::Center)
                 .spacing(10)
                 .push(file_type_icon(self.file_name.split('.').last().unwrap()).size(20))
-                .push(text(&self.file_name).size(14)),
+                .push(text(&self.file_name).size(text_size)),
         )
         .width(iced::Length::FillPortion(2))
         .style(AtomStyleContainer::Transparent)
@@ -62,14 +63,14 @@ impl AtomDownload {
                 "{0:<7.2} / {1:>7.2} {2}",
                 downloaded.0, size.0, size.1
             ))
-            .size(14),
+            .size(text_size),
         )
         .width(iced::Length::Fill)
         .style(AtomStyleContainer::Transparent)
         .align_x(iced::alignment::Horizontal::Center);
 
         let progress_col = container(if !self.error.is_empty() {
-            row!().push(text("Error").size(14))
+            row!().push(text("Error").size(text_size))
         } else if self.joined_bytes > 0 {
             row!()
                 .spacing(5)
@@ -83,12 +84,12 @@ impl AtomDownload {
                         "{0:>6.2} %",
                         if progress.is_nan() { 0.0 } else { progress }
                     ))
-                    .size(14),
+                    .size(text_size),
                 )
         } else if self.size != 0 && self.downloaded >= self.size && !self.is_joining {
-            row!().push(text("Completed").size(14))
+            row!().push(text("Completed").size(text_size))
         } else if self.is_joining {
-            row!().push(text("Joining").size(14))
+            row!().push(text("Joining").size(text_size))
         } else {
             row!()
                 .spacing(5)
@@ -99,10 +100,10 @@ impl AtomDownload {
                         "{0:>6.2} %",
                         if progress.is_nan() { 0.0 } else { progress }
                     ))
-                    .size(14),
+                    .size(text_size),
                 )
         })
-        .width(iced::Length::FillPortion(1))
+        .width(iced::Length::Fill)
         .style(AtomStyleContainer::Transparent)
         .align_x(iced::alignment::Horizontal::Center);
 
@@ -134,26 +135,26 @@ impl AtomDownload {
             .push(file_size_col)
             .push(progress_col)
             .push(
-                container(text(&transfer_rate).size(14))
-                    .width(iced::Length::Fill)
+                container(text(&transfer_rate).size(text_size))
+                    .width(iced::Length::Fixed(100.0))
                     .style(AtomStyleContainer::Transparent)
-                    .align_x(iced::alignment::Horizontal::Center),
+                    .align_x(iced::alignment::Horizontal::Left),
             )
             .push(
-                container(text(&eta).size(14))
-                    .width(iced::Length::Fill)
+                container(text(&eta).size(text_size))
+                    .width(iced::Length::Fixed(100.0))
                     .style(AtomStyleContainer::Transparent)
-                    .align_x(iced::alignment::Horizontal::Center),
+                    .align_x(iced::alignment::Horizontal::Left),
             )
             .push(
-                container(text(&self.added).size(14))
-                    .width(iced::Length::Fill)
+                container(text(&self.added).size(text_size))
+                    .width(iced::Length::Fixed(80.0))
                     .style(AtomStyleContainer::Transparent)
-                    .align_x(iced::alignment::Horizontal::Center),
+                    .align_x(iced::alignment::Horizontal::Left),
             )
             .push(
                 container(actions_row)
-                    .width(iced::Length::Fixed(70.0))
+                    .width(iced::Length::Fixed(80.0))
                     .style(AtomStyleContainer::Transparent)
                     .align_x(iced::alignment::Horizontal::Right),
             );
@@ -168,7 +169,7 @@ impl AtomDownload {
                 .padding(0)
                 .style(AtomStyleButton::Neutral),
         )
-        .width(iced::Length::Fill)
+        .width(iced::Length::Shrink)
         .padding(0);
 
         if self.error.is_empty() {
