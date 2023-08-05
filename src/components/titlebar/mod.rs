@@ -40,6 +40,7 @@ impl AtomTitleBar {
                                     .push(
                                         container(
                                             text_input("search downloads...", &self.search_text)
+                                                .id(iced::widget::text_input::Id::new("search"))
                                                 .on_input(TitleBarMessage::SearchDownload)
                                                 .padding(Padding::from([8, 20, 8, 20]))
                                                 .style(AtomStyleInput::Search),

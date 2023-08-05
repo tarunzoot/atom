@@ -214,13 +214,9 @@ impl AtomDownloadForm {
                                     DownloadFormMessage::AddHeaderName,
                                 ))
                                 .push(
-                                    text_input(
-                                        // &reqwest::header::ACCEPT.to_string(),
-                                        "header value here ...",
-                                        &self.header_value,
-                                    )
-                                    .on_input(DownloadFormMessage::AddHeaderValue)
-                                    .padding(ATOM_INPUT_DEFAULT_PADDING),
+                                    text_input("header value here ...", &self.header_value)
+                                        .on_input(DownloadFormMessage::AddHeaderValue)
+                                        .padding(ATOM_INPUT_DEFAULT_PADDING),
                                 )
                                 .push(
                                     GuiElements::primary_button(vec![
@@ -235,12 +231,12 @@ impl AtomDownloadForm {
                 .push(
                     container(
                         scrollable(headers).direction(scrollable::Direction::Vertical(
-                            Properties::new().margin(0).width(4).scroller_width(5),
+                            Properties::new().margin(0).width(0).scroller_width(0),
                         )),
                     )
                     .padding(0)
                     .width(iced::Length::Fill)
-                    .max_height(160)
+                    .max_height(190)
                     .style(AtomStyleContainer::ListContainer),
                 )
                 .push(column!().push(toggles))
@@ -248,7 +244,6 @@ impl AtomDownloadForm {
                     row!()
                         .spacing(20)
                         .width(iced::Length::Fill)
-                        // .align_items(iced::Alignment::Fill)
                         .push(download_btn)
                         .push(
                             GuiElements::primary_button(vec![

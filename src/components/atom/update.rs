@@ -62,6 +62,11 @@ impl<'a> Atom<'a> {
                             keyboard::KeyCode::D => Message::Sidebar(SidebarMessage::DeleteConfirm),
                             keyboard::KeyCode::Comma => Message::Sidebar(SidebarMessage::Settings),
                             keyboard::KeyCode::K => Message::Sidebar(SidebarMessage::Shortcuts),
+                            keyboard::KeyCode::F => {
+                                return iced::widget::text_input::focus(
+                                    iced::widget::text_input::Id::new("search"),
+                                )
+                            }
                             _ => Message::Ignore,
                         };
 
@@ -70,7 +75,7 @@ impl<'a> Atom<'a> {
                 }
 
                 if let Event::Window(window::Event::Resized { width, height: _ }) = event {
-                    if width > 1010 {
+                    if width > 1200 {
                         self.scale_factor = 1.20;
                     } else {
                         self.scale_factor = 1.0;
@@ -98,11 +103,6 @@ impl<'a> Atom<'a> {
             }
             Message::TitleBar(message) => match message {
                 TitleBarMessage::AppMaximize => {
-                    if self.scale_factor > 1.0 {
-                        self.scale_factor = 1.0;
-                    } else {
-                        self.scale_factor = 1.20;
-                    }
                     return window::toggle_maximize();
                 }
                 TitleBarMessage::AppMinimize => {

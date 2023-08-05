@@ -22,6 +22,7 @@ pub fn view() -> Element<'static, Message, Renderer<Theme>> {
         ("Show all downloads", "H"),
         ("Open settings", ","),
         ("Open keyboard shortcuts", "K"),
+        ("Search Downloads", "F"),
         ("Quit app", "Q"),
     ];
 

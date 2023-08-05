@@ -208,7 +208,7 @@ impl<'a> Application for AtomState<'a> {
         match self {
             AtomState::Loading => 1.0,
             AtomState::Loaded(atom) => {
-                if atom.scale_factor < 1.0 {
+                if atom.scale_factor <= 1.0 {
                     1.0
                 } else {
                     atom.scale_factor
