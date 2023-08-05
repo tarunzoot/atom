@@ -90,9 +90,37 @@ impl AtomDownloadForm {
                     |path| Message::DownloadForm(DownloadFormMessage::FileSavePathChanged(path)),
                 );
             }
+            DownloadFormMessage::ImportHeaders => {
+                return Command::perform(
+                    async {
+                        rfd::AsyncFileDialog::new()
+                            .pick_file()
+                            .await
+                            .map(|file| file.path().to_owned())
+                    },
+                    |path| Message::DownloadForm(DownloadFormMessage::HeaderFilePath(path)),
+                );
+            }
             DownloadFormMessage::FileSavePathChanged(save_as_path) => {
                 if let Some(path) = save_as_path {
                     self.file_name = path.to_str().unwrap_or_default().to_string()
+                }
+            }
+            DownloadFormMessage::HeaderFilePath(file_path) => {
+                if let Some(file_path) = file_path {
+                    if let Ok(content) = std::fs::read_to_string(file_path) {
+                        let headers = content.split('\n').filter(|f| !f.is_empty());
+                        for header in headers {
+                            let mut header_splitted = header.trim().split(':');
+                            let header_name = header_splitted.next().unwrap_or_else(|| "").trim();
+                            let header_value = header_splitted.next().unwrap_or_else(|| "").trim();
+
+                            if !header_name.is_empty() {
+                                self.headers
+                                    .insert(header_name.to_owned(), header_value.to_owned());
+                            }
+                        }
+                    }
                 }
             }
             DownloadFormMessage::ClosePane => {}
