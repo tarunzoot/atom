@@ -7,19 +7,11 @@ use crate::{
         metadata::AtomDownloadMetadata, settings::AtomSettings, sidebar::AtomSidebar,
         titlebar::AtomTitleBar,
     },
-    font::{DEFAULT_APP_FONT, ICOFONT_BYTES, SYMBOLS_BYTES},
     messages::{DownloadsListFilterMessage, Message, SideBarActiveButton, SideBarState},
-    style::Theme,
     utils::helpers::{
         get_conf_directory, load_tray_icon, parse_downloads_toml, parse_settings_toml,
         save_settings_toml,
     },
-    utils::helpers::{handle_web_request, listen_for_tray_events},
-};
-use iced::{
-    executor, subscription,
-    widget::{container, text},
-    Application, Command, Length, Subscription,
 };
 use single_instance::SingleInstance;
 use std::{
@@ -40,11 +32,6 @@ pub enum View {
     Downloads,
     DeleteConfirm,
     Import,
-}
-
-pub enum AtomState<'a> {
-    Loading,
-    Loaded(Atom<'a>),
 }
 
 #[derive(Default)]
@@ -117,7 +104,22 @@ impl<'a> Atom<'a> {
             },
         );
 
-        let (tray_icon, tray_messages) = if !app_instance.is_single() || cfg!(target_os = "linux") {
+        let (tray_icon, tray_messages) = Atom::load_system_tray(app_instance.is_single());
+
+        Self {
+            default_settings: settings.clone(),
+            settings,
+            sidebar,
+            downloads,
+            instance: Some(app_instance),
+            tray: tray_icon,
+            tray_event: tray_messages,
+            ..Default::default()
+        }
+    }
+
+    fn load_system_tray(is_single: bool) -> (Option<TrayIcon>, HashMap<u32, Message>) {
+        let system_tray = if !is_single || cfg!(target_os = "linux") {
             (None, HashMap::default())
         } else {
             let tray_menu = Menu::new();
@@ -146,10 +148,16 @@ impl<'a> Atom<'a> {
 
             let tray_messages = menu_items
                 .into_iter()
-                .map(|item| {
-                    tray_menu.append(&item.0);
-                    (item.0.id(), item.1)
+                .map(|item| (tray_menu.append(&item.0).is_err(), (item.0.id(), item.1)))
+                .filter(|f| {
+                    if f.0 {
+                        log::warn!("Error: tray item id:{:?}, message: {:?}", (f.1).0, (f.1).1);
+                        return false;
+                    } else {
+                        true
+                    }
                 })
+                .map(|item| item.1)
                 .collect();
 
             let tray_icon = if let Ok(tray) = TrayIconBuilder::new()
@@ -169,102 +177,6 @@ impl<'a> Atom<'a> {
             (tray_icon, tray_messages)
         };
 
-        Self {
-            default_settings: settings.clone(),
-            settings,
-            sidebar,
-            downloads,
-            instance: Some(app_instance),
-            tray: tray_icon,
-            tray_event: tray_messages,
-            ..Default::default()
-        }
-    }
-}
-
-impl<'a> Application for AtomState<'a> {
-    type Message = Message;
-    type Flags = ();
-    type Executor = executor::Default;
-    type Theme = Theme;
-
-    fn new(_flags: Self::Flags) -> (Self, iced::Command<Message>) {
-        (
-            AtomState::Loading,
-            Command::batch(vec![
-                iced::font::load(DEFAULT_APP_FONT).map(Message::FontLoaded),
-                iced::font::load(ICOFONT_BYTES).map(Message::FontLoaded),
-                iced::font::load(SYMBOLS_BYTES).map(Message::FontLoaded),
-                Command::perform(async {}, |_| Message::LoadingComplete),
-            ]),
-        )
-    }
-
-    fn title(&self) -> String {
-        "A.T.O.M".to_string()
-    }
-
-    fn scale_factor(&self) -> f64 {
-        match self {
-            AtomState::Loading => 1.0,
-            AtomState::Loaded(atom) => {
-                if atom.scale_factor <= 1.0 {
-                    1.0
-                } else {
-                    atom.scale_factor
-                }
-            }
-        }
-    }
-
-    fn subscription(&self) -> iced::Subscription<Self::Message> {
-        match self {
-            AtomState::Loading => Subscription::none(),
-            AtomState::Loaded(atom) => {
-                let mut subscriptions: Vec<_> = atom
-                    .downloads
-                    .iter()
-                    .map(|(&index, download)| {
-                        download.subscription(index, &atom.settings.cache_dir)
-                    })
-                    .collect();
-
-                subscriptions.push(subscription::events().map(Message::EventsOccurred));
-                // subscriptions.push(iced::window::frames().map(|_| Message::Tick));
-                subscriptions.push(handle_web_request(atom.should_exit));
-                if atom.tray.is_some() && !atom.should_exit {
-                    subscriptions.push(listen_for_tray_events());
-                }
-                Subscription::batch(subscriptions)
-            }
-        }
-    }
-
-    fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
-        match self {
-            AtomState::Loading => {
-                if let Message::LoadingComplete = message {
-                    *self = AtomState::Loaded(Atom::new());
-                }
-                iced::Command::none()
-            }
-            AtomState::Loaded(atom) => atom.update(message),
-        }
-    }
-
-    fn view(&self) -> iced::Element<'_, Self::Message, iced::Renderer<Self::Theme>> {
-        match self {
-            AtomState::Loading => container(
-                text("loading...")
-                    .size(50)
-                    .horizontal_alignment(iced::alignment::Horizontal::Center),
-            )
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .center_x()
-            .center_y()
-            .into(),
-            AtomState::Loaded(atom) => atom.view(),
-        }
+        system_tray
     }
 }

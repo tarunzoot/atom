@@ -19,7 +19,7 @@ single-instance = "0.3"
 iced = {version="0.10", features=["tokio", "image"]}
 env_logger = "0.10"
 log = "0.4"
-tray-icon = "0.6"
+tray-icon = "0.7"
 image = "0.24"
 notify-rust = "4.8"
 

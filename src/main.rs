@@ -1,12 +1,12 @@
 // build with icon
 //  cargo rustc --release -- -C link-args="resources.res"
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+use crate::app::App;
 use iced::{window::PlatformSpecific, Application, Font, Settings};
-
-use crate::components::atom::AtomState;
+mod app;
 mod components;
+mod elements;
 mod font;
-mod gui;
 mod messages;
 mod style;
 mod utils;
@@ -15,7 +15,7 @@ fn main() -> iced::Result {
     env_logger::init();
 
     // run app
-    AtomState::run(Settings {
+    App::run(Settings {
         antialiasing: true,
         default_font: Font::with_name("Work Sans"),
         default_text_size: 16.0,

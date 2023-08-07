@@ -1,6 +1,6 @@
 use crate::{
+    elements::GuiElements,
     font::{icon, CustomFont},
-    gui::GuiElements,
     messages::SidebarMessage,
     style::{AtomStyleContainer, Theme},
 };

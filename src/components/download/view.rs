@@ -1,7 +1,7 @@
 use super::AtomDownload;
 use crate::{
+    elements::GuiElements,
     font::file_type_icon,
-    gui::GuiElements,
     messages::DownloadMessage,
     style::{AtomStyleButton, AtomStyleContainer, Theme},
     utils::helpers::get_formatted_time,

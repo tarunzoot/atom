@@ -1,7 +1,7 @@
 use super::AtomSettings;
 use crate::{
+    elements::GuiElements,
     font::{icon, CustomFont::IcoFont},
-    gui::GuiElements,
     messages::SettingsMessage,
     style::{AtomStyleContainer, AtomStyleInput, Theme},
     utils::helpers::ATOM_INPUT_DEFAULT_PADDING,

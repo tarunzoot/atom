@@ -1,7 +1,7 @@
 use super::AtomDownloadForm;
 use crate::{
+    elements::GuiElements,
     font::{icon, CustomFont},
-    gui::GuiElements,
     messages::DownloadFormMessage,
     style::{AtomStyleContainer, AtomStyleInput, Theme},
     utils::helpers::ATOM_INPUT_DEFAULT_PADDING,
