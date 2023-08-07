@@ -25,7 +25,7 @@ impl AtomTitleBar {
                         row!()
                             .align_items(iced::Alignment::Center)
                             .spacing(10)
-                            .padding(iced::Padding::from([11, 20]))
+                            .padding(iced::Padding::from([12, 20]))
                             .push(icon('\u{ead8}', CustomFont::IcoFont).size(20))
                             .push(text("A.T.O.M")),
                     )
