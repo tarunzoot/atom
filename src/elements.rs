@@ -3,7 +3,7 @@ use crate::{
     style::{button::AtomStyleButton, container::AtomStyleContainer, Theme},
 };
 use iced::{
-    widget::{button, container, row},
+    widget::{button, container, row, text},
     Element, Padding, Renderer,
 };
 
@@ -41,6 +41,20 @@ impl GuiElements {
                 .style(AtomStyleContainer::ButtonContainer),
         )
         .padding(Padding::from([6, 8, 6, 8]))
+        .style(AtomStyleButton::RoundButton)
+    }
+
+    pub fn round_text_button<'a, T, U>(content: U) -> iced::widget::Button<'a, T, Renderer<Theme>>
+    where
+        T: std::fmt::Debug + 'a,
+        U: std::fmt::Display + 'a,
+    {
+        button(
+            container(text(content).size(10))
+                .width(iced::Length::Fill)
+                .style(AtomStyleContainer::ButtonContainer),
+        )
+        .padding(Padding::from([6, 9]))
         .style(AtomStyleButton::RoundButton)
     }
 }

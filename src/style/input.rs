@@ -56,7 +56,13 @@ impl text_input::StyleSheet for Theme {
             },
             border_width: 1.0,
             border_color: match self {
-                Theme::Default => appearance.accent,
+                Theme::Default => match style {
+                    AtomStyleInput::Search => Color {
+                        a: 0.1,
+                        ..appearance.placeholder
+                    },
+                    _ => appearance.accent,
+                },
                 Theme::Tangerine => Color::TRANSPARENT,
             },
             icon_color: appearance.accent,

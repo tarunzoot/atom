@@ -35,27 +35,6 @@ impl<'a> Default for AtomSidebar<'a> {
                 name: SideBarActiveButton::AddDownload,
             },
             SidebarButton {
-                text: "Pause All",
-                icon: '\u{eca5}',
-                message: SidebarMessage::PauseAll,
-                tooltip: "Pause all downloads",
-                name: SideBarActiveButton::PauseAll,
-            },
-            SidebarButton {
-                text: "Resume All",
-                icon: '\u{eca8}',
-                message: SidebarMessage::ResumeAll,
-                tooltip: "Resume all downloads",
-                name: SideBarActiveButton::ResumeAll,
-            },
-            SidebarButton {
-                text: "Delete All",
-                icon: '\u{edec}',
-                message: SidebarMessage::DeleteConfirm,
-                tooltip: "Delete all downloads",
-                name: SideBarActiveButton::DeleteAll,
-            },
-            SidebarButton {
                 text: "Import",
                 icon: '\u{ec84}',
                 message: SidebarMessage::Import,

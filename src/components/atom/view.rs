@@ -6,7 +6,9 @@ use crate::{
     style::{container::AtomStyleContainer, Theme},
 };
 use iced::{
-    widget::{column as col, container, row, scrollable, scrollable::Properties, text},
+    widget::{
+        column as col, container, row, scrollable, scrollable::Properties, text, vertical_space,
+    },
     Alignment, Element, Length, Padding, Renderer,
 };
 
@@ -66,11 +68,17 @@ impl<'a> Atom<'a> {
             container(
                 col!()
                     .spacing(10)
-                    .push(self.filters.view(&self.sidebar.active))
+                    // .push(self.filters.view(&self.sidebar.active, &self.downloads))
                     .push(
                         container(
                             col!()
                                 .spacing(0)
+                                .push(self.filters.view(&self.sidebar.active, &self.downloads))
+                                .push(
+                                    container(vertical_space(Length::Fixed(1.0)))
+                                        .height(1.0)
+                                        .width(Length::Fill),
+                                )
                                 .push(
                                     col!().push(listview_header::view()).push(
                                         container(text(" ").size(10))

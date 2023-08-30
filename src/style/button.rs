@@ -18,7 +18,6 @@ pub enum AtomStyleButton {
     HeaderButtons,
     Neutral,
     ShortcutKeyButton,
-    DownloadFiltersButton,
 }
 
 impl AtomStyleButton {
@@ -80,9 +79,7 @@ impl button::StyleSheet for Theme {
                 AtomStyleButton::RoundButton | AtomStyleButton::HeaderButtons => {
                     style.color_offset(color_palette.border, 20.0)
                 }
-                AtomStyleButton::DownloadFiltersButton | AtomStyleButton::PrimaryButton => {
-                    color_palette.border
-                }
+                AtomStyleButton::PrimaryButton => color_palette.border,
             },
             text_color: match style {
                 AtomStyleButton::SidebarButtonActive => color_palette.background,
@@ -121,9 +118,9 @@ impl button::StyleSheet for Theme {
                 | AtomStyleButton::SidebarButton
                 | AtomStyleButton::SidebarButtonActive => Color::TRANSPARENT,
                 AtomStyleButton::HeaderButtons => style.color_offset(color_palette.border, 40.0),
-                AtomStyleButton::RoundButton
-                | AtomStyleButton::DownloadFiltersButton
-                | AtomStyleButton::PrimaryButton => color_palette.background,
+                AtomStyleButton::RoundButton | AtomStyleButton::PrimaryButton => {
+                    color_palette.background
+                }
             },
             ..self.active(style)
         }
