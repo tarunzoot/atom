@@ -143,7 +143,7 @@ impl<'a> AtomDownloadStates<'a> {
                     .height(Length::Fixed(3.0))
                     .width(Length::Fixed(30.0));
 
-                if active == &dfb.state {
+                if active == &dfb.state && dfb.tooltip.is_none() {
                     active_bar = active_bar.style(AtomStyleContainer::MenuBarActiveContainer);
                 } else {
                     active_bar = active_bar.style(AtomStyleContainer::MenuBarInActiveContainer);

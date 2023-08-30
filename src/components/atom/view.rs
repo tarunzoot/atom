@@ -63,7 +63,9 @@ impl<'a> Atom<'a> {
         if self.downloads.is_empty()
             && !matches!(self.filter_type, DownloadsListFilterMessage::Deleted)
         {
-            self.download_form.view().map(Message::DownloadForm)
+            self.download_form
+                .view(self.downloads.len())
+                .map(Message::DownloadForm)
         } else {
             container(
                 col!()
@@ -131,7 +133,10 @@ impl<'a> Atom<'a> {
             View::Import => self.import.view().map(Message::Import),
             View::DeleteConfirm => delete_downloads::view().map(Message::Sidebar),
             View::Downloads => self.filter_downloads_view(),
-            View::NewDownloadForm => self.download_form.view().map(Message::DownloadForm),
+            View::NewDownloadForm => self
+                .download_form
+                .view(self.downloads.len())
+                .map(Message::DownloadForm),
             View::Settings => self.settings.view(&self.theme).map(Message::Settings),
             View::Shortcuts => keybindings::view(),
         };

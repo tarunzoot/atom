@@ -15,7 +15,7 @@ use iced::{
 };
 
 impl AtomDownloadForm {
-    pub fn view(&self) -> Element<DownloadFormMessage, Renderer<Theme>> {
+    pub fn view(&self, downloads_count: usize) -> Element<DownloadFormMessage, Renderer<Theme>> {
         let mut download_btn = GuiElements::primary_button(vec![
             icon('\u{eee5}', CustomFont::IcoFont),
             text("download"),
@@ -81,6 +81,21 @@ impl AtomDownloadForm {
                 .spacing(10)
                 .text_alignment(iced::alignment::Horizontal::Left)
                 .width(iced::Length::Shrink),
+            );
+        }
+
+        let mut buttons_row = row!()
+            .spacing(20)
+            .width(iced::Length::Fill)
+            .push(download_btn);
+
+        if downloads_count > 0 {
+            buttons_row = buttons_row.push(
+                GuiElements::primary_button(vec![
+                    icon('\u{eede}', CustomFont::IcoFont),
+                    text("cancel"),
+                ])
+                .on_press(DownloadFormMessage::ClosePane),
             );
         }
 
@@ -174,17 +189,7 @@ impl AtomDownloadForm {
                 )
                 .push(column!().push(toggles))
                 .push(
-                    row!()
-                        .spacing(20)
-                        .width(iced::Length::Fill)
-                        .push(download_btn)
-                        .push(
-                            GuiElements::primary_button(vec![
-                                icon('\u{eede}', CustomFont::IcoFont),
-                                text("cancel"),
-                            ])
-                            .on_press(DownloadFormMessage::ClosePane),
-                        ),
+                    buttons_row
                 )
                 .height(iced::Length::Fill)
                 .width(iced::Length::Fill),

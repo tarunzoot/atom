@@ -72,6 +72,8 @@ function handleDownload(e)
 {
     console.log(e);
 
+    if (/^blob/.test(e.finalUrl || e.url)) return;
+
     let jsonObject = {
         url: e.finalUrl || e.url,
         size: e.fileSize > 0 ? e.fileSize : 0,

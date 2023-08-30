@@ -152,7 +152,7 @@ impl AtomDownload {
     }
 
     pub fn is_downloaded(&self) -> bool {
-        self.size == self.downloaded
+        self.downloaded >= self.size || self.is_deleted
     }
 
     pub fn is_downloading(&self) -> bool {

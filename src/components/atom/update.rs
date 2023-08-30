@@ -386,12 +386,12 @@ impl<'a> Atom<'a> {
                             download.update(DownloadMessage::Downloading, &self.settings);
                         }
                     });
-                    self.sidebar.active = SideBarActiveButton::ResumeAll;
+                    self.sidebar.active = SideBarActiveButton::Overview;
                     self.metadata.enabled = false;
                 }
                 SidebarMessage::DeleteConfirm => {
                     self.view = View::DeleteConfirm;
-                    self.sidebar.active = SideBarActiveButton::DeleteAll;
+                    self.sidebar.active = SideBarActiveButton::Overview;
                 }
                 SidebarMessage::DeleteAll => {
                     self.downloads.clear();
@@ -405,7 +405,7 @@ impl<'a> Atom<'a> {
                         download.update(DownloadMessage::Paused, &self.settings);
                     });
                     self.metadata.enabled = false;
-                    self.sidebar.active = SideBarActiveButton::PauseAll;
+                    self.sidebar.active = SideBarActiveButton::Overview;
                 }
                 SidebarMessage::Settings => {
                     self.view = View::Settings;
