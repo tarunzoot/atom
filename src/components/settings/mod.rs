@@ -14,6 +14,7 @@ pub struct AtomSettings {
     pub show_notifications: bool,
     pub quit_action_closes_app: bool,
     pub auto_start_download: bool,
+    pub theme: String,
 }
 
 impl Default for AtomSettings {
@@ -38,6 +39,7 @@ impl Default for AtomSettings {
             show_notifications: true,
             quit_action_closes_app: false,
             auto_start_download: false,
+            theme: "Default".to_owned(),
         }
     }
 }

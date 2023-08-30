@@ -2,7 +2,7 @@ use crate::{
     components::settings::AtomSettings,
     font::{icon, CustomFont},
     messages::TitleBarMessage,
-    style::{AtomStyleButton, AtomStyleContainer, AtomStyleInput, Theme},
+    style::{button::AtomStyleButton, container::AtomStyleContainer, input::AtomStyleInput, Theme},
 };
 use iced::{
     widget::{button, column as col, container, row, text, text_input},

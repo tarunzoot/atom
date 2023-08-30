@@ -1,7 +1,7 @@
 use crate::{
     font::{icon, CustomFont},
     messages::Message,
-    style::{AtomStyleButton, AtomStyleContainer, Theme},
+    style::{button::AtomStyleButton, container::AtomStyleContainer, Theme},
 };
 use iced::{
     widget::{button, horizontal_space, vertical_space},

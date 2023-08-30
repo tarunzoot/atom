@@ -1,7 +1,7 @@
 use crate::{
     font::{icon, CustomFont},
     messages::Message,
-    style::{AtomStyleContainer, Theme},
+    style::{container::AtomStyleContainer, Theme},
 };
 use iced::{
     widget::{container, row, text},

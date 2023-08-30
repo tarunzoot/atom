@@ -1,7 +1,7 @@
 use crate::{
     font::{icon, CustomFont},
     messages::{DownloadsListFilterMessage, Message, SideBarActiveButton},
-    style::{AtomStyleButton, AtomStyleContainer, Theme},
+    style::{button::AtomStyleButton, container::AtomStyleContainer, Theme},
 };
 use iced::{
     widget::{button, container, row, text},
@@ -90,6 +90,7 @@ impl<'a> AtomDownloadStates<'a> {
         );
 
         container(df_buttons_row)
+            .padding(1)
             .width(iced::Length::Fill)
             .style(AtomStyleContainer::ListHeaderContainer)
             .into()

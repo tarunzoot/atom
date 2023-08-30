@@ -23,9 +23,6 @@ fn main() -> iced::Result {
         flags: (),
         id: Some("A.T.O.M".to_owned()),
         window: iced::window::Settings {
-            #[cfg(not(target_os = "macos"))]
-            size: (1100, 700),
-            #[cfg(target_os = "macos")]
             size: (1150, 720),
             position: iced::window::Position::Centered,
             min_size: None,

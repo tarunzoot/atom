@@ -237,6 +237,7 @@ impl<'a> Atom<'a> {
                         log::warn!("Warning: unable to save settings => {:#?}", self.settings);
                     }
                     self.default_settings = self.settings.clone();
+                    self.theme = self.settings.theme.clone().into();
                     self.update_view(View::Downloads);
                 }
                 _ => return self.settings.update(message),

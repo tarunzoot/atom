@@ -3,7 +3,7 @@ use crate::{
     elements::GuiElements,
     font::file_type_icon,
     messages::DownloadMessage,
-    style::{AtomStyleButton, AtomStyleContainer, Theme},
+    style::{button::AtomStyleButton, container::AtomStyleContainer, Theme},
     utils::helpers::get_formatted_time,
 };
 use iced::{

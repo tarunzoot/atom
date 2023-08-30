@@ -63,6 +63,7 @@ pub enum SettingsMessage {
     NotificationToggle(bool),
     QuitActionToggle(bool),
     AutoStartDownloadToggle(bool),
+    ThemeChanged(String),
     // BrowseCacheDirClicked,
     ClosePane,
     OpenConfigDir,

@@ -2,7 +2,7 @@ use crate::{
     elements::GuiElements,
     font::{icon, CustomFont},
     messages::SidebarMessage,
-    style::{AtomStyleContainer, Theme},
+    style::{container::AtomStyleContainer, Theme},
 };
 use iced::{
     widget::{column, container, row, text},

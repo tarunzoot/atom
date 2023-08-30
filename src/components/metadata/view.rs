@@ -3,7 +3,7 @@ use crate::{
     elements::GuiElements,
     font::{file_type_icon, icon, CustomFont},
     messages::MetadataMessage,
-    style::{AtomStyleContainer, AtomStyleText, Theme},
+    style::{container::AtomStyleContainer, AtomStyleText, Theme},
     utils::helpers::{get_file_type, get_formatted_time, get_relative_file_size},
 };
 use iced::{

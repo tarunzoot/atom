@@ -15,6 +15,9 @@ impl AtomSettings {
                     self.downloads_dir = folder.to_str().unwrap_or("").to_string();
                 }
             }
+            SettingsMessage::ThemeChanged(theme) => {
+                self.theme = theme;
+            }
             SettingsMessage::ThreadsChanged(threads) => {
                 self.threads = threads;
             }

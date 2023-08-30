@@ -142,7 +142,7 @@ async fn handle_download_starting(
     if !options.error.is_empty() {
         return (
             Message::Download(DownloadMessage::Error(options.error), index),
-            State::SequentialFinished,
+            State::Wait,
         );
     }
 
@@ -224,7 +224,7 @@ async fn handle_download_starting(
                             DownloadMessage::Error("failed to create download client!".to_string()),
                             index,
                         ),
-                        State::SequentialFinished,
+                        State::Wait,
                     )
                 }
             } else {
@@ -233,7 +233,7 @@ async fn handle_download_starting(
                         DownloadMessage::Error(format!("failed to create {}!", download.file_name)),
                         index,
                     ),
-                    State::SequentialFinished,
+                    State::Wait,
                 )
             }
         }
@@ -254,7 +254,7 @@ async fn handle_sequential_downloading(
                         DownloadMessage::Error("error occurred while downloading!".to_string()),
                         index,
                     ),
-                    State::SequentialFinished,
+                    State::Wait,
                 );
             }
             downloaded += chunk.len();
@@ -273,7 +273,7 @@ async fn handle_sequential_downloading(
                 DownloadMessage::Error(format!("download error : {:?}", error)),
                 index,
             ),
-            State::SequentialFinished,
+            State::Wait,
         ),
     }
 }
@@ -330,7 +330,7 @@ async fn handle_threaded_download_starting(
                     )),
                     index,
                 ),
-                State::SequentialFinished,
+                State::Wait,
             );
         }
     }
@@ -350,7 +350,7 @@ async fn handle_threaded_download_starting(
                     )),
                     index,
                 ),
-                State::SequentialFinished,
+                State::Wait,
             );
         }
     }
@@ -386,7 +386,7 @@ async fn handle_threaded_downloading(
                             DownloadMessage::Error("writing to chunk file failed!".to_string()),
                             index,
                         ),
-                        State::SequentialFinished,
+                        State::Wait,
                     );
                 }
                 downloaded += chunk.len();
@@ -399,7 +399,7 @@ async fn handle_threaded_downloading(
                         DownloadMessage::Error(format!("download error : {:?}", error)),
                         index,
                     ),
-                    State::SequentialFinished,
+                    State::Wait,
                 )
             }
         }
@@ -434,7 +434,7 @@ fn handle_threaded_download_finish(
             DownloadMessage::Error("Error in joining file!".to_string()),
             index,
         ),
-        State::SequentialFinished,
+        State::Wait,
     );
     match File::create(destination_file) {
         Ok(out) => {
@@ -470,7 +470,7 @@ async fn handle_joining_progress(
             DownloadMessage::Error("Error in joining file!".to_string()),
             index,
         ),
-        State::SequentialFinished,
+        State::Wait,
     );
 
     let buffer_len = 10000000;

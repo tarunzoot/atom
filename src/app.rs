@@ -38,6 +38,13 @@ impl<'a> Application for App<'a> {
         "A.T.O.M".to_string()
     }
 
+    fn theme(&self) -> Self::Theme {
+        match self {
+            App::Loading => Theme::Default,
+            App::Loaded(atom) => atom.theme,
+        }
+    }
+
     fn scale_factor(&self) -> f64 {
         match self {
             App::Loading => 1.0,

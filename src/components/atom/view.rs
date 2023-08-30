@@ -3,7 +3,7 @@ use crate::{
     components::{delete_downloads, download::AtomDownload, keybindings, listview_header},
     font::icon,
     messages::{DownloadsListFilterMessage, Message},
-    style::{AtomStyleContainer, Theme},
+    style::{container::AtomStyleContainer, Theme},
 };
 use iced::{
     widget::{column as col, container, row, scrollable, scrollable::Properties, text},
@@ -124,7 +124,7 @@ impl<'a> Atom<'a> {
             View::DeleteConfirm => delete_downloads::view().map(Message::Sidebar),
             View::Downloads => self.filter_downloads_view(),
             View::NewDownloadForm => self.download_form.view().map(Message::DownloadForm),
-            View::Settings => self.settings.view().map(Message::Settings),
+            View::Settings => self.settings.view(&self.theme).map(Message::Settings),
             View::Shortcuts => keybindings::view(),
         };
 
@@ -173,7 +173,7 @@ impl<'a> Atom<'a> {
 
         container(main_row)
             .padding(1)
-            .style(AtomStyleContainer::MainBorderedContainer)
+            // .style(AtomStyleContainer::MainBorderedContainer)
             .width(Length::Fill)
             .into()
     }

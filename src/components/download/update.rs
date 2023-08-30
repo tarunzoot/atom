@@ -11,6 +11,8 @@ impl AtomDownload {
             }
             DownloadMessage::Error(error) => {
                 self.error = error;
+                self.is_downloading = false;
+                log::warn!("{:#?}", self.error);
                 if settings.show_notifications
                     && notify_rust::Notification::new()
                         .summary("A.T.O.M")
@@ -22,7 +24,7 @@ impl AtomDownload {
                         .show()
                         .is_err()
                 {
-                    log::debug!("[ATOM] error notification failed!");
+                    log::warn!("[ATOM] error notification failed!");
                 }
             }
             DownloadMessage::DownloadDoneJoining => {

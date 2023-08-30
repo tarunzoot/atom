@@ -3,7 +3,7 @@ use crate::{
     elements::GuiElements,
     font::{icon, CustomFont},
     messages::DownloadFormMessage,
-    style::{AtomStyleContainer, AtomStyleInput, Theme},
+    style::{container::AtomStyleContainer, input::AtomStyleInput, Theme},
     utils::helpers::ATOM_INPUT_DEFAULT_PADDING,
 };
 use iced::{

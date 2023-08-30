@@ -3,16 +3,18 @@ use crate::{
     elements::GuiElements,
     font::{icon, CustomFont::IcoFont},
     messages::SettingsMessage,
-    style::{AtomStyleContainer, AtomStyleInput, Theme},
+    style::{container::AtomStyleContainer, input::AtomStyleInput, Theme},
     utils::helpers::ATOM_INPUT_DEFAULT_PADDING,
 };
 use iced::{
-    widget::{column as col, container, row, slider, text, text_input, toggler, tooltip},
-    Element, Padding, Renderer,
+    widget::{
+        column as col, container, pick_list, row, slider, text, text_input, toggler, tooltip,
+    },
+    Element, Length, Padding, Renderer,
 };
 
 impl AtomSettings {
-    pub fn view(&self) -> Element<SettingsMessage, Renderer<Theme>> {
+    pub fn view(&self, theme: &Theme) -> Element<SettingsMessage, Renderer<Theme>> {
         let config_dir_col = col!()
             .spacing(5)
             .push(text("Configuration Directory"))
@@ -134,6 +136,16 @@ impl AtomSettings {
             .push(config_dir_col)
             .push(temp_dir_col)
             .push(default_dir_col)
+            .push(
+                col!().spacing(5).push(text("Theme")).push(
+                    pick_list(
+                        theme.variants(),
+                        Some(self.theme.clone()),
+                        SettingsMessage::ThemeChanged,
+                    )
+                    .width(Length::Fill),
+                ), // .width(iced::Length::Fixed(200.0)),
+            )
             .push(
                 col!()
                     .spacing(5)

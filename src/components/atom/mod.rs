@@ -8,6 +8,7 @@ use crate::{
         titlebar::AtomTitleBar,
     },
     messages::{DownloadsListFilterMessage, Message, SideBarActiveButton, SideBarState},
+    style::Theme,
     utils::helpers::{
         get_conf_directory, load_tray_icon, parse_downloads_toml, parse_settings_toml,
         save_settings_toml,
@@ -52,6 +53,7 @@ pub struct Atom<'a> {
     pub tray_event: HashMap<u32, Message>,
     pub scale_factor: f64,
     pub default_settings: AtomSettings,
+    pub theme: Theme,
 }
 
 impl<'a> Atom<'a> {
@@ -107,6 +109,7 @@ impl<'a> Atom<'a> {
         let (tray_icon, tray_messages) = Atom::load_system_tray(app_instance.is_single());
 
         Self {
+            theme: settings.theme.clone().into(),
             default_settings: settings.clone(),
             settings,
             sidebar,

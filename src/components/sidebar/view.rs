@@ -2,7 +2,7 @@ use super::AtomSidebar;
 use crate::{
     font::{icon, CustomFont},
     messages::{SideBarState, SidebarMessage},
-    style::{AtomStyleButton, AtomStyleContainer, Theme},
+    style::{button::AtomStyleButton, container::AtomStyleContainer, Theme},
 };
 use iced::{
     widget::{button, column as col, container, row, text, tooltip},
