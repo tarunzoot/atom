@@ -31,6 +31,11 @@ impl AtomStyleSlider {
                 handle: color!(30, 30, 30),
                 border: color!(254, 161, 47, 1),
             },
+            Theme::Light => ColorPalette {
+                rails: (color!(23, 29, 39, 1.0), color!(23, 29, 39, 1.0)),
+                handle: color!(30, 30, 30),
+                border: color!(23, 29, 39, 1.0),
+            },
         }
     }
 }

@@ -21,6 +21,10 @@ impl AtomStyleToggler {
                 background: color!(254, 161, 47, 1),
                 foreground: color!(0, 0, 0, 1),
             },
+            Theme::Light => ColorPalette {
+                background: color!(23, 29, 39, 1.0),
+                foreground: color!(255, 255, 255, 0.8),
+            },
         }
     }
 }

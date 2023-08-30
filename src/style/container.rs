@@ -43,15 +43,33 @@ impl AtomStyleContainer {
                 border: color!(44, 52, 61, 1),
                 text: color!(192, 200, 201, 1),
             },
+            Theme::Light => ColorPalette {
+                accent: color!(23, 29, 39, 1.0),
+                background: color!(250, 250, 250, 1),
+                border: color!(150, 150, 150, 0.1),
+                text: color!(23, 29, 39, 1.0),
+            },
         }
     }
 
     fn color_offset(&self, color: Color, offset: f32) -> Color {
         let new_offset = offset / 255.0;
         Color {
-            r: color.r + new_offset,
-            g: color.g + new_offset,
-            b: color.b + new_offset,
+            r: if color.r + new_offset > 1.0 {
+                color.r - new_offset
+            } else {
+                color.r + new_offset
+            },
+            g: if color.g + new_offset > 1.0 {
+                color.g - new_offset
+            } else {
+                color.g + new_offset
+            },
+            b: if color.b + new_offset > 1.0 {
+                color.b - new_offset
+            } else {
+                color.b + new_offset
+            },
             a: color.a,
         }
     }
@@ -65,7 +83,10 @@ impl container::StyleSheet for Theme {
 
         container::Appearance {
             text_color: match style {
-                AtomStyleContainer::LogoContainer => Some(color!(0, 0, 0, 1)),
+                AtomStyleContainer::LogoContainer => match self {
+                    Theme::Light => Some(color!(255, 255, 255, 1)),
+                    _ => Some(color!(0, 0, 0, 1)),
+                },
                 AtomStyleContainer::MenuBarActiveContainer => Some(color!(215, 252, 112)),
                 AtomStyleContainer::MenuBarInActiveContainer
                 | AtomStyleContainer::ButtonContainer => None,
@@ -82,26 +103,44 @@ impl container::StyleSheet for Theme {
                     Theme::Tangerine => Some(Background::Color(
                         style.color_offset(appearance.background, 10.0),
                     )),
+                    Theme::Light => Some(Background::Color(Color {
+                        a: 0.01,
+                        ..appearance.border
+                    })),
                 },
-                AtomStyleContainer::HeaderContainer => Some(Background::Color(
-                    style.color_offset(appearance.background, 10.0),
-                )),
+                AtomStyleContainer::HeaderContainer => match self {
+                    Theme::Light => Some(Background::Color(
+                        style.color_offset(appearance.background, 10.0),
+                    )),
+                    _ => Some(Background::Color(
+                        style.color_offset(appearance.background, 10.0),
+                    )),
+                },
                 AtomStyleContainer::Transparent
                 | AtomStyleContainer::ButtonContainer
                 | AtomStyleContainer::MenuBarInActiveContainer
                 | AtomStyleContainer::HeaderButtonsContainer => None,
-                AtomStyleContainer::ListItemContainer => Some(Background::Color(
-                    style.color_offset(appearance.background, 15.0),
-                )),
+                AtomStyleContainer::ListItemContainer => match self {
+                    Theme::Light => Some(Background::Color(Color {
+                        a: 0.01,
+                        ..appearance.border
+                    })),
+                    _ => Some(Background::Color(
+                        style.color_offset(appearance.background, 15.0),
+                    )),
+                },
                 AtomStyleContainer::ErrorContainer => Some(Background::Color(
                     style.color_offset(appearance.background, 20.0),
                 )),
                 AtomStyleContainer::PreviewContainer => Some(Background::Color(
                     style.color_offset(appearance.background, 20.0),
                 )),
-                AtomStyleContainer::ListHeaderContainer => Some(Background::Color(
-                    style.color_offset(appearance.background, 30.0),
-                )),
+                AtomStyleContainer::ListHeaderContainer => match self {
+                    Theme::Light => Some(Background::Color(appearance.border)),
+                    _ => Some(Background::Color(
+                        style.color_offset(appearance.background, 30.0),
+                    )),
+                },
                 AtomStyleContainer::ToolTipContainer => Some(Background::Color(
                     style.color_offset(appearance.background, 20.0),
                 )),

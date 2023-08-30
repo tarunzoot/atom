@@ -180,8 +180,11 @@ impl<'a> Atom<'a> {
             .push(items_row);
 
         container(main_row)
-            .padding(1)
-            // .style(AtomStyleContainer::MainBorderedContainer)
+            .padding(if matches!(self.theme, Theme::Light) {
+                0
+            } else {
+                1
+            })
             .width(Length::Fill)
             .into()
     }

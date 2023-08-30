@@ -38,6 +38,14 @@ impl AtomStyleInput {
                 text: Color::WHITE,
                 disabled_border: Color::TRANSPARENT,
             },
+            Theme::Light => ColorPalette {
+                accent: color!(23, 29, 39, 1.0),
+                background: color!(255, 255, 255, 0.6),
+                hover_border: color!(23, 29, 39, 0.8),
+                placeholder: color!(50, 50, 50, 0.6),
+                text: Color::BLACK,
+                disabled_border: color!(198, 202, 210, 1),
+            },
         }
     }
 }
@@ -56,14 +64,14 @@ impl text_input::StyleSheet for Theme {
             },
             border_width: 1.0,
             border_color: match self {
-                Theme::Default => match style {
+                Theme::Tangerine => Color::TRANSPARENT,
+                _ => match style {
                     AtomStyleInput::Search => Color {
                         a: 0.1,
                         ..appearance.placeholder
                     },
                     _ => appearance.accent,
                 },
-                Theme::Tangerine => Color::TRANSPARENT,
             },
             icon_color: appearance.accent,
         }

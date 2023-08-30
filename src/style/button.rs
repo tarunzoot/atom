@@ -33,6 +33,11 @@ impl AtomStyleButton {
                 border: color!(50, 58, 65, 1),
                 text: Color::BLACK,
             },
+            Theme::Light => ColorPalette {
+                background: color!(23, 29, 39, 1.0),
+                border: color!(150, 150, 150, 0.1),
+                text: Color::WHITE,
+            },
         }
     }
 
@@ -86,7 +91,10 @@ impl button::StyleSheet for Theme {
                 AtomStyleButton::SidebarButton
                 | AtomStyleButton::ShortcutKeyButton
                 | AtomStyleButton::HeaderButtons
-                | AtomStyleButton::Neutral => Color::WHITE,
+                | AtomStyleButton::Neutral => match self {
+                    Theme::Light => color_palette.background,
+                    _ => Color::WHITE,
+                },
                 _ => color_palette.text,
             },
             shadow_offset: Default::default(),
@@ -102,14 +110,9 @@ impl button::StyleSheet for Theme {
                 | AtomStyleButton::Neutral
                 | AtomStyleButton::SidebarButtonActive
                 | AtomStyleButton::SidebarButton
-                | AtomStyleButton::HeaderButtons => match self {
-                    Theme::Default => Some(Background::Color(
-                        style.color_offset(color_palette.border, 5.0),
-                    )),
-                    Theme::Tangerine => Some(Background::Color(
-                        style.color_offset(color_palette.border, 5.0),
-                    )),
-                },
+                | AtomStyleButton::HeaderButtons => Some(Background::Color(
+                    style.color_offset(color_palette.border, 5.0),
+                )),
                 _ => Some(Background::Color(color_palette.background)),
             },
             border_color: match style {
@@ -150,7 +153,10 @@ impl button::StyleSheet for Theme {
                 | AtomStyleButton::ShortcutKeyButton
                 | AtomStyleButton::HeaderButtons
                 | AtomStyleButton::Neutral => Color::WHITE,
-                _ => Color::WHITE,
+                _ => match self {
+                    Theme::Light => color_palette.background,
+                    _ => Color::WHITE,
+                },
             },
             shadow_offset: match style {
                 AtomStyleButton::Neutral | AtomStyleButton::ShortcutKeyButton => {

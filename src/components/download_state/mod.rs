@@ -31,7 +31,7 @@ impl<'a> Default for AtomDownloadStates<'a> {
     fn default() -> Self {
         let df_buttons = vec![
             FilterButton {
-                icon: '\u{eee5}',
+                icon: '\u{ef74}',
                 text: "All",
                 message: Message::GotoHomePage,
                 state: SideBarActiveButton::Overview,
@@ -164,7 +164,12 @@ impl<'a> AtomDownloadStates<'a> {
                     .width(iced::Length::Fill)
                     .padding(0),
                 )
-                .padding(0)
+                .padding(match dfb.state {
+                    SideBarActiveButton::PauseAll
+                    | SideBarActiveButton::DeleteAll
+                    | SideBarActiveButton::ResumeAll => 5,
+                    _ => 0,
+                })
                 .width(iced::Length::Shrink)
                 .style(AtomStyleButton::SidebarButton)
                 .on_press(dfb.message.clone());

@@ -50,11 +50,16 @@ pub enum Theme {
     #[default]
     Default,
     Tangerine,
+    Light,
 }
 
 impl Theme {
     pub fn variants(&self) -> Vec<String> {
-        vec!["Default".to_owned(), "Tangerine".to_owned()]
+        vec![
+            "Default".to_owned(),
+            "Tangerine".to_owned(),
+            "Light".to_owned(),
+        ]
     }
 }
 
@@ -62,6 +67,7 @@ impl From<String> for Theme {
     fn from(value: String) -> Self {
         match &value[..] {
             "Tangerine" => Self::Tangerine,
+            "Light" => Self::Light,
             _ => Self::Default,
         }
     }
@@ -79,6 +85,10 @@ impl application::StyleSheet for Theme {
             Theme::Tangerine => application::Appearance {
                 background_color: color!(0x262e34),
                 text_color: color!(0xffffff),
+            },
+            Theme::Light => application::Appearance {
+                background_color: color!(0x262e34),
+                text_color: color!(0x000000),
             },
         }
     }
@@ -142,6 +152,7 @@ impl AtomStylePickList {
         match theme {
             Theme::Default => (color!(215, 252, 112), color!(250, 250, 250, 0.4)),
             Theme::Tangerine => (color!(254, 161, 47, 1), color!(250, 250, 250, 0.4)),
+            Theme::Light => (color!(23, 29, 39, 1), color!(250, 250, 250, 0.4)),
         }
     }
 }
@@ -153,7 +164,10 @@ impl pick_list::StyleSheet for Theme {
         let color_palette = AtomStylePickList::color_palette(&self);
 
         pick_list::Appearance {
-            text_color: Color::WHITE,
+            text_color: match self {
+                Theme::Light => color_palette.0,
+                _ => Color::WHITE,
+            },
             placeholder_color: color_palette.1,
             background: Background::Color(Color::TRANSPARENT),
             border_radius: BorderRadius::from(5.0),
@@ -184,15 +198,22 @@ impl menu::StyleSheet for Theme {
         let color_palette = match self {
             Theme::Default => color!(215, 252, 112),
             Theme::Tangerine => color!(254, 161, 47, 1),
+            Theme::Light => color!(23, 29, 39, 1),
         };
 
         menu::Appearance {
-            text_color: Color::WHITE,
+            text_color: match self {
+                Theme::Light => color_palette,
+                _ => Color::WHITE,
+            },
             background: Background::Color(Color::TRANSPARENT),
             border_width: 1.0,
             border_radius: BorderRadius::from(2.0),
             border_color: color_palette,
-            selected_text_color: color!(0, 0, 0),
+            selected_text_color: match self {
+                Theme::Light => Color::WHITE,
+                _ => Color::BLACK,
+            },
             selected_background: Background::Color(color_palette),
         }
     }

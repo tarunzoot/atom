@@ -21,6 +21,10 @@ impl AtomStyleProgressBar {
                 background: color!(100, 100, 100),
                 bar: color!(254, 161, 47, 1),
             },
+            Theme::Light => ColorPalette {
+                background: color!(200, 200, 200),
+                bar: color!(23, 29, 39, 1.0),
+            },
         }
     }
 }
