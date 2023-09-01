@@ -51,6 +51,7 @@ pub enum Theme {
     Default,
     Tangerine,
     Light,
+    RedLight,
 }
 
 impl Theme {
@@ -59,7 +60,17 @@ impl Theme {
             "Default".to_owned(),
             "Tangerine".to_owned(),
             "Light".to_owned(),
+            "RedLight".to_owned(),
         ]
+    }
+
+    pub fn accent(&self) -> Color {
+        match self {
+            Theme::Default => color!(215, 252, 112),
+            Theme::Tangerine => color!(254, 161, 47, 1),
+            Theme::Light => color!(23, 29, 39, 1),
+            Theme::RedLight => color!(236, 105, 102, 1),
+        }
     }
 }
 
@@ -68,6 +79,7 @@ impl From<String> for Theme {
         match &value[..] {
             "Tangerine" => Self::Tangerine,
             "Light" => Self::Light,
+            "RedLight" => Self::RedLight,
             _ => Self::Default,
         }
     }
@@ -86,7 +98,7 @@ impl application::StyleSheet for Theme {
                 background_color: color!(0x262e34),
                 text_color: color!(0xffffff),
             },
-            Theme::Light => application::Appearance {
+            _ => application::Appearance {
                 background_color: color!(0x262e34),
                 text_color: color!(0x000000),
             },
@@ -150,9 +162,10 @@ pub struct AtomStylePickList;
 impl AtomStylePickList {
     fn color_palette(theme: &Theme) -> (Color, Color) {
         match theme {
-            Theme::Default => (color!(215, 252, 112), color!(250, 250, 250, 0.4)),
-            Theme::Tangerine => (color!(254, 161, 47, 1), color!(250, 250, 250, 0.4)),
-            Theme::Light => (color!(23, 29, 39, 1), color!(250, 250, 250, 0.4)),
+            Theme::Default => (theme.accent(), color!(250, 250, 250, 0.4)),
+            Theme::Tangerine => (theme.accent(), color!(250, 250, 250, 0.4)),
+            Theme::Light => (theme.accent(), color!(250, 250, 250, 0.4)),
+            Theme::RedLight => (theme.accent(), color!(250, 250, 250, 0.4)),
         }
     }
 }
@@ -166,6 +179,7 @@ impl pick_list::StyleSheet for Theme {
         pick_list::Appearance {
             text_color: match self {
                 Theme::Light => color_palette.0,
+                Theme::RedLight => Color::BLACK,
                 _ => Color::WHITE,
             },
             placeholder_color: color_palette.1,
@@ -195,15 +209,11 @@ impl menu::StyleSheet for Theme {
     type Style = Theme;
 
     fn appearance(&self, _: &Self::Style) -> menu::Appearance {
-        let color_palette = match self {
-            Theme::Default => color!(215, 252, 112),
-            Theme::Tangerine => color!(254, 161, 47, 1),
-            Theme::Light => color!(23, 29, 39, 1),
-        };
+        let color_palette = self.accent();
 
         menu::Appearance {
             text_color: match self {
-                Theme::Light => color_palette,
+                Theme::Light | Theme::RedLight => color_palette,
                 _ => Color::WHITE,
             },
             background: Background::Color(Color::TRANSPARENT),
@@ -227,7 +237,7 @@ impl iced::widget::rule::StyleSheet for Theme {
 
     fn appearance(&self, _: &Self::Style) -> iced::widget::rule::Appearance {
         iced::widget::rule::Appearance {
-            color: color!(215, 252, 112),
+            color: self.accent(),
             width: 5,
             radius: BorderRadius::from(5.0),
             fill_mode: iced::widget::rule::FillMode::Full,

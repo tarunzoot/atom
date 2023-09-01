@@ -21,27 +21,36 @@ pub enum AtomStyleInput {
 
 impl AtomStyleInput {
     fn appearance(&self, theme: &Theme) -> ColorPalette {
+        let accent = theme.accent();
         match theme {
             Theme::Default => ColorPalette {
-                accent: color!(215, 252, 112),
+                accent,
                 background: Color::TRANSPARENT,
-                hover_border: color!(215, 252, 112, 0.8),
+                hover_border: Color { a: 0.8, ..accent },
                 placeholder: color!(250, 250, 250, 0.4),
                 text: Color::WHITE,
                 disabled_border: color!(100, 100, 100, 0.3),
             },
             Theme::Tangerine => ColorPalette {
-                accent: color!(254, 161, 47, 1.0),
+                accent,
                 background: color!(49, 59, 69, 0.5),
-                hover_border: color!(254, 161, 47, 0.8),
+                hover_border: Color { a: 0.8, ..accent },
                 placeholder: color!(250, 250, 250, 0.4),
                 text: Color::WHITE,
                 disabled_border: Color::TRANSPARENT,
             },
             Theme::Light => ColorPalette {
-                accent: color!(23, 29, 39, 1.0),
+                accent,
                 background: color!(255, 255, 255, 0.6),
-                hover_border: color!(23, 29, 39, 0.8),
+                hover_border: Color { a: 0.8, ..accent },
+                placeholder: color!(50, 50, 50, 0.6),
+                text: Color::BLACK,
+                disabled_border: color!(198, 202, 210, 1),
+            },
+            Theme::RedLight => ColorPalette {
+                accent,
+                background: color!(255, 255, 255, 0.6),
+                hover_border: Color { a: 0.8, ..accent },
                 placeholder: color!(50, 50, 50, 0.6),
                 text: Color::BLACK,
                 disabled_border: color!(198, 202, 210, 1),
@@ -65,9 +74,16 @@ impl text_input::StyleSheet for Theme {
             border_width: 1.0,
             border_color: match self {
                 Theme::Tangerine => Color::TRANSPARENT,
-                _ => match style {
+                Theme::Default => match style {
                     AtomStyleInput::Search => Color {
                         a: 0.1,
+                        ..appearance.placeholder
+                    },
+                    _ => appearance.accent,
+                },
+                _ => match style {
+                    AtomStyleInput::Search => Color {
+                        a: 0.4,
                         ..appearance.placeholder
                     },
                     _ => appearance.accent,

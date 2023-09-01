@@ -12,18 +12,24 @@ pub struct AtomStyleProgressBar;
 
 impl AtomStyleProgressBar {
     fn color_palette(&self, theme: &Theme) -> ColorPalette {
+        let accent = theme.accent();
+
         match theme {
             Theme::Default => ColorPalette {
                 background: color!(100, 100, 100),
-                bar: color!(215, 252, 112),
+                bar: accent,
             },
             Theme::Tangerine => ColorPalette {
                 background: color!(100, 100, 100),
-                bar: color!(254, 161, 47, 1),
+                bar: accent,
             },
             Theme::Light => ColorPalette {
                 background: color!(200, 200, 200),
-                bar: color!(23, 29, 39, 1.0),
+                bar: accent,
+            },
+            Theme::RedLight => ColorPalette {
+                background: color!(200, 200, 200),
+                bar: accent,
             },
         }
     }

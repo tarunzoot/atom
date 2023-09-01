@@ -4,6 +4,32 @@ use crate::utils::helpers::{get_conf_directory, get_downloads_directory};
 use serde::{Deserialize, Serialize};
 use std::{fs::create_dir_all, path::PathBuf};
 
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub enum ListLayout {
+    ListExtended,
+    #[default]
+    List,
+}
+
+impl From<String> for ListLayout {
+    fn from(value: String) -> Self {
+        match &value[..] {
+            "ListExtended" | "listextended" => Self::ListExtended,
+            "List" | "list" | "default" => Self::List,
+            _ => Self::List,
+        }
+    }
+}
+
+impl From<ListLayout> for String {
+    fn from(value: ListLayout) -> Self {
+        match value {
+            ListLayout::List => "List".to_owned(),
+            ListLayout::ListExtended => "ListExtended".to_owned(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AtomSettings {
     pub config_dir: PathBuf,
@@ -15,6 +41,7 @@ pub struct AtomSettings {
     pub quit_action_closes_app: bool,
     pub auto_start_download: bool,
     pub theme: String,
+    pub list_layout: ListLayout,
 }
 
 impl Default for AtomSettings {
@@ -40,6 +67,7 @@ impl Default for AtomSettings {
             quit_action_closes_app: false,
             auto_start_download: false,
             theme: "Default".to_owned(),
+            list_layout: ListLayout::ListExtended,
         }
     }
 }

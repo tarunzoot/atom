@@ -11,7 +11,7 @@ use iced::{
     Element, Length, Padding, Renderer,
 };
 
-use super::download::AtomDownload;
+use super::{download::AtomDownload, settings::ListLayout};
 
 #[derive(Debug)]
 struct FilterButton<'a> {
@@ -86,6 +86,13 @@ impl<'a> Default for AtomDownloadStates<'a> {
                 state: SideBarActiveButton::DeleteAll,
                 tooltip: Some("Delete all downloads"),
             },
+            FilterButton {
+                text: "",
+                icon: '\u{e90b}',
+                message: Message::ToggleListViewLayout,
+                state: SideBarActiveButton::Overview,
+                tooltip: Some("Change list view layout"),
+            },
         ];
 
         Self {
@@ -99,6 +106,7 @@ impl<'a> AtomDownloadStates<'a> {
         &self,
         active: &SideBarActiveButton,
         downloads: &BTreeMap<usize, AtomDownload>,
+        layout: &ListLayout,
     ) -> Element<Message, Renderer<Theme>> {
         let count_downloading = downloads
             .iter()
@@ -120,12 +128,24 @@ impl<'a> AtomDownloadStates<'a> {
                 .padding(0)
                 .align_items(iced::Alignment::Center),
             |mut row, dfb| {
+                let btn_icon = if dfb.text.is_empty() {
+                    match layout {
+                        ListLayout::ListExtended => '\u{efa2}',
+                        ListLayout::List => '\u{e90b}',
+                    }
+                } else {
+                    dfb.icon
+                };
+
                 let mut btn_content = row!()
-                    .padding(Padding::from([8, 12]))
+                    .padding(Padding::from([10, 15]))
                     .align_items(iced::Alignment::Center)
                     .spacing(5)
-                    .push(icon(dfb.icon, CustomFont::IcoFont).size(12))
-                    .push(text(dfb.text).size(12));
+                    .push(icon(btn_icon, CustomFont::IcoFont).size(12));
+
+                if !dfb.text.is_empty() {
+                    btn_content = btn_content.push(text(dfb.text).size(12));
+                }
 
                 if dfb.tooltip.is_none() {
                     btn_content =
@@ -168,6 +188,7 @@ impl<'a> AtomDownloadStates<'a> {
                     SideBarActiveButton::PauseAll
                     | SideBarActiveButton::DeleteAll
                     | SideBarActiveButton::ResumeAll => 5,
+                    SideBarActiveButton::Overview if dfb.text.is_empty() => 5,
                     _ => 0,
                 })
                 .width(iced::Length::Shrink)

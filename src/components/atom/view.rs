@@ -50,11 +50,14 @@ impl<'a> Atom<'a> {
         };
 
         let filtered_content = scrollable(filtered_downloads.fold(
-            col!().padding(1).spacing(0),
+            col!().padding(1).spacing(match self.settings.list_layout {
+                crate::components::settings::ListLayout::ListExtended => 10,
+                crate::components::settings::ListLayout::List => 0,
+            }),
             |column, (index, download)| {
                 column.push(
                     download
-                        .view()
+                        .view(&self.settings.list_layout)
                         .map(|message| Message::Download(message, *index)),
                 )
             },
@@ -67,15 +70,29 @@ impl<'a> Atom<'a> {
                 .view(self.downloads.len())
                 .map(Message::DownloadForm)
         } else {
-            container(
-                col!()
+            let listings_col = match self.settings.list_layout {
+                crate::components::settings::ListLayout::ListExtended => col!()
+                    .spacing(10)
+                    .push(self.filters.view(
+                        &self.sidebar.active,
+                        &self.downloads,
+                        &self.settings.list_layout,
+                    ))
+                    .push(filtered_content.direction(scrollable::Direction::Vertical(
+                        Properties::new().margin(0).scroller_width(0).width(0),
+                    ))),
+                crate::components::settings::ListLayout::List => col!()
                     .spacing(10)
                     // .push(self.filters.view(&self.sidebar.active, &self.downloads))
                     .push(
                         container(
                             col!()
                                 .spacing(0)
-                                .push(self.filters.view(&self.sidebar.active, &self.downloads))
+                                .push(self.filters.view(
+                                    &self.sidebar.active,
+                                    &self.downloads,
+                                    &self.settings.list_layout,
+                                ))
                                 .push(
                                     container(vertical_space(Length::Fixed(1.0)))
                                         .height(1.0)
@@ -94,12 +111,14 @@ impl<'a> Atom<'a> {
                                 ))),
                         )
                         .style(AtomStyleContainer::ListHeaderContainer),
+                        // .style(AtomStyleContainer::Transparent),
                     ),
-            )
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .align_y(iced::alignment::Vertical::Top)
-            .into()
+            };
+            container(listings_col)
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .align_y(iced::alignment::Vertical::Top)
+                .into()
         }
     }
 
@@ -184,13 +203,6 @@ impl<'a> Atom<'a> {
             .push(self.titlebar.view(&self.settings).map(Message::TitleBar))
             .push(items_row);
 
-        container(main_row)
-            .padding(if matches!(self.theme, Theme::Light) {
-                0
-            } else {
-                1
-            })
-            .width(Length::Fill)
-            .into()
+        container(main_row).padding(0).width(Length::Fill).into()
     }
 }

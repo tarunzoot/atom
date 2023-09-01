@@ -20,21 +20,28 @@ pub enum AtomStyleSlider {
 
 impl AtomStyleSlider {
     fn color_palette(&self, theme: &Theme) -> ColorPalette {
+        let accent = theme.accent();
+
         match theme {
             Theme::Default => ColorPalette {
-                rails: (color!(215, 252, 112), color!(215, 252, 112)),
+                rails: (accent, accent),
                 handle: color!(30, 30, 30),
-                border: color!(215, 252, 112),
+                border: accent,
             },
             Theme::Tangerine => ColorPalette {
-                rails: (color!(254, 161, 47, 1), color!(254, 161, 47, 1)),
+                rails: (accent, accent),
                 handle: color!(30, 30, 30),
-                border: color!(254, 161, 47, 1),
+                border: accent,
             },
             Theme::Light => ColorPalette {
-                rails: (color!(23, 29, 39, 1.0), color!(23, 29, 39, 1.0)),
+                rails: (accent, accent),
                 handle: color!(30, 30, 30),
-                border: color!(23, 29, 39, 1.0),
+                border: accent,
+            },
+            Theme::RedLight => ColorPalette {
+                rails: (accent, accent),
+                handle: color!(30, 30, 30),
+                border: accent,
             },
         }
     }

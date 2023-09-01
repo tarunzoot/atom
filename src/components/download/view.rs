@@ -1,18 +1,19 @@
 use super::AtomDownload;
 use crate::{
+    components::settings::ListLayout,
     elements::GuiElements,
-    font::file_type_icon,
+    font::{file_type_icon, icon, CustomFont},
     messages::DownloadMessage,
     style::{button::AtomStyleButton, container::AtomStyleContainer, Theme},
     utils::helpers::get_formatted_time,
 };
 use iced::{
-    widget::{button, container, progress_bar, row, text},
-    Element, Renderer,
+    widget::{button, column as col, container, horizontal_space, progress_bar, row, text},
+    Element, Length, Renderer,
 };
 
 impl AtomDownload {
-    pub fn view(&self) -> Element<DownloadMessage, Renderer<Theme>> {
+    pub fn view(&self, layout: &ListLayout) -> Element<DownloadMessage, Renderer<Theme>> {
         let text_size = 12.0;
         let size_format = |size: usize| -> (f64, &str) {
             let suffix = vec!["Bytes", "KB", "MB", "GB"];
@@ -127,37 +128,146 @@ impl AtomDownload {
             );
         }
 
-        let main_row = row!()
-            .align_items(iced::Alignment::Center)
-            .padding(10)
-            .spacing(10)
-            .push(file_name_col)
-            .push(file_size_col)
-            .push(progress_col)
-            .push(
-                container(text(&transfer_rate).size(text_size))
-                    .width(iced::Length::Fixed(100.0))
-                    .style(AtomStyleContainer::Transparent)
-                    .align_x(iced::alignment::Horizontal::Left),
-            )
-            .push(
-                container(text(&eta).size(text_size))
-                    .width(iced::Length::Fixed(100.0))
-                    .style(AtomStyleContainer::Transparent)
-                    .align_x(iced::alignment::Horizontal::Left),
-            )
-            .push(
-                container(text(&self.added).size(text_size))
-                    .width(iced::Length::Fixed(80.0))
-                    .style(AtomStyleContainer::Transparent)
-                    .align_x(iced::alignment::Horizontal::Left),
-            )
-            .push(
-                container(actions_row)
-                    .width(iced::Length::Fixed(80.0))
-                    .style(AtomStyleContainer::Transparent)
-                    .align_x(iced::alignment::Horizontal::Right),
-            );
+        let main_row = match layout {
+            crate::components::settings::ListLayout::ListExtended => {
+                let icon_size = 12.0;
+                col!()
+                    .padding(10)
+                    .spacing(10)
+                    .push(
+                        row!()
+                            .spacing(10)
+                            .align_items(iced::Alignment::Center)
+                            .push(file_name_col.width(Length::Fill))
+                            .push(actions_row.align_items(iced::Alignment::Center)),
+                    )
+                    .push(
+                        container(horizontal_space(Length::Fill))
+                            .height(Length::Fixed(1.0))
+                            .style(AtomStyleContainer::ListItemContainer)
+                            .width(Length::Fill),
+                    )
+                    .push(
+                        row!()
+                            .spacing(20)
+                            .align_items(iced::Alignment::Center)
+                            .push(
+                                row!()
+                                    .spacing(5)
+                                    .align_items(iced::Alignment::Center)
+                                    .push(icon('\u{ec45}', CustomFont::IcoFont).size(icon_size))
+                                    .push(text(&self.added).size(text_size)),
+                            )
+                            .push(text("•"))
+                            .push(
+                                row!()
+                                    .spacing(5)
+                                    .align_items(iced::Alignment::Center)
+                                    .push(icon('\u{efbe}', CustomFont::IcoFont).size(icon_size))
+                                    .push(file_size_col.width(Length::Shrink)),
+                            )
+                            .push(text("•"))
+                            .push(
+                                row!()
+                                    .spacing(5)
+                                    .align_items(iced::Alignment::Center)
+                                    .push(icon('\u{eff3}', CustomFont::IcoFont).size(icon_size))
+                                    .push(text(&transfer_rate).size(text_size)),
+                            )
+                            .push(text("•"))
+                            .push(
+                                row!()
+                                    .spacing(5)
+                                    .align_items(iced::Alignment::Center)
+                                    .push(icon('\u{f022}', CustomFont::IcoFont).size(icon_size))
+                                    .push(text(&eta).size(text_size)),
+                            )
+                            .push(text("•"))
+                            .push(
+                                row!()
+                                    .spacing(5)
+                                    .align_items(iced::Alignment::Center)
+                                    .push(
+                                        icon(
+                                            if progress >= 100.0 {
+                                                '\u{eed7}'
+                                            } else {
+                                                '\u{ec60}'
+                                            },
+                                            CustomFont::IcoFont,
+                                        )
+                                        .size(icon_size),
+                                    )
+                                    .push(progress_col.width(Length::Shrink)),
+                            ),
+                    )
+            }
+            crate::components::settings::ListLayout::List => col!().push(
+                row!()
+                    .align_items(iced::Alignment::Center)
+                    .padding(10)
+                    .spacing(10)
+                    .push(file_name_col)
+                    .push(file_size_col)
+                    .push(progress_col)
+                    .push(
+                        container(text(&transfer_rate).size(text_size))
+                            .width(iced::Length::Fixed(100.0))
+                            .style(AtomStyleContainer::Transparent)
+                            .align_x(iced::alignment::Horizontal::Left),
+                    )
+                    .push(
+                        container(text(&eta).size(text_size))
+                            .width(iced::Length::Fixed(100.0))
+                            .style(AtomStyleContainer::Transparent)
+                            .align_x(iced::alignment::Horizontal::Left),
+                    )
+                    .push(
+                        container(text(&self.added).size(text_size))
+                            .width(iced::Length::Fixed(80.0))
+                            .style(AtomStyleContainer::Transparent)
+                            .align_x(iced::alignment::Horizontal::Left),
+                    )
+                    .push(
+                        container(actions_row)
+                            .width(iced::Length::Fixed(80.0))
+                            .style(AtomStyleContainer::Transparent)
+                            .align_x(iced::alignment::Horizontal::Right),
+                    ),
+            ),
+        };
+
+        // let main_row = row!()
+        //     .align_items(iced::Alignment::Center)
+        //     .padding(10)
+        //     .spacing(10)
+        //     .push(file_name_col)
+        //     .push(file_size_col)
+        //     .push(progress_col)
+        //     .push(
+        //         container(text(&transfer_rate).size(text_size))
+        //             .width(iced::Length::Fixed(100.0))
+        //             .style(AtomStyleContainer::Transparent)
+        //             .align_x(iced::alignment::Horizontal::Left),
+        //     )
+        //     .push(
+        //         container(text(&eta).size(text_size))
+        //             .width(iced::Length::Fixed(100.0))
+        //             .style(AtomStyleContainer::Transparent)
+        //             .align_x(iced::alignment::Horizontal::Left),
+        //     )
+        //     .push(
+        //         container(text(&self.added).size(text_size))
+        //             .width(iced::Length::Fixed(80.0))
+        //             .style(AtomStyleContainer::Transparent)
+        //             .align_x(iced::alignment::Horizontal::Left),
+        //     )
+        //     .push(
+        //         container(actions_row)
+        //             .width(iced::Length::Fixed(80.0))
+        //             .style(AtomStyleContainer::Transparent)
+        //             .align_x(iced::alignment::Horizontal::Right),
+        //     );
 
         let mut download_container = container(
             button(main_row)

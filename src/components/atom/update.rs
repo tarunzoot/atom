@@ -35,6 +35,15 @@ impl<'a> Atom<'a> {
     pub fn update(&mut self, message: Message) -> iced::Command<Message> {
         match message {
             Message::Ignore => {}
+            Message::ToggleListViewLayout => match self.settings.list_layout {
+                crate::components::settings::ListLayout::ListExtended => {
+                    self.settings.list_layout = crate::components::settings::ListLayout::List
+                }
+                crate::components::settings::ListLayout::List => {
+                    self.settings.list_layout =
+                        crate::components::settings::ListLayout::ListExtended
+                }
+            },
             Message::EventsOccurred(event) => {
                 if let Event::Keyboard(keyboard::Event::KeyPressed {
                     key_code,

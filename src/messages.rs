@@ -167,6 +167,7 @@ pub enum Message {
     TrayMessages(TrayMessage),
     TrayEvent(u32),
     FontLoaded(Result<(), iced::font::Error>),
+    ToggleListViewLayout,
     LoadingComplete,
     Ignore,
 }

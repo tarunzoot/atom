@@ -24,19 +24,27 @@ impl AtomStyleButton {
     fn appearance(&self, theme: &Theme) -> ColorPalette {
         match theme {
             Theme::Default => ColorPalette {
-                background: color!(215, 252, 112, 1),
+                background: theme.accent(),
                 border: color!(30, 30, 30, 1),
                 text: Color::BLACK,
             },
             Theme::Tangerine => ColorPalette {
-                background: color!(254, 161, 47, 1),
+                background: theme.accent(),
                 border: color!(50, 58, 65, 1),
                 text: Color::BLACK,
             },
             Theme::Light => ColorPalette {
-                background: color!(23, 29, 39, 1.0),
+                background: theme.accent(),
                 border: color!(150, 150, 150, 0.1),
                 text: Color::WHITE,
+            },
+            Theme::RedLight => ColorPalette {
+                background: theme.accent(),
+                border: color!(150, 150, 150, 0.1),
+                text: Color {
+                    a: 0.85,
+                    ..Color::BLACK
+                },
             },
         }
     }
@@ -93,6 +101,10 @@ impl button::StyleSheet for Theme {
                 | AtomStyleButton::HeaderButtons
                 | AtomStyleButton::Neutral => match self {
                     Theme::Light => color_palette.background,
+                    Theme::RedLight => Color {
+                        a: 0.9,
+                        ..Color::BLACK
+                    },
                     _ => Color::WHITE,
                 },
                 _ => color_palette.text,
@@ -141,7 +153,13 @@ impl button::StyleSheet for Theme {
                 | AtomStyleButton::HeaderButtons => Some(Background::Color(
                     style.color_offset(color_palette.border, 5.0),
                 )),
-                _ => Some(Background::Color(color_palette.border)),
+                _ => match self {
+                    Theme::RedLight => Some(Background::Color(Color {
+                        a: 0.2,
+                        ..Color::BLACK
+                    })),
+                    _ => Some(Background::Color(color_palette.border)),
+                },
             },
             border_color: match style {
                 AtomStyleButton::PrimaryButton => color!(80, 80, 80, 0.4),
@@ -155,6 +173,7 @@ impl button::StyleSheet for Theme {
                 | AtomStyleButton::Neutral => Color::WHITE,
                 _ => match self {
                     Theme::Light => color_palette.background,
+                    Theme::RedLight => Color::BLACK,
                     _ => Color::WHITE,
                 },
             },

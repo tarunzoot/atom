@@ -17,6 +17,7 @@ ATOM is a modern looking download manager written in Rust using [Iced](https://g
 - Pause/Resume support.
 - Import downloads from file.
 - Captures download from browser.
+- Multiple themes.
 
 <!-- ## Download -->
 <!-- Prebuilt binaries for macOS and Windows can be downloaded from [GitHub Releases](https://github.com/yourusername/atom-download-manager). -->

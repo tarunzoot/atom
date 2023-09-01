@@ -12,17 +12,23 @@ pub struct AtomStyleToggler;
 
 impl AtomStyleToggler {
     fn color_palette(&self, theme: &Theme) -> ColorPalette {
+        let accent = theme.accent();
+
         match theme {
             Theme::Default => ColorPalette {
-                background: color!(215, 252, 112),
+                background: accent,
                 foreground: color!(0, 0, 0, 1),
             },
             Theme::Tangerine => ColorPalette {
-                background: color!(254, 161, 47, 1),
+                background: accent,
                 foreground: color!(0, 0, 0, 1),
             },
             Theme::Light => ColorPalette {
-                background: color!(23, 29, 39, 1.0),
+                background: accent,
+                foreground: color!(255, 255, 255, 0.8),
+            },
+            Theme::RedLight => ColorPalette {
+                background: accent,
                 foreground: color!(255, 255, 255, 0.8),
             },
         }

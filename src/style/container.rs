@@ -30,24 +30,34 @@ pub enum AtomStyleContainer {
 
 impl AtomStyleContainer {
     fn appearance(&self, theme: &Theme) -> ColorPalette {
+        let accent = theme.accent();
         match theme {
             Theme::Default => ColorPalette {
-                accent: color!(215, 252, 112, 1.0),
+                accent,
                 background: color!(10, 10, 10, 1),
                 border: color!(100, 100, 100, 1.0),
                 text: Color::WHITE,
             },
             Theme::Tangerine => ColorPalette {
-                accent: color!(254, 161, 47, 1.0),
+                accent,
                 background: color!(20, 24, 27, 1),
                 border: color!(44, 52, 61, 1),
                 text: color!(192, 200, 201, 1),
             },
             Theme::Light => ColorPalette {
-                accent: color!(23, 29, 39, 1.0),
+                accent,
                 background: color!(250, 250, 250, 1),
                 border: color!(150, 150, 150, 0.1),
-                text: color!(23, 29, 39, 1.0),
+                text: accent,
+            },
+            Theme::RedLight => ColorPalette {
+                accent,
+                background: color!(250, 250, 250, 1),
+                border: color!(150, 150, 150, 0.1),
+                text: Color {
+                    a: 0.85,
+                    ..Color::BLACK
+                },
             },
         }
     }
@@ -107,6 +117,10 @@ impl container::StyleSheet for Theme {
                         a: 0.01,
                         ..appearance.border
                     })),
+                    Theme::RedLight => Some(Background::Color(Color {
+                        a: 0.01,
+                        ..appearance.border
+                    })),
                 },
                 AtomStyleContainer::HeaderContainer => match self {
                     Theme::Light => Some(Background::Color(
@@ -137,6 +151,7 @@ impl container::StyleSheet for Theme {
                 )),
                 AtomStyleContainer::ListHeaderContainer => match self {
                     Theme::Light => Some(Background::Color(appearance.border)),
+                    Theme::RedLight => Some(Background::Color(appearance.border)),
                     _ => Some(Background::Color(
                         style.color_offset(appearance.background, 30.0),
                     )),
