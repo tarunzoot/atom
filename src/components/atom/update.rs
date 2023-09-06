@@ -10,6 +10,7 @@ use crate::{
 };
 use iced::{keyboard, window, Command, Event};
 use std::path::PathBuf;
+use tracing::{error, warn};
 
 impl<'a> Atom<'a> {
     fn update_view(&mut self, view: View) {
@@ -25,7 +26,6 @@ impl<'a> Atom<'a> {
                 self.filter_type = DownloadsListFilterMessage::All;
                 self.metadata.enabled = false;
             }
-            View::DeleteConfirm => todo!(),
             View::Import => todo!(),
         }
 
@@ -131,14 +131,14 @@ impl<'a> Atom<'a> {
                 TitleBarMessage::AppExit => {
                     self.should_exit = true;
                     if !save_settings_toml(&self.settings) {
-                        log::warn!("Error: saving settings failed!");
+                        warn!("Error: saving settings failed!");
                     }
 
                     if !save_downloads_toml(
                         self.downloads.clone().into_values().collect(),
                         &PathBuf::from(&self.settings.config_dir).join("downloads.toml"),
                     ) {
-                        log::warn!("Error: saving downloads failed!");
+                        warn!("Error: saving downloads failed!");
                     }
                     return window::close();
                 }
@@ -189,7 +189,7 @@ impl<'a> Atom<'a> {
                                                             );
                                                         }
 
-                                                        Err(e) => log::warn!("Error: {:#?}", e),
+                                                        Err(e) => warn!("Error: {:#?}", e),
                                                     }
                                                 })
                                                 .ok();
@@ -243,7 +243,7 @@ impl<'a> Atom<'a> {
                 }
                 crate::messages::SettingsMessage::SaveSettings => {
                     if !save_settings_toml(&self.settings) {
-                        log::warn!("Warning: unable to save settings => {:#?}", self.settings);
+                        warn!("Warning: unable to save settings => {:#?}", self.settings);
                     }
                     self.default_settings = self.settings.clone();
                     self.theme = self.settings.theme.clone().into();
@@ -255,12 +255,16 @@ impl<'a> Atom<'a> {
                 DownloadMessage::DownloadSelected => {
                     return Command::perform(async {}, move |_| Message::ShowMetadata(index));
                 }
-                DownloadMessage::RemoveDownload => {
-                    self.downloads.remove(&index);
-                    if self.downloads.is_empty() {
-                        self.update_view(View::Downloads);
+                DownloadMessage::RemoveDownload(force) => {
+                    if force {
+                        self.downloads.remove(&index);
+                        if self.downloads.is_empty() {
+                            self.update_view(View::Downloads);
+                        }
+                        return Command::perform(async {}, |_| Message::SaveDownloads);
+                    } else if let Some(download) = self.downloads.get_mut(&index) {
+                        download.update(state, &self.settings);
                     }
-                    return Command::perform(async {}, |_| Message::SaveDownloads);
                 }
                 DownloadMessage::Finished => {
                     if let Some(download) = self.downloads.get_mut(&index) {
@@ -305,7 +309,7 @@ impl<'a> Atom<'a> {
                             ]);
                         }
                     }
-                    Err(e) => log::warn!("Error: new download from browser, {:#?}", e),
+                    Err(e) => warn!("Error: new download from browser, {:#?}", e),
                 }
             }
             Message::AddNewDownload(mut new_download) => {
@@ -313,7 +317,11 @@ impl<'a> Atom<'a> {
 
                 if let Some(existing_download_id) =
                     self.downloads.iter().find_map(|(&index, download)| {
-                        if download.url == new_download.url && !download.is_deleted {
+                        if (download.url == new_download.url
+                            || (download.file_name == new_download.file_name
+                                && download.file_path == new_download.file_path))
+                            && !download.is_deleted
+                        {
                             Some(index)
                         } else {
                             None
@@ -341,10 +349,11 @@ impl<'a> Atom<'a> {
                     self.downloads.clone().into_values().collect(),
                     &PathBuf::from(&self.settings.config_dir).join("downloads.toml"),
                 ) {
-                    log::warn!("Error: saving downloads failed!");
+                    warn!("Error: saving downloads failed!");
                 }
             }
             Message::GotoHomePage => {
+                self.filters.show_confirmation_dialog = false;
                 self.view = View::Downloads;
                 self.filter_type = DownloadsListFilterMessage::All;
                 self.metadata.enabled = false;
@@ -391,7 +400,7 @@ impl<'a> Atom<'a> {
                 }
                 SidebarMessage::ResumeAll => {
                     self.downloads.iter_mut().for_each(|(&_, download)| {
-                        if !download.is_downloaded() {
+                        if !download.is_downloaded() && !download.is_downloading {
                             download.update(DownloadMessage::Downloading, &self.settings);
                         }
                     });
@@ -399,7 +408,7 @@ impl<'a> Atom<'a> {
                     self.metadata.enabled = false;
                 }
                 SidebarMessage::DeleteConfirm => {
-                    self.view = View::DeleteConfirm;
+                    self.filters.show_confirmation_dialog = true;
                     self.sidebar.active = SideBarActiveButton::Overview;
                 }
                 SidebarMessage::DeleteAll => {
@@ -408,6 +417,7 @@ impl<'a> Atom<'a> {
                     self.filter_type = DownloadsListFilterMessage::All;
                     self.metadata.enabled = false;
                     self.sidebar.active = SideBarActiveButton::Overview;
+                    self.filters.show_confirmation_dialog = false;
                 }
                 SidebarMessage::PauseAll => {
                     self.downloads.iter_mut().for_each(|(&_, download)| {
@@ -460,11 +470,11 @@ impl<'a> Atom<'a> {
                     let message = message.to_owned();
                     return Command::perform(async {}, |_| message);
                 }
-                log::warn!("Warning: unknown tray event id => {id}");
+                warn!("Warning: unknown tray event id => {id}");
             }
             Message::FontLoaded(result) => {
                 if result.is_err() {
-                    log::error!("{result:#?}");
+                    error!("{result:#?}");
                 }
             }
             Message::LoadingComplete => {}

@@ -6,7 +6,7 @@ use crate::{
 };
 use iced::{
     widget::{button, column as col, container, row, text, text_input},
-    Element, Padding, Renderer,
+    Element, Font, Padding, Renderer,
 };
 
 #[derive(Debug, Default)]
@@ -27,7 +27,11 @@ impl AtomTitleBar {
                             .spacing(10)
                             .padding(iced::Padding::from([12, 20]))
                             .push(icon('\u{ead8}', CustomFont::IcoFont).size(20))
-                            .push(text("A.T.O.M")),
+                            .push(
+                                text("A.T.O.M")
+                                    .font(Font::with_name("Work Sans"))
+                                    .size(18.0),
+                            ),
                     )
                     .style(AtomStyleContainer::LogoContainer),
                 )
@@ -60,7 +64,7 @@ impl AtomTitleBar {
                                                         .on_press(TitleBarMessage::AppMinimize),
                                                 )
                                                 .push(
-                                                    button(icon('\u{ef8c}', CustomFont::IcoFont))
+                                                    button(icon('\u{ef52}', CustomFont::IcoFont))
                                                         .padding(15)
                                                         .style(AtomStyleButton::HeaderButtons)
                                                         .on_press(TitleBarMessage::AppMaximize),

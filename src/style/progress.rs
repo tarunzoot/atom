@@ -39,7 +39,7 @@ impl progress_bar::StyleSheet for Theme {
     type Style = AtomStyleProgressBar;
 
     fn appearance(&self, style: &Self::Style) -> progress_bar::Appearance {
-        let color_palette = style.color_palette(&self);
+        let color_palette = style.color_palette(self);
 
         progress_bar::Appearance {
             background: Background::Color(color_palette.background),

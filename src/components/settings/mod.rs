@@ -3,6 +3,7 @@ mod view;
 use crate::utils::helpers::{get_conf_directory, get_downloads_directory};
 use serde::{Deserialize, Serialize};
 use std::{fs::create_dir_all, path::PathBuf};
+use tracing::warn;
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub enum ListLayout {
@@ -48,7 +49,7 @@ impl Default for AtomSettings {
     fn default() -> Self {
         let config_dir_path = get_conf_directory()
             .map_err(|e| {
-                log::warn!("{e:#?}");
+                warn!("{e:#?}");
             })
             .unwrap();
 

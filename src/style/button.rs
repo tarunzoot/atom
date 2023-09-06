@@ -64,7 +64,7 @@ impl button::StyleSheet for Theme {
     type Style = AtomStyleButton;
 
     fn active(&self, style: &Self::Style) -> button::Appearance {
-        let color_palette = style.appearance(&self);
+        let color_palette = style.appearance(self);
 
         button::Appearance {
             background: match style {
@@ -114,7 +114,7 @@ impl button::StyleSheet for Theme {
     }
 
     fn hovered(&self, style: &Self::Style) -> button::Appearance {
-        let color_palette = style.appearance(&self);
+        let color_palette = style.appearance(self);
 
         button::Appearance {
             background: match style {
@@ -142,7 +142,7 @@ impl button::StyleSheet for Theme {
     }
 
     fn disabled(&self, style: &Self::Style) -> button::Appearance {
-        let color_palette = style.appearance(&self);
+        let color_palette = style.appearance(self);
 
         button::Appearance {
             background: match style {

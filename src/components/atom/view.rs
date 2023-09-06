@@ -1,6 +1,6 @@
 use super::{Atom, View};
 use crate::{
-    components::{delete_downloads, download::AtomDownload, keybindings, listview_header},
+    components::{download::AtomDownload, keybindings, listview_header},
     font::icon,
     messages::{DownloadsListFilterMessage, Message},
     style::{container::AtomStyleContainer, Theme},
@@ -114,6 +114,7 @@ impl<'a> Atom<'a> {
                         // .style(AtomStyleContainer::Transparent),
                     ),
             };
+
             container(listings_col)
                 .width(Length::Fill)
                 .height(Length::Fill)
@@ -150,7 +151,6 @@ impl<'a> Atom<'a> {
 
         let view = match self.view {
             View::Import => self.import.view().map(Message::Import),
-            View::DeleteConfirm => delete_downloads::view().map(Message::Sidebar),
             View::Downloads => self.filter_downloads_view(),
             View::NewDownloadForm => self
                 .download_form

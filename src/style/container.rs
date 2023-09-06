@@ -89,7 +89,7 @@ impl container::StyleSheet for Theme {
     type Style = AtomStyleContainer;
 
     fn appearance(&self, style: &Self::Style) -> container::Appearance {
-        let appearance = style.appearance(&self);
+        let appearance = style.appearance(self);
 
         container::Appearance {
             text_color: match style {

@@ -25,6 +25,7 @@ struct FilterButton<'a> {
 #[derive(Debug)]
 pub struct AtomDownloadStates<'a> {
     download_filter_buttons: Vec<FilterButton<'a>>,
+    pub show_confirmation_dialog: bool,
 }
 
 impl<'a> Default for AtomDownloadStates<'a> {
@@ -97,6 +98,7 @@ impl<'a> Default for AtomDownloadStates<'a> {
 
         Self {
             download_filter_buttons: df_buttons,
+            show_confirmation_dialog: false,
         }
     }
 }
@@ -213,10 +215,22 @@ impl<'a> AtomDownloadStates<'a> {
             },
         );
 
-        container(df_buttons_row)
-            .padding(0)
-            .width(iced::Length::Fill)
-            .style(AtomStyleContainer::ListHeaderContainer)
-            .into()
+        if self.show_confirmation_dialog {
+            GuiElements::modal(
+                container(df_buttons_row)
+                    .padding(0)
+                    .width(iced::Length::Fill)
+                    .style(AtomStyleContainer::ListHeaderContainer),
+                "Are you sure you want to delete all downloads?",
+                Message::Sidebar(crate::messages::SidebarMessage::DeleteAll),
+                Message::GotoHomePage,
+            )
+        } else {
+            container(df_buttons_row)
+                .padding(0)
+                .width(iced::Length::Fill)
+                .style(AtomStyleContainer::ListHeaderContainer)
+                .into()
+        }
     }
 }

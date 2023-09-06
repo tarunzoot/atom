@@ -23,7 +23,8 @@ pub enum DownloadMessage {
     Error(String),
     DownloadSelected,
     MarkDeleted,
-    RemoveDownload,
+    RemoveDownload(bool), // force delete is true (for trash)
+    HideDialog,
     Ignore,
 }
 

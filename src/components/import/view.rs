@@ -25,7 +25,7 @@ impl AtomImport {
                 .spacing(20)
                 .padding(Padding::from([0, 10, 10, 10]))
                 .push(
-                    container(text("Import Links File"))
+                    container(text("Import Links"))
                         .style(AtomStyleContainer::LogoContainer)
                         .padding(Padding::from([10, 30, 10, 30])),
                 )

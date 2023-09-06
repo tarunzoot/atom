@@ -19,6 +19,7 @@ use std::{
     collections::{BTreeMap, HashMap},
     fs::create_dir_all,
 };
+use tracing::{debug, error, warn};
 use tray_icon::{
     menu::{Menu, MenuItem},
     TrayIcon, TrayIconBuilder,
@@ -31,7 +32,6 @@ pub enum View {
     Shortcuts,
     #[default]
     Downloads,
-    DeleteConfirm,
     Import,
 }
 
@@ -62,7 +62,7 @@ impl<'a> Atom<'a> {
         let app_instance =
             single_instance::SingleInstance::new("fade9985-845c-4ca3-84b2-8a1b29a6c636")
                 .map_err(|_| {
-                    log::error!("SingleInstance cannot be initialized!");
+                    error!("SingleInstance cannot be initialized!");
                     std::process::exit(-1);
                 })
                 .unwrap();
@@ -70,19 +70,19 @@ impl<'a> Atom<'a> {
         // check if config path can be created or exists
         let config_dir_path = get_conf_directory()
             .map_err(|e| {
-                log::error!("{e:#?}");
+                error!("{e:#?}");
                 std::process::exit(1);
             })
             .unwrap();
 
         if !config_dir_path.exists() && create_dir_all(&config_dir_path).is_err() {
-            log::error!("Error: cannot create config directory `{config_dir_path:#?}`, exiting.");
+            error!("Error: cannot create config directory `{config_dir_path:#?}`, exiting.");
             std::process::exit(1);
         }
 
         let settings_path = config_dir_path.join("settings.toml");
         if !settings_path.exists() {
-            log::warn!("No settings.toml found, using defaults");
+            warn!("No settings.toml found, using defaults");
             save_settings_toml(&AtomSettings {
                 ..Default::default()
             });
@@ -122,7 +122,7 @@ impl<'a> Atom<'a> {
     }
 
     fn load_system_tray(is_single: bool) -> (Option<TrayIcon>, HashMap<u32, Message>) {
-        let system_tray = if !is_single || cfg!(target_os = "linux") {
+        if !is_single || cfg!(target_os = "linux") {
             (None, HashMap::default())
         } else {
             let tray_menu = Menu::new();
@@ -154,8 +154,8 @@ impl<'a> Atom<'a> {
                 .map(|item| (tray_menu.append(&item.0).is_err(), (item.0.id(), item.1)))
                 .filter(|f| {
                     if f.0 {
-                        log::warn!("Error: tray item id:{:?}, message: {:?}", (f.1).0, (f.1).1);
-                        return false;
+                        warn!("Error: tray item id:{:?}, message: {:?}", (f.1).0, (f.1).1);
+                        false
                     } else {
                         true
                     }
@@ -171,15 +171,13 @@ impl<'a> Atom<'a> {
                 )))
                 .build()
             {
-                log::debug!("Tray menu enabled!");
+                debug!("Tray menu enabled!");
                 Some(tray)
             } else {
-                log::debug!("Tray menu creation failed!");
+                debug!("Tray menu creation failed!");
                 None
             };
             (tray_icon, tray_messages)
-        };
-
-        system_tray
+        }
     }
 }

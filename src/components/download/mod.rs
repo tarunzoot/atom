@@ -35,6 +35,8 @@ pub struct AtomDownload {
     pub elapsed_time: Option<SystemTime>,
     #[serde(skip_deserializing, skip_serializing)]
     pub is_joining: bool,
+    #[serde(skip_deserializing, skip_serializing)]
+    pub show_delete_confirm_dialog: bool,
 }
 
 impl Default for AtomDownload {
@@ -58,6 +60,7 @@ impl Default for AtomDownload {
             elapsed_time: Some(SystemTime::now()),
             joined_bytes: 0,
             is_joining: false,
+            show_delete_confirm_dialog: false,
         }
     }
 }

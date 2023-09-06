@@ -174,7 +174,7 @@ impl pick_list::StyleSheet for Theme {
     type Style = Theme;
 
     fn active(&self, _: &<Self as pick_list::StyleSheet>::Style) -> pick_list::Appearance {
-        let color_palette = AtomStylePickList::color_palette(&self);
+        let color_palette = AtomStylePickList::color_palette(self);
 
         pick_list::Appearance {
             text_color: match self {

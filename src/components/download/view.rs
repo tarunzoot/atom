@@ -16,7 +16,7 @@ impl AtomDownload {
     pub fn view(&self, layout: &ListLayout) -> Element<DownloadMessage, Renderer<Theme>> {
         let text_size = 12.0;
         let size_format = |size: usize| -> (f64, &str) {
-            let suffix = vec!["Bytes", "KB", "MB", "GB"];
+            let suffix: [&str; 4] = ["Bytes", "KB", "MB", "GB"];
             let size_len = size.to_string().len();
             let size_len = if size_len % 3 == 0 {
                 (size_len / 3) - 1
@@ -45,7 +45,12 @@ impl AtomDownload {
         let eta = if self.size == 0 || self.transfer_rate == 0.0 {
             String::from("0.0 second(s)")
         } else {
-            get_formatted_time((self.size as f64 / (self.transfer_rate * (1000.0 * 1000.0))) as u64)
+            let size = if self.size > self.downloaded {
+                self.size - self.downloaded
+            } else {
+                self.size
+            } as f64;
+            get_formatted_time((size / (self.transfer_rate * (1000.0 * 1000.0))) as u64)
         };
 
         let file_name_col = container(
@@ -61,7 +66,7 @@ impl AtomDownload {
 
         let file_size_col = container(
             text(format!(
-                "{0:<7.2} / {1:>7.2} {2}",
+                "{0:<4.2} / {1:>4.2} {2}",
                 downloaded.0, size.0, size.1
             ))
             .size(text_size),
@@ -82,7 +87,7 @@ impl AtomDownload {
                 )
                 .push(
                     text(format!(
-                        "{0:>6.2} %",
+                        "{0:>4.2} %",
                         if progress.is_nan() { 0.0 } else { progress }
                     ))
                     .size(text_size),
@@ -98,7 +103,7 @@ impl AtomDownload {
                 .push(progress_bar(0.0..=100.0, progress).height(iced::Length::Fixed(5.0)))
                 .push(
                     text(format!(
-                        "{0:>6.2} %",
+                        "{0:>4.2} %",
                         if progress.is_nan() { 0.0 } else { progress }
                     ))
                     .size(text_size),
@@ -124,7 +129,8 @@ impl AtomDownload {
                 .push(GuiElements::round_button('\u{ee09}').on_press(DownloadMessage::MarkDeleted));
         } else {
             actions_row = actions_row.push(
-                GuiElements::round_button('\u{ee09}').on_press(DownloadMessage::RemoveDownload),
+                GuiElements::round_button('\u{ee09}')
+                    .on_press(DownloadMessage::RemoveDownload(true)),
             );
         }
 
@@ -189,10 +195,14 @@ impl AtomDownload {
                                     .align_items(iced::Alignment::Center)
                                     .push(
                                         icon(
-                                            if progress >= 100.0 {
-                                                '\u{eed7}'
+                                            if self.error.is_empty() {
+                                                if progress >= 100.0 {
+                                                    '\u{eed7}'
+                                                } else {
+                                                    '\u{ec60}'
+                                                }
                                             } else {
-                                                '\u{ec60}'
+                                                '\u{eede}'
                                             },
                                             CustomFont::IcoFont,
                                         )
@@ -237,38 +247,6 @@ impl AtomDownload {
             ),
         };
 
-        // let main_row = row!()
-        //     .align_items(iced::Alignment::Center)
-        //     .padding(10)
-        //     .spacing(10)
-        //     .push(file_name_col)
-        //     .push(file_size_col)
-        //     .push(progress_col)
-        //     .push(
-        //         container(text(&transfer_rate).size(text_size))
-        //             .width(iced::Length::Fixed(100.0))
-        //             .style(AtomStyleContainer::Transparent)
-        //             .align_x(iced::alignment::Horizontal::Left),
-        //     )
-        //     .push(
-        //         container(text(&eta).size(text_size))
-        //             .width(iced::Length::Fixed(100.0))
-        //             .style(AtomStyleContainer::Transparent)
-        //             .align_x(iced::alignment::Horizontal::Left),
-        //     )
-        //     .push(
-        //         container(text(&self.added).size(text_size))
-        //             .width(iced::Length::Fixed(80.0))
-        //             .style(AtomStyleContainer::Transparent)
-        //             .align_x(iced::alignment::Horizontal::Left),
-        //     )
-        //     .push(
-        //         container(actions_row)
-        //             .width(iced::Length::Fixed(80.0))
-        //             .style(AtomStyleContainer::Transparent)
-        //             .align_x(iced::alignment::Horizontal::Right),
-        //     );
-
         let mut download_container = container(
             button(main_row)
                 .on_press(if self.is_deleted {
@@ -288,6 +266,15 @@ impl AtomDownload {
             download_container = download_container.style(AtomStyleContainer::ErrorContainer);
         }
 
-        download_container.into()
+        if self.show_delete_confirm_dialog {
+            GuiElements::modal(
+                download_container,
+                "Are you sure?",
+                DownloadMessage::RemoveDownload(false),
+                DownloadMessage::HideDialog,
+            )
+        } else {
+            download_container.into()
+        }
     }
 }

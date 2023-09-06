@@ -63,7 +63,7 @@ impl text_input::StyleSheet for Theme {
     type Style = AtomStyleInput;
 
     fn active(&self, style: &Self::Style) -> text_input::Appearance {
-        let appearance = style.appearance(&self);
+        let appearance = style.appearance(self);
 
         text_input::Appearance {
             background: Background::Color(appearance.background),
@@ -94,12 +94,12 @@ impl text_input::StyleSheet for Theme {
     }
 
     fn disabled_color(&self, style: &Self::Style) -> Color {
-        let appearance = style.appearance(&self);
+        let appearance = style.appearance(self);
         appearance.placeholder
     }
 
     fn disabled(&self, style: &Self::Style) -> text_input::Appearance {
-        let appearance = style.appearance(&self);
+        let appearance = style.appearance(self);
 
         text_input::Appearance {
             border_color: appearance.disabled_border,
@@ -119,22 +119,22 @@ impl text_input::StyleSheet for Theme {
     }
 
     fn placeholder_color(&self, style: &Self::Style) -> Color {
-        let appearance = style.appearance(&self);
+        let appearance = style.appearance(self);
         appearance.placeholder
     }
 
     fn value_color(&self, style: &Self::Style) -> Color {
-        let appearance = style.appearance(&self);
+        let appearance = style.appearance(self);
         appearance.text
     }
 
     fn selection_color(&self, style: &Self::Style) -> Color {
-        let appearance = style.appearance(&self);
+        let appearance = style.appearance(self);
         appearance.accent
     }
 
     fn hovered(&self, style: &Self::Style) -> text_input::Appearance {
-        let appearance = style.appearance(&self);
+        let appearance = style.appearance(self);
 
         text_input::Appearance {
             background: Background::Color(appearance.background),

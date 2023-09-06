@@ -51,7 +51,7 @@ impl slider::StyleSheet for Theme {
     type Style = AtomStyleSlider;
 
     fn active(&self, style: &Self::Style) -> slider::Appearance {
-        let color_palette = style.color_palette(&self);
+        let color_palette = style.color_palette(self);
 
         slider::Appearance {
             rail: Rail {

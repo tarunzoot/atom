@@ -1,6 +1,6 @@
 use crate::{
     components::atom::Atom,
-    font::{DEFAULT_APP_FONT, ICOFONT_BYTES, SYMBOLS_BYTES},
+    font::{DEFAULT_APP_FONT, ICOFONT_BYTES, MONOSPAED_FONT_BYTES, SYMBOLS_BYTES},
     messages::Message,
     style::Theme,
     utils::helpers::{handle_web_request, listen_for_tray_events},
@@ -27,6 +27,7 @@ impl<'a> Application for App<'a> {
             App::Loading,
             Command::batch(vec![
                 iced::font::load(DEFAULT_APP_FONT).map(Message::FontLoaded),
+                iced::font::load(MONOSPAED_FONT_BYTES).map(Message::FontLoaded),
                 iced::font::load(ICOFONT_BYTES).map(Message::FontLoaded),
                 iced::font::load(SYMBOLS_BYTES).map(Message::FontLoaded),
                 Command::perform(async {}, |_| Message::LoadingComplete),

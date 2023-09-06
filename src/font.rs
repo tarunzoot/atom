@@ -9,6 +9,7 @@ use iced::{
     Renderer,
 };
 
+pub const MONOSPAED_FONT_BYTES: &[u8] = include_bytes!("../resources/fonts/DMMono-Regular.ttf");
 pub const DEFAULT_APP_FONT: &[u8] =
     include_bytes!("../resources/fonts/WorkSans-VariableFont_wght.ttf");
 pub const ICOFONT_BYTES: &[u8] = include_bytes!("../resources/fonts/icofont.ttf");

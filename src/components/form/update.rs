@@ -112,8 +112,8 @@ impl AtomDownloadForm {
                         let headers = content.split('\n').filter(|f| !f.is_empty());
                         for header in headers {
                             let mut header_splitted = header.trim().split(':');
-                            let header_name = header_splitted.next().unwrap_or_else(|| "").trim();
-                            let header_value = header_splitted.next().unwrap_or_else(|| "").trim();
+                            let header_name = header_splitted.next().unwrap_or("").trim();
+                            let header_value = header_splitted.next().unwrap_or("").trim();
 
                             if !header_name.is_empty() {
                                 self.headers

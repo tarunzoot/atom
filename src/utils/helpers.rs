@@ -19,6 +19,7 @@ use std::{
     path::{Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
 };
+use tracing::warn;
 use tray_icon::menu::MenuEvent;
 
 pub const ATOM_USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.72 Safari/537.36";
@@ -43,11 +44,11 @@ pub fn get_epoch_ms() -> usize {
 
 pub fn get_formatted_time(time: u64) -> String {
     if time < 60 {
-        format!("{} second(s)", time)
+        format!("{:0>2} second(s)", time)
     } else if time < 3600 {
-        format!("{} : {} min(s)", time / 60, time % 60)
+        format!("{:0>2}:{:0>2} min(s)", time / 60, time % 60)
     } else if time < (3600 * 24) {
-        format!("{} : {} hour(s)", time / 3600, (time % 3600) / 60)
+        format!("{:0>2}:{:0>2} hour(s)", time / 3600, (time % 3600) / 60)
     } else {
         format!("{} day(s)", time / (3600 * 24))
     }
@@ -305,13 +306,13 @@ pub fn handle_web_request(is_exiting: bool) -> iced::subscription::Subscription<
                 let listener = TcpListener::bind("127.0.0.1:2866");
                 listener.map_or_else(
                     |err| {
-                        log::warn!("TCP Error: {:#?}", err);
+                        warn!("TCP Error: {:#?}", err);
                         (Message::Ignore, RequestStates::Wait)
                     },
                     |listener| {
                         listener.accept().map_or_else(
                             |err| {
-                                log::warn!("TCP Error: {:#?}", err);
+                                warn!("TCP Error: {:#?}", err);
                                 (Message::Ignore, RequestStates::Start)
                             },
                             |(stream, _)| {
@@ -333,7 +334,7 @@ pub fn handle_web_request(is_exiting: bool) -> iced::subscription::Subscription<
                                 let json = http_request.last().unwrap();
                                 let json = serde_json::from_str::<JSONFromBrowser>(json);
                                 if json.is_err() {
-                                    log::warn!("TCP JSON error : {:?}", json);
+                                    warn!("TCP JSON error : {:?}", json);
                                     return start_message;
                                 }
 

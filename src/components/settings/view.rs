@@ -54,7 +54,7 @@ impl AtomSettings {
         let default_dir_col = col!()
             .spacing(5)
             .push(text(
-                "Default Download Location (directory where file will be moved after download)",
+                "Default Download Location (directory where files will be moved after download)",
             ))
             .push(
                 row!()

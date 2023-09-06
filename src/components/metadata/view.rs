@@ -169,41 +169,44 @@ impl AtomDownloadMetadata {
                         .push(
                             row!()
                                 .width(Length::Fill)
+                                .align_items(iced::Alignment::Center)
                                 .push(
                                     text("Created")
                                         .style(AtomStyleText::Dimmed)
                                         .size(12)
                                         .width(Length::FillPortion(1)),
                                 )
-                                .push(text(time_created).size(12)),
+                                .push(text(time_created).size(10)),
                         )
                         .push(
                             row!()
                                 .width(Length::Fill)
+                                .align_items(iced::Alignment::Center)
                                 .push(
                                     text("Modified")
                                         .style(AtomStyleText::Dimmed)
                                         .size(12)
                                         .width(Length::FillPortion(1)),
                                 )
-                                .push(text(time_modified).size(12)),
+                                .push(text(time_modified).size(10)),
                         )
                         .push(
                             row!()
                                 .width(Length::Fill)
+                                .align_items(iced::Alignment::Center)
                                 .push(
                                     text("Last Opened")
                                         .style(AtomStyleText::Dimmed)
                                         .size(12)
                                         .width(Length::FillPortion(1)),
                                 )
-                                .push(text(time_accessed).size(12)),
+                                .push(text(time_accessed).size(10)),
                         ),
                 )
                 .push(
                     row!()
                         .width(Length::Fill)
-                        .spacing(10)
+                        .spacing(5)
                         .push(open_btn)
                         .push(delete_btn),
                 ),

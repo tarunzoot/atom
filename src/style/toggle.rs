@@ -39,7 +39,7 @@ impl toggler::StyleSheet for Theme {
     type Style = AtomStyleToggler;
 
     fn active(&self, style: &Self::Style, is_active: bool) -> toggler::Appearance {
-        let color_palette = style.color_palette(&self);
+        let color_palette = style.color_palette(self);
 
         if is_active {
             toggler::Appearance {
@@ -59,7 +59,7 @@ impl toggler::StyleSheet for Theme {
     }
 
     fn hovered(&self, style: &Self::Style, is_active: bool) -> toggler::Appearance {
-        let color_palette = style.color_palette(&self);
+        let color_palette = style.color_palette(self);
 
         if is_active {
             toggler::Appearance {

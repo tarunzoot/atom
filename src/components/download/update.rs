@@ -1,6 +1,7 @@
 use super::{AtomDownload, DownloadMessage};
 use crate::components::settings::AtomSettings;
 use std::time::SystemTime;
+use tracing::{debug, warn};
 
 impl AtomDownload {
     pub fn update(&mut self, state: DownloadMessage, settings: &AtomSettings) {
@@ -12,7 +13,7 @@ impl AtomDownload {
             DownloadMessage::Error(error) => {
                 self.error = error;
                 self.is_downloading = false;
-                log::warn!("{:#?}", self.error);
+                warn!("{:#?}", self.error);
                 if settings.show_notifications
                     && notify_rust::Notification::new()
                         .summary("A.T.O.M")
@@ -24,7 +25,7 @@ impl AtomDownload {
                         .show()
                         .is_err()
                 {
-                    log::warn!("[ATOM] error notification failed!");
+                    warn!("[ATOM] error notification failed!");
                 }
             }
             DownloadMessage::DownloadDoneJoining => {
@@ -46,7 +47,7 @@ impl AtomDownload {
                         .show()
                         .is_err()
                 {
-                    log::debug!("[ATOM] : download notification failed!");
+                    debug!("[ATOM] : download notification failed!");
                 }
 
                 let cache_dir = settings.cache_dir.to_string_lossy().to_string();
@@ -94,8 +95,15 @@ impl AtomDownload {
                 // return Command::perform(async {}, |_| Message::ShowMetadata(index))
             }
             DownloadMessage::MarkDeleted => {
-                self.is_deleted = true;
+                self.show_delete_confirm_dialog = true;
             }
+            DownloadMessage::RemoveDownload(force) => {
+                if !force {
+                    self.is_deleted = true;
+                    self.show_delete_confirm_dialog = false;
+                }
+            }
+            DownloadMessage::HideDialog => self.show_delete_confirm_dialog = false,
             _ => {}
         }
     }
