@@ -72,6 +72,7 @@ impl<'a> Application for App<'a> {
                     .collect();
 
                 subscriptions.push(subscription::events().map(Message::EventsOccurred));
+                subscriptions.push(atom.metadata.subscription().map(Message::Metadata));
                 // subscriptions.push(iced::window::frames().map(|_| Message::Tick));
                 subscriptions.push(handle_web_request(atom.should_exit));
                 if atom.tray.is_some() && !atom.should_exit {

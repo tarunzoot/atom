@@ -136,6 +136,8 @@ pub enum MetadataMessage {
     PreviewFile,
     DeleteFile,
     ClosePane,
+    CalculateChecksum,
+    Checksum(String, String), // file path and url
     Ignore,
 }
 

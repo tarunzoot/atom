@@ -177,10 +177,7 @@ where
         let mut child = self.content.as_widget().layout(renderer, &limits);
         child.align(Alignment::Center, Alignment::Center, limits.max());
 
-        let node = layout::Node::with_children(limits.max(), vec![child]);
-        // node.move_to(position);
-
-        node
+        layout::Node::with_children(limits.max(), vec![child])
     }
 
     fn on_event(

@@ -7,7 +7,7 @@ use crate::{
     utils::helpers::{get_file_type, get_formatted_time, get_relative_file_size},
 };
 use iced::{
-    widget::{column, container, image, row, text, text_input},
+    widget::{column as col, container, image, row, text, text_input, vertical_space},
     Element, Length, Padding, Renderer,
 };
 use std::{path::Path, time::Duration};
@@ -34,7 +34,7 @@ impl AtomDownloadMetadata {
             delete_btn = delete_btn.on_press(MetadataMessage::DeleteFile);
         }
 
-        let mut preview_column = column!()
+        let mut preview_column = col!()
             .width(Length::Fill)
             .height(Length::Fixed(200.0))
             .align_items(iced::Alignment::Center)
@@ -66,7 +66,7 @@ impl AtomDownloadMetadata {
             ),
         };
         preview_column = preview_column.push(
-            column!()
+            col!()
                 .width(Length::Fill)
                 .align_items(iced::Alignment::End)
                 .push(text(&self.extension.to_uppercase()).size(14)),
@@ -119,11 +119,43 @@ impl AtomDownloadMetadata {
                 (String::default(), String::default(), String::default())
             };
 
+        let mut checksum_btn = GuiElements::round_button('\u{ec05}').padding(Padding::from([4, 6]));
+
+        if !self.is_calculating_checksum {
+            checksum_btn = checksum_btn.on_press(MetadataMessage::CalculateChecksum);
+        }
+
+        let checksum_col = col!()
+            .spacing(5)
+            .align_items(iced::Alignment::Start)
+            .push(
+                row!()
+                    .spacing(10)
+                    .align_items(iced::Alignment::Center)
+                    .push(text("SHA256").width(Length::Fill))
+                    .push(checksum_btn),
+            )
+            .push(
+                row!().spacing(5).align_items(iced::Alignment::Center).push(
+                    text_input(
+                        "sha256 hash...",
+                        if self.is_calculating_checksum {
+                            "calculating..."
+                        } else if let Some(checksum) = self.checksums.get(&self.url) {
+                            checksum
+                        } else {
+                            ""
+                        },
+                    )
+                    .on_input(|_| MetadataMessage::Ignore),
+                ),
+            );
+
         container(
-            column!()
+            col!()
                 .spacing(20)
                 .push(
-                    column!()
+                    col!()
                         .spacing(5)
                         .push(
                             row!()
@@ -147,13 +179,15 @@ impl AtomDownloadMetadata {
                         ),
                 )
                 .push(
-                    column!()
-                        .push(row!().spacing(10).push(text("Link").width(Length::Fill)))
+                    col!()
+                        .push(row!().spacing(10).push(text("URL").width(Length::Fill)))
                         .push(
                             text_input("", &self.url)
                                 .size(14)
                                 .on_input(|_| MetadataMessage::Ignore),
                         )
+                        .push(vertical_space(5))
+                        .push(checksum_col)
                         .spacing(5),
                 )
                 .push(
@@ -162,7 +196,7 @@ impl AtomDownloadMetadata {
                         .style(AtomStyleContainer::PreviewContainer),
                 )
                 .push(
-                    column!()
+                    col!()
                         .spacing(5)
                         .width(Length::Fill)
                         .push(text("Information"))

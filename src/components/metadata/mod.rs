@@ -1,6 +1,7 @@
+mod subscription;
 mod view;
 use crate::{components::download::AtomDownload, messages::MetadataMessage};
-use std::path::Path;
+use std::{collections::HashMap, path::Path};
 
 #[derive(Debug, Default)]
 pub struct AtomDownloadMetadata {
@@ -9,6 +10,8 @@ pub struct AtomDownloadMetadata {
     pub extension: String,
     pub file_path: String,
     pub size: usize,
+    pub checksums: HashMap<String, String>,
+    is_calculating_checksum: bool,
 }
 
 impl AtomDownloadMetadata {
@@ -34,6 +37,15 @@ impl AtomDownloadMetadata {
             MetadataMessage::DeleteFile => {
                 std::fs::remove_file(&self.file_path).ok();
             }
+            MetadataMessage::Checksum(checksum, url) => {
+                self.is_calculating_checksum = false;
+                if let Some(key) = self.checksums.get_mut(&url) {
+                    *key = checksum;
+                } else {
+                    self.checksums.insert(url, checksum);
+                }
+            }
+            MetadataMessage::CalculateChecksum => self.is_calculating_checksum = true,
             _ => {}
         };
     }
@@ -48,5 +60,6 @@ impl AtomDownloadMetadata {
         }
         self.url = download.get_url();
         self.size = download.get_download_size();
+        self.is_calculating_checksum = false;
     }
 }

@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 reqwest = "0.11"
-# sha2 = "0.10"
+ring = "0.16"
 directories = "5"
 urlencoding = "2"
 rfd = "0.11"
