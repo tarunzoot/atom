@@ -340,8 +340,7 @@ impl<'a> Atom<'a> {
                     self.downloads.insert(get_epoch_ms(), new_download);
                 }
 
-                self.sidebar.active = SideBarActiveButton::Overview;
-                self.view = View::Downloads;
+                let _ = self.update(Message::GotoHomePage);
                 return Command::perform(async {}, |_| Message::SaveDownloads);
             }
             Message::SaveDownloads => {
@@ -409,14 +408,40 @@ impl<'a> Atom<'a> {
                 }
                 SidebarMessage::DeleteConfirm => {
                     self.filters.show_confirmation_dialog = true;
-                    self.sidebar.active = SideBarActiveButton::Overview;
                 }
                 SidebarMessage::DeleteAll => {
-                    self.downloads.clear();
-                    self.view = View::Downloads;
-                    self.filter_type = DownloadsListFilterMessage::All;
-                    self.metadata.enabled = false;
-                    self.sidebar.active = SideBarActiveButton::Overview;
+                    match self.sidebar.active {
+                        SideBarActiveButton::Overview => self.downloads.clear(),
+                        SideBarActiveButton::Downloading => {
+                            self.downloads.retain(|_, download| {
+                                !(download.downloaded < download.size && download.is_downloading)
+                                    || download.is_deleted
+                            });
+                        }
+                        SideBarActiveButton::Paused => {
+                            self.downloads.retain(|_, download| {
+                                !(!download.is_downloading && download.size > download.downloaded)
+                                    || download.is_deleted
+                            });
+                        }
+                        SideBarActiveButton::Finished => {
+                            self.downloads.retain(|_, download| {
+                                !(download.downloaded >= download.size) || download.is_deleted
+                            });
+                        }
+                        SideBarActiveButton::Trash => {
+                            self.downloads.retain(|_, download| !download.is_deleted);
+                        }
+                        _ => {}
+                    }
+
+                    if self.downloads.is_empty() {
+                        self.filter_type = DownloadsListFilterMessage::All;
+                        self.view = View::Downloads;
+                        self.sidebar.active = SideBarActiveButton::Overview;
+                        self.metadata.enabled = false;
+                    }
+
                     self.filters.show_confirmation_dialog = false;
                 }
                 SidebarMessage::PauseAll => {

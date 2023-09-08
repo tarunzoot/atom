@@ -115,6 +115,19 @@ pub enum SideBarActiveButton {
     Null,
 }
 
+impl From<SideBarActiveButton> for String {
+    fn from(value: SideBarActiveButton) -> Self {
+        match value {
+            SideBarActiveButton::Overview => "all".to_owned(),
+            SideBarActiveButton::Downloading => "in progress".to_owned(),
+            SideBarActiveButton::Paused => "paused".to_owned(),
+            SideBarActiveButton::Finished => "finished".to_owned(),
+            SideBarActiveButton::Trash => "trashed".to_owned(),
+            _ => String::default(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 pub enum SideBarState {
     #[default]

@@ -85,7 +85,9 @@ impl<'a> Default for AtomDownloadStates<'a> {
                 icon: '\u{edec}',
                 message: Message::Sidebar(crate::messages::SidebarMessage::DeleteConfirm),
                 state: SideBarActiveButton::DeleteAll,
-                tooltip: Some("Delete all downloads"),
+                tooltip: Some(
+                    "Delete all downloads based on the current view (All, Paused, Trash etc...)",
+                ),
             },
             FilterButton {
                 text: "",
@@ -216,12 +218,16 @@ impl<'a> AtomDownloadStates<'a> {
         );
 
         if self.show_confirmation_dialog {
+            let conf_string = format!(
+                "Are you sure you want to delete {} downloads?",
+                <SideBarActiveButton as Into<String>>::into(active.to_owned())
+            );
             GuiElements::modal(
                 container(df_buttons_row)
                     .padding(0)
                     .width(iced::Length::Fill)
                     .style(AtomStyleContainer::ListHeaderContainer),
-                "Are you sure you want to delete all downloads?",
+                &conf_string,
                 Message::Sidebar(crate::messages::SidebarMessage::DeleteAll),
                 Message::GotoHomePage,
             )
