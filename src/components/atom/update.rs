@@ -420,13 +420,14 @@ impl<'a> Atom<'a> {
                         }
                         SideBarActiveButton::Paused => {
                             self.downloads.retain(|_, download| {
-                                !(!download.is_downloading && download.size > download.downloaded)
+                                download.is_downloading
+                                    || download.size <= download.downloaded
                                     || download.is_deleted
                             });
                         }
                         SideBarActiveButton::Finished => {
                             self.downloads.retain(|_, download| {
-                                !(download.downloaded >= download.size) || download.is_deleted
+                                download.downloaded < download.size || download.is_deleted
                             });
                         }
                         SideBarActiveButton::Trash => {
