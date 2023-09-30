@@ -111,6 +111,7 @@ impl<'a> AtomDownloadStates<'a> {
         active: &SideBarActiveButton,
         downloads: &BTreeMap<usize, AtomDownload>,
         layout: &ListLayout,
+        icons_only: bool,
     ) -> Element<Message, Renderer<Theme>> {
         let count_downloading = downloads
             .iter()
@@ -147,7 +148,7 @@ impl<'a> AtomDownloadStates<'a> {
                     .spacing(5)
                     .push(icon(btn_icon, CustomFont::IcoFont).size(12));
 
-                if !dfb.text.is_empty() {
+                if !dfb.text.is_empty() && !icons_only {
                     btn_content = btn_content.push(text(dfb.text).size(12));
                 }
 

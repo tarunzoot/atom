@@ -70,6 +70,9 @@ impl<'a> Atom<'a> {
                 .view(self.downloads.len())
                 .map(Message::DownloadForm)
         } else {
+            let icons_only = (self.metadata.enabled || !self.settings.sidebar_collapsed)
+                && self.scale_factor == 1.0;
+
             let listings_col = match self.settings.list_layout {
                 crate::components::settings::ListLayout::ListExtended => col!()
                     .spacing(10)
@@ -77,6 +80,7 @@ impl<'a> Atom<'a> {
                         &self.sidebar.active,
                         &self.downloads,
                         &self.settings.list_layout,
+                        icons_only,
                     ))
                     .push(filtered_content.direction(scrollable::Direction::Vertical(
                         Properties::new().margin(0).scroller_width(0).width(0),
@@ -92,6 +96,7 @@ impl<'a> Atom<'a> {
                                     &self.sidebar.active,
                                     &self.downloads,
                                     &self.settings.list_layout,
+                                    icons_only,
                                 ))
                                 .push(
                                     container(vertical_space(Length::Fixed(1.0)))

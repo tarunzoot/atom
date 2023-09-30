@@ -117,6 +117,7 @@ impl<'a> Atom<'a> {
             instance: Some(app_instance),
             tray: tray_icon,
             tray_event: tray_messages,
+            scale_factor: 1.0,
             ..Default::default()
         }
     }
