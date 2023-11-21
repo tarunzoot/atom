@@ -357,7 +357,7 @@ pub fn handle_web_request(is_exiting: bool) -> iced::subscription::Subscription<
     })
 }
 
-pub fn load_tray_icon(image_data: &[u8]) -> tray_icon::icon::Icon {
+pub fn load_tray_icon(image_data: &[u8]) -> tray_icon::Icon {
     let (icon_rgba, icon_width, icon_height) = {
         let image = image::load_from_memory(image_data)
             .expect("Failed to open icon path")
@@ -366,8 +366,7 @@ pub fn load_tray_icon(image_data: &[u8]) -> tray_icon::icon::Icon {
         let rgba = image.into_raw();
         (rgba, width, height)
     };
-    tray_icon::icon::Icon::from_rgba(icon_rgba, icon_width, icon_height)
-        .expect("Failed to open icon")
+    tray_icon::Icon::from_rgba(icon_rgba, icon_width, icon_height).expect("Failed to open icon")
 }
 
 pub fn listen_for_tray_events() -> iced::subscription::Subscription<Message> {

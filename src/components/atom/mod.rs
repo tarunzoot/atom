@@ -21,7 +21,7 @@ use std::{
 };
 use tracing::{debug, error, warn};
 use tray_icon::{
-    menu::{Menu, MenuItem},
+    menu::{Menu, MenuId, MenuItem},
     TrayIcon, TrayIconBuilder,
 };
 
@@ -50,7 +50,7 @@ pub struct Atom<'a> {
     pub should_exit: bool,
     pub instance: Option<SingleInstance>,
     pub tray: Option<TrayIcon>,
-    pub tray_event: HashMap<u32, Message>,
+    pub tray_event: HashMap<MenuId, Message>,
     pub scale_factor: f64,
     pub default_settings: AtomSettings,
     pub theme: Theme,
@@ -122,7 +122,7 @@ impl<'a> Atom<'a> {
         }
     }
 
-    fn load_system_tray(is_single: bool) -> (Option<TrayIcon>, HashMap<u32, Message>) {
+    fn load_system_tray(is_single: bool) -> (Option<TrayIcon>, HashMap<MenuId, Message>) {
         if !is_single || cfg!(target_os = "linux") {
             (None, HashMap::default())
         } else {
@@ -152,7 +152,12 @@ impl<'a> Atom<'a> {
 
             let tray_messages = menu_items
                 .into_iter()
-                .map(|item| (tray_menu.append(&item.0).is_err(), (item.0.id(), item.1)))
+                .map(|item| {
+                    (
+                        tray_menu.append(&item.0).is_err(),
+                        (item.0.id().to_owned(), item.1),
+                    )
+                })
                 .filter(|f| {
                     if f.0 {
                         warn!("Error: tray item id:{:?}, message: {:?}", (f.1).0, (f.1).1);

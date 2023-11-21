@@ -496,7 +496,7 @@ impl<'a> Atom<'a> {
                     let message = message.to_owned();
                     return Command::perform(async {}, |_| message);
                 }
-                warn!("Warning: unknown tray event id => {id}");
+                warn!("Warning: unknown tray event id => {id:#?}");
             }
             Message::FontLoaded(result) => {
                 if result.is_err() {

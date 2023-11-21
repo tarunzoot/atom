@@ -1,3 +1,5 @@
+use tray_icon::menu::MenuId;
+
 use crate::{
     components::download::{AtomDownload, DownloadType},
     utils::json_from_browser::JSONFromBrowser,
@@ -181,7 +183,7 @@ pub enum Message {
     Metadata(MetadataMessage),
     Import(ImportMessage),
     TrayMessages(TrayMessage),
-    TrayEvent(u32),
+    TrayEvent(MenuId),
     FontLoaded(Result<(), iced::font::Error>),
     ToggleListViewLayout,
     LoadingComplete,

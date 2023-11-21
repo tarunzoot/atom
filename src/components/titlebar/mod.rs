@@ -6,7 +6,7 @@ use crate::{
 };
 use iced::{
     widget::{button, column as col, container, row, text, text_input},
-    Element, Font, Padding, Renderer,
+    Element, Font, Length, Padding, Renderer,
 };
 
 #[derive(Debug, Default)]
@@ -21,19 +21,31 @@ impl AtomTitleBar {
                 .spacing(20)
                 .height(iced::Length::Fill)
                 .push(
-                    container(
-                        row!()
-                            .align_items(iced::Alignment::Center)
-                            .spacing(10)
-                            .padding(iced::Padding::from([12, 20]))
-                            .push(icon('\u{ead8}', CustomFont::IcoFont).size(20))
-                            .push(
-                                text("A.T.O.M")
-                                    .font(Font::with_name("Work Sans"))
-                                    .size(18.0),
-                            ),
-                    )
-                    .style(AtomStyleContainer::LogoContainer),
+                    row!()
+                        .spacing(20)
+                        .align_items(iced::Alignment::Center)
+                        .push(
+                            container(text(" "))
+                                .padding(Padding::from([5, 0]))
+                                .width(Length::Fixed(3.0))
+                                .style(AtomStyleContainer::MenuBarActiveContainer),
+                        )
+                        .push(
+                            row!()
+                                .align_items(iced::Alignment::Center)
+                                .spacing(10)
+                                .push(icon('\u{ead8}', CustomFont::IcoFont).size(20))
+                                .push(
+                                    text("A.T.O.M")
+                                        // text("a.t.o.m")
+                                        .font(Font {
+                                            family: iced::font::Family::Name("Lexend Deca"),
+                                            weight: iced::font::Weight::Black,
+                                            ..Default::default()
+                                        })
+                                        .size(22.0),
+                                ),
+                        ),
                 )
                 .push(
                     container(
