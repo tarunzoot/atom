@@ -7,7 +7,7 @@ use crate::{
     utils::helpers::{get_file_type, get_formatted_time, get_relative_file_size},
 };
 use iced::{
-    widget::{column as col, container, image, row, text, text_input, vertical_space},
+    widget::{column as col, container, image, row, scrollable, text, text_input, vertical_space},
     Element, Length, Padding, Renderer,
 };
 use std::{path::Path, time::Duration};
@@ -151,7 +151,7 @@ impl AtomDownloadMetadata {
                 ),
             );
 
-        container(
+        container(scrollable(
             col!()
                 .spacing(20)
                 .push(
@@ -244,10 +244,10 @@ impl AtomDownloadMetadata {
                         .push(open_btn)
                         .push(delete_btn),
                 ),
-        )
+        ))
         .padding(15)
         .style(AtomStyleContainer::ListContainer)
-        .width(Length::Fixed(200.0))
+        .width(Length::Fixed(210.0))
         .height(Length::Fill)
         .into()
     }

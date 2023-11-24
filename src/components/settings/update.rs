@@ -1,7 +1,6 @@
 use super::AtomSettings;
 use crate::messages::{Message, SettingsMessage};
 use iced::Command;
-use rfd::FileDialog;
 
 impl AtomSettings {
     pub fn update(&mut self, message: SettingsMessage) -> Command<Message> {
@@ -11,18 +10,28 @@ impl AtomSettings {
                 std::fs::create_dir_all(&self.cache_dir).ok();
             }
             SettingsMessage::BrowseDownloadsDirClicked => {
-                if let Some(folder) = FileDialog::new().pick_folder() {
+                return Command::perform(
+                    async {
+                        rfd::AsyncFileDialog::new()
+                            .pick_folder()
+                            .await
+                            .map(|file| file.path().to_owned())
+                    },
+                    |path| Message::Settings(SettingsMessage::DownloadDirSelected(path)),
+                );
+            }
+            SettingsMessage::DownloadDirSelected(folder) => {
+                if let Some(folder) = folder {
                     self.downloads_dir = folder.to_str().unwrap_or("").to_string();
                 }
             }
-            SettingsMessage::ThemeChanged(theme) => {
-                self.theme = theme;
-            }
-            SettingsMessage::ThreadsChanged(threads) => {
-                self.threads = threads;
-            }
+            SettingsMessage::ThemeChanged(theme) => self.theme = theme,
+            SettingsMessage::ListLayoutChanged(layout) => self.list_layout = layout.into(),
+            SettingsMessage::ScalingChanged(scaling) => self.scaling = scaling,
+            SettingsMessage::ThreadsChanged(threads) => self.threads = threads,
             SettingsMessage::NotificationToggle(checked) => self.show_notifications = checked,
             SettingsMessage::QuitActionToggle(checked) => self.quit_action_closes_app = checked,
+            SettingsMessage::MaximizedActionToggle(checked) => self.maximized = checked,
             SettingsMessage::AutoStartDownloadToggle(checked) => self.auto_start_download = checked,
             SettingsMessage::ClosePane => {}
             SettingsMessage::OpenConfigDir => {

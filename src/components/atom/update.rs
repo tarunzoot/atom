@@ -35,15 +35,6 @@ impl<'a> Atom<'a> {
     pub fn update(&mut self, message: Message) -> iced::Command<Message> {
         match message {
             Message::Ignore => {}
-            Message::ToggleListViewLayout => match self.settings.list_layout {
-                crate::components::settings::ListLayout::ListExtended => {
-                    self.settings.list_layout = crate::components::settings::ListLayout::List
-                }
-                crate::components::settings::ListLayout::List => {
-                    self.settings.list_layout =
-                        crate::components::settings::ListLayout::ListExtended
-                }
-            },
             Message::EventsOccurred(event) => {
                 if let Event::Keyboard(keyboard::Event::KeyPressed {
                     key_code,
@@ -83,13 +74,13 @@ impl<'a> Atom<'a> {
                     }
                 }
 
-                if let Event::Window(window::Event::Resized { width, height: _ }) = event {
-                    if width > 1200 {
-                        self.scale_factor = 1.20;
-                    } else {
-                        self.scale_factor = 1.0;
-                    }
-                }
+                // if let Event::Window(window::Event::Resized { width, height: _ }) = event {
+                //     if width > 1200 {
+                //         self.scale_factor = 1.20;
+                //     } else {
+                //         self.scale_factor = 1.0;
+                //     }
+                // }
 
                 if let Event::Mouse(iced::mouse::Event::ButtonPressed(iced::mouse::Button::Left)) =
                     event

@@ -51,7 +51,6 @@ pub struct Atom<'a> {
     pub instance: Option<SingleInstance>,
     pub tray: Option<TrayIcon>,
     pub tray_event: HashMap<MenuId, Message>,
-    pub scale_factor: f64,
     pub default_settings: AtomSettings,
     pub theme: Theme,
 }
@@ -91,7 +90,8 @@ impl<'a> Atom<'a> {
         let settings = parse_settings_toml(&settings_path);
         let downloads_toml_path =
             std::path::PathBuf::from(&settings.config_dir).join("downloads.toml");
-        let downloads: BTreeMap<usize, AtomDownload> = parse_downloads_toml(&downloads_toml_path);
+        let downloads: BTreeMap<usize, AtomDownload> =
+            parse_downloads_toml(&downloads_toml_path, settings.maximized);
 
         let sidebar = AtomSidebar::new(
             if downloads.is_empty() {
@@ -117,7 +117,6 @@ impl<'a> Atom<'a> {
             instance: Some(app_instance),
             tray: tray_icon,
             tray_event: tray_messages,
-            scale_factor: 1.0,
             ..Default::default()
         }
     }

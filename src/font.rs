@@ -9,8 +9,9 @@ use iced::{
     Renderer,
 };
 
-pub const MONOSPAED_FONT_BYTES: &[u8] = include_bytes!("../resources/fonts/DMMono-Regular.ttf");
+pub const MONOSPAED_FONT_BYTES: &[u8] = include_bytes!("../resources/fonts/AzeretMono-Regular.ttf");
 pub const LEXEND_BYTES: &[u8] = include_bytes!("../resources/fonts/LexendDeca-Black.ttf");
+pub const GEOLOGICA_BYTES: &[u8] = include_bytes!("../resources/fonts/Geologica-Regular.ttf");
 pub const ICOFONT_BYTES: &[u8] = include_bytes!("../resources/fonts/icofont.ttf");
 pub const SYMBOLS_BYTES: &[u8] =
     include_bytes!("../resources/fonts/SymbolsNerdFontMono-Regular.ttf");

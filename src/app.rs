@@ -1,6 +1,6 @@
 use crate::{
     components::atom::Atom,
-    font::{ICOFONT_BYTES, LEXEND_BYTES, MONOSPAED_FONT_BYTES, SYMBOLS_BYTES},
+    font::{GEOLOGICA_BYTES, ICOFONT_BYTES, LEXEND_BYTES, MONOSPAED_FONT_BYTES, SYMBOLS_BYTES},
     messages::Message,
     style::Theme,
     utils::helpers::{handle_web_request, listen_for_tray_events},
@@ -26,6 +26,7 @@ impl<'a> Application for App<'a> {
         (
             App::Loading,
             Command::batch(vec![
+                iced::font::load(GEOLOGICA_BYTES).map(Message::FontLoaded),
                 iced::font::load(LEXEND_BYTES).map(Message::FontLoaded),
                 iced::font::load(MONOSPAED_FONT_BYTES).map(Message::FontLoaded),
                 iced::font::load(ICOFONT_BYTES).map(Message::FontLoaded),
@@ -49,13 +50,7 @@ impl<'a> Application for App<'a> {
     fn scale_factor(&self) -> f64 {
         match self {
             App::Loading => 1.0,
-            App::Loaded(atom) => {
-                if atom.scale_factor <= 1.0 {
-                    1.0
-                } else {
-                    atom.scale_factor
-                }
-            }
+            App::Loaded(atom) => atom.settings.scaling,
         }
     }
 
@@ -86,10 +81,16 @@ impl<'a> Application for App<'a> {
     fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
         match self {
             App::Loading => {
+                let mut command = Command::none();
                 if let Message::LoadingComplete = message {
-                    *self = App::Loaded(Atom::new());
+                    let atom = Atom::new();
+                    if atom.settings.maximized {
+                        command = iced::window::toggle_maximize();
+                    }
+                    *self = App::Loaded(atom);
                 }
-                iced::Command::none()
+
+                command
             }
             App::Loaded(atom) => atom.update(message),
         }

@@ -23,9 +23,9 @@ fn main() -> iced::Result {
     // run app
     App::run(Settings {
         antialiasing: true,
-        // default_font: Font::with_name("Work Sans"),
-        default_font: Font::with_name("DM Mono"),
-        default_text_size: 15.0,
+        default_font: Font::with_name("Azeret Mono"),
+        // default_font: Font::with_name("Geologica"),
+        default_text_size: 16.0,
         exit_on_close_request: false,
         flags: (),
         id: Some("A.T.O.M".to_owned()),

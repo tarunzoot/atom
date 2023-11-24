@@ -8,7 +8,7 @@ use crate::{
 };
 use iced::{
     widget::{button, column as col, container, horizontal_space, row, text, tooltip},
-    Element, Length, Padding, Renderer,
+    Element, Font, Length, Padding, Renderer,
 };
 
 use super::{download::AtomDownload, settings::ListLayout};
@@ -89,13 +89,6 @@ impl<'a> Default for AtomDownloadStates<'a> {
                     "Delete all downloads based on the current view (All, Paused, Trash etc...)",
                 ),
             },
-            FilterButton {
-                text: "",
-                icon: '\u{e90b}',
-                message: Message::ToggleListViewLayout,
-                state: SideBarActiveButton::Overview,
-                tooltip: Some("Change list view layout"),
-            },
         ];
 
         Self {
@@ -149,7 +142,8 @@ impl<'a> AtomDownloadStates<'a> {
                     .push(icon(btn_icon, CustomFont::IcoFont).size(12));
 
                 if !dfb.text.is_empty() && !icons_only {
-                    btn_content = btn_content.push(text(dfb.text).size(12));
+                    btn_content = btn_content
+                        .push(text(dfb.text).size(12).font(Font::with_name("Geologica")));
                 }
 
                 if dfb.tooltip.is_none() {

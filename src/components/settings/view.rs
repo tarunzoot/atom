@@ -1,4 +1,4 @@
-use super::AtomSettings;
+use super::{AtomSettings, ListLayout};
 use crate::{
     elements::GuiElements,
     font::{icon, CustomFont::IcoFont},
@@ -8,7 +8,8 @@ use crate::{
 };
 use iced::{
     widget::{
-        column as col, container, pick_list, row, slider, text, text_input, toggler, tooltip,
+        column as col, container, pick_list, row, scrollable, slider, text, text_input, toggler,
+        tooltip,
     },
     Element, Length, Padding, Renderer,
 };
@@ -89,77 +90,158 @@ impl AtomSettings {
                     .on_press(SettingsMessage::ClosePane),
             );
 
-        let options_row = row!()
-                    .align_items(iced::Alignment::Center)
-                    .spacing(10)
-                    .push(
-                        toggler(
-                            Some("Show download completion/error notification".into()),
-                            self.show_notifications,
-                            |checked| {
-                                SettingsMessage::NotificationToggle(checked)
-                            },
-                        )
-                        .spacing(10)
-                        .text_alignment(iced::alignment::Horizontal::Left)
-                        .width(iced::Length::Shrink),
-                    )
-                    .push(
-                        toggler(
-                            Some("Close button quits app".into()),
-                            self.quit_action_closes_app,
-                            SettingsMessage::QuitActionToggle,
-                        )
-                        .spacing(10)
-                        .text_alignment(iced::alignment::Horizontal::Left)
-                        .width(iced::Length::Shrink),
-                    )
-                    .push(
-                        tooltip(toggler(
-                            Some("Auto start download from browser".into()),
-                            self.auto_start_download,
-                            SettingsMessage::AutoStartDownloadToggle
-                        )
-                        .spacing(10)
-                        .text_alignment(iced::alignment::Horizontal::Left)
-                        .width(iced::Length::Shrink), "Adding downloads from browser auto starts the download without showing new download form", tooltip::Position::Top).style(AtomStyleContainer::ToolTipContainer).size(14).padding(5).gap(5)
-                    );
+        let notification_toggler = toggler(
+            Some("Show download completion/error notification".into()),
+            self.show_notifications,
+            SettingsMessage::NotificationToggle,
+        )
+        .spacing(10)
+        .text_alignment(iced::alignment::Horizontal::Left)
+        .width(iced::Length::Shrink);
 
-        let settings_col = col!()
-            .spacing(20)
-            .padding(Padding::from([0, 10, 10, 10]))
-            .push(
-                container(text("Settings"))
-                    .style(AtomStyleContainer::LogoContainer)
-                    .padding(Padding::from([10, 30, 10, 30])),
+        let auto_start_toggler = tooltip(
+            toggler(
+                Some("Auto start download from browser".into()),
+                self.auto_start_download,
+                SettingsMessage::AutoStartDownloadToggle,
             )
-            .push(config_dir_col)
-            .push(temp_dir_col)
-            .push(default_dir_col)
-            .push(
-                col!().spacing(5).push(text("Theme")).push(
-                    pick_list(
-                        theme.variants(),
-                        Some(self.theme.clone()),
-                        SettingsMessage::ThemeChanged,
+            .spacing(10)
+            .text_alignment(iced::alignment::Horizontal::Left)
+            .width(iced::Length::Shrink),
+            "Adding downloads from browser auto starts the download without showing new download form",
+            tooltip::Position::Top,
+        )
+        .style(AtomStyleContainer::ToolTipContainer)
+        .size(14)
+        .padding(10)
+        .gap(5);
+
+        let close_btn_toggler = toggler(
+            Some("Close button quits the app".into()),
+            self.quit_action_closes_app,
+            SettingsMessage::QuitActionToggle,
+        )
+        .spacing(10)
+        .text_alignment(iced::alignment::Horizontal::Left)
+        .width(iced::Length::Shrink);
+
+        let maximized_toggler = toggler(
+            Some("Start Maximized".into()),
+            self.maximized,
+            SettingsMessage::MaximizedActionToggle,
+        )
+        .spacing(10)
+        .text_alignment(iced::alignment::Horizontal::Left)
+        .width(iced::Length::Shrink);
+
+        let options_row = container(
+            row!()
+                .spacing(10)
+                .align_items(iced::Alignment::Center)
+                .width(Length::Fill)
+                .push(
+                    col!()
+                        .spacing(10)
+                        .width(Length::Fill)
+                        .align_items(iced::Alignment::Start)
+                        .push(notification_toggler)
+                        .push(auto_start_toggler),
+                )
+                .push(
+                    col!()
+                        .spacing(10)
+                        .width(Length::Fill)
+                        .align_items(iced::Alignment::End)
+                        .push(close_btn_toggler)
+                        .push(maximized_toggler),
+                ),
+        )
+        .width(Length::Fill)
+        .padding(20)
+        .style(AtomStyleContainer::ListContainer);
+
+        let settings_col = scrollable(
+            col!()
+                .spacing(20)
+                .padding(Padding::from([0, 10, 10, 10]))
+                .push(
+                    container(text("Settings"))
+                        .style(AtomStyleContainer::LogoContainer)
+                        .padding(Padding::from([10, 30, 10, 30])),
+                )
+                .push(config_dir_col)
+                .push(temp_dir_col)
+                .push(default_dir_col)
+                .push(
+                    row!()
+                        .spacing(10)
+                        .push(
+                            col!()
+                                .width(Length::Fill)
+                                .spacing(5)
+                                .push(text("Theme"))
+                                .push(
+                                    pick_list(
+                                        theme.variants(),
+                                        Some(self.theme.clone()),
+                                        SettingsMessage::ThemeChanged,
+                                    )
+                                    .width(Length::Fill),
+                                ),
+                        )
+                        .push(
+                            col!()
+                                .width(Length::Fill)
+                                .spacing(5)
+                                .push(text("List View Layout"))
+                                .push(
+                                    pick_list(
+                                        ListLayout::variants(),
+                                        Some(self.list_layout.clone().into()),
+                                        SettingsMessage::ListLayoutChanged,
+                                    )
+                                    .width(Length::Fill),
+                                ),
+                        ),
+                )
+                .push(
+                    container(
+                        col!().spacing(5).push(
+                            row!()
+                                .align_items(iced::Alignment::Center)
+                                .spacing(30)
+                                .push(
+                                    col!()
+                                        .width(Length::Fill)
+                                        .push(text(format!("Threads : {}", self.threads)))
+                                        .push(
+                                            slider(2..=8, self.threads, |threads| {
+                                                SettingsMessage::ThreadsChanged(threads)
+                                            })
+                                            .width(iced::Length::Fill),
+                                        ),
+                                )
+                                .push(
+                                    col!()
+                                        .width(Length::Fill)
+                                        .push(text(format!("UI Scaling : {0:>1.2}", self.scaling)))
+                                        .push(
+                                            slider(1.00..=2.00, self.scaling, |scaling| {
+                                                SettingsMessage::ScalingChanged(scaling)
+                                            })
+                                            .step(0.01)
+                                            .width(iced::Length::Fill),
+                                        ),
+                                ),
+                        ),
                     )
-                    .width(Length::Fill),
-                ), // .width(iced::Length::Fixed(200.0)),
-            )
-            .push(
-                col!()
-                    .spacing(5)
-                    .push(text(format!("Threads : {}", self.threads)))
-                    .push(
-                        slider(2..=8, self.threads, |threads| {
-                            SettingsMessage::ThreadsChanged(threads)
-                        })
-                        .width(iced::Length::Fill),
-                    ),
-            )
-            .push(options_row)
-            .push(buttons_row)
-            .width(iced::Length::Fill);
+                    .padding(20)
+                    .style(AtomStyleContainer::ListContainer),
+                )
+                .push(options_row)
+                .push(buttons_row)
+                .width(iced::Length::Fill),
+        );
 
         container(settings_col)
             .style(AtomStyleContainer::ListContainer)

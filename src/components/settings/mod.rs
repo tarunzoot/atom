@@ -12,6 +12,12 @@ pub enum ListLayout {
     List,
 }
 
+impl ListLayout {
+    fn variants() -> Vec<String> {
+        vec!["List".to_string(), "ListExtended".to_string()]
+    }
+}
+
 impl From<String> for ListLayout {
     fn from(value: String) -> Self {
         match &value[..] {
@@ -43,6 +49,8 @@ pub struct AtomSettings {
     pub auto_start_download: bool,
     pub theme: String,
     pub list_layout: ListLayout,
+    pub scaling: f64,
+    pub maximized: bool,
 }
 
 impl Default for AtomSettings {
@@ -69,6 +77,8 @@ impl Default for AtomSettings {
             auto_start_download: false,
             theme: "Default".to_owned(),
             list_layout: ListLayout::ListExtended,
+            scaling: 1.0,
+            maximized: false,
         }
     }
 }
