@@ -23,8 +23,12 @@ fn main() -> iced::Result {
     // run app
     App::run(Settings {
         antialiasing: true,
-        default_font: Font::with_name("Azeret Mono"),
-        // default_font: Font::with_name("Geologica"),
+        // default_font: Font::with_name("Azeret Mono"),
+        default_font: Font {
+            family: iced::font::Family::Name("Google Sans Mono"),
+            weight: iced::font::Weight::Normal,
+            ..Default::default()
+        },
         default_text_size: 16.0,
         exit_on_close_request: false,
         flags: (),

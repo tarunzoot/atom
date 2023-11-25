@@ -90,8 +90,7 @@ impl<'a> Atom<'a> {
         let settings = parse_settings_toml(&settings_path);
         let downloads_toml_path =
             std::path::PathBuf::from(&settings.config_dir).join("downloads.toml");
-        let downloads: BTreeMap<usize, AtomDownload> =
-            parse_downloads_toml(&downloads_toml_path, settings.maximized);
+        let downloads: BTreeMap<usize, AtomDownload> = parse_downloads_toml(&downloads_toml_path);
 
         let sidebar = AtomSidebar::new(
             if downloads.is_empty() {

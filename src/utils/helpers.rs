@@ -269,32 +269,18 @@ pub fn parse_settings_toml(settings_path: &PathBuf) -> AtomSettings {
 /**
  *
  */
-pub fn parse_downloads_toml(
-    downloads_file_path: &PathBuf,
-    sort_descending: bool,
-) -> BTreeMap<usize, AtomDownload> {
+pub fn parse_downloads_toml(downloads_file_path: &PathBuf) -> BTreeMap<usize, AtomDownload> {
     let mut downloads: BTreeMap<usize, AtomDownload> = BTreeMap::new();
 
     if let Ok(contents) = std::fs::read_to_string(downloads_file_path) {
         if let Ok(deserialized) = toml::from_str::<TomlDownloads>(&contents) {
-            if sort_descending {
-                let length = deserialized.downloads.len();
-                deserialized
-                    .downloads
-                    .into_iter()
-                    .enumerate()
-                    .for_each(|(index, download)| {
-                        downloads.insert(get_epoch_ms() + (length - index), download);
-                    });
-            } else {
-                deserialized
-                    .downloads
-                    .into_iter()
-                    .enumerate()
-                    .for_each(|(index, download)| {
-                        downloads.insert(get_epoch_ms() + index, download);
-                    });
-            }
+            deserialized
+                .downloads
+                .into_iter()
+                .enumerate()
+                .for_each(|(index, download)| {
+                    downloads.insert(get_epoch_ms() + index, download);
+                });
         }
     }
 
