@@ -11,7 +11,11 @@ use iced::{
 pub fn view() -> Element<'static, Message, Renderer<Theme>> {
     let icon_size = 14;
     let text_size = 14;
-    let font = Font::with_name("Geologica");
+    let font = Font {
+        family: iced::font::Family::Name("Lexend Deca"),
+        weight: iced::font::Weight::Black,
+        ..Default::default()
+    };
     container(
         row!()
             .padding(10)

@@ -142,8 +142,11 @@ impl<'a> AtomDownloadStates<'a> {
                     .push(icon(btn_icon, CustomFont::IcoFont).size(12));
 
                 if !dfb.text.is_empty() && !icons_only {
-                    btn_content = btn_content
-                        .push(text(dfb.text).size(12).font(Font::with_name("Geologica")));
+                    btn_content = btn_content.push(text(dfb.text).size(12).font(Font {
+                        family: iced::font::Family::Name("Lexend Deca"),
+                        weight: iced::font::Weight::Black,
+                        ..Default::default()
+                    }));
                 }
 
                 if dfb.tooltip.is_none() {
