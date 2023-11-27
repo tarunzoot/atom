@@ -50,8 +50,8 @@ impl AtomDownloadMetadata {
                             .width(Length::Fill),
                     ), // .push(text(self.extension.to_uppercase())),
             );
-        preview_column = match &self.extension[..] {
-            "jpg" | "jpeg" | "png" | "gif" => preview_column.push(
+        preview_column = match (&self.extension[..], file_path.exists()) {
+            ("jpg" | "jpeg" | "png" | "gif", true) => preview_column.push(
                 image(&self.file_path)
                     .height(Length::Fill)
                     .content_fit(iced::ContentFit::Cover),

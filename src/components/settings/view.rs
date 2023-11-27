@@ -91,7 +91,7 @@ impl AtomSettings {
             );
 
         let notification_toggler = toggler(
-            Some("Show download completion/error notification".into()),
+            Some("Show download notification      ".into()),
             self.show_notifications,
             SettingsMessage::NotificationToggle,
         )
@@ -126,7 +126,7 @@ impl AtomSettings {
         .width(iced::Length::Shrink);
 
         let maximized_toggler = toggler(
-            Some("Start Maximized".into()),
+            Some("Start Maximized           ".into()),
             self.maximized,
             SettingsMessage::MaximizedActionToggle,
         )
@@ -199,6 +199,20 @@ impl AtomSettings {
                                         ListLayout::variants(),
                                         Some(self.list_layout.clone().into()),
                                         SettingsMessage::ListLayoutChanged,
+                                    )
+                                    .width(Length::Fill),
+                                ),
+                        )
+                        .push(
+                            col!()
+                                .width(Length::Fill)
+                                .spacing(5)
+                                .push(text("New Download Position"))
+                                .push(
+                                    pick_list(
+                                        vec!["First".to_string(), "Last".to_string()],
+                                        Some(self.new_download_pos.clone()),
+                                        SettingsMessage::NewDownloadPositionChanged,
                                     )
                                     .width(Length::Fill),
                                 ),

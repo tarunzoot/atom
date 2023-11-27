@@ -69,6 +69,7 @@ pub enum SettingsMessage {
     AutoStartDownloadToggle(bool),
     ThemeChanged(String),
     ListLayoutChanged(String),
+    NewDownloadPositionChanged(String),
     ScalingChanged(f64),
     DownloadDirSelected(Option<PathBuf>),
     // BrowseCacheDirClicked,

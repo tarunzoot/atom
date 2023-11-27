@@ -51,6 +51,7 @@ pub struct AtomSettings {
     pub list_layout: ListLayout,
     pub scaling: f64,
     pub maximized: bool,
+    pub new_download_pos: String,
 }
 
 impl Default for AtomSettings {
@@ -79,6 +80,7 @@ impl Default for AtomSettings {
             list_layout: ListLayout::ListExtended,
             scaling: 1.0,
             maximized: false,
+            new_download_pos: "First".to_string(),
         }
     }
 }

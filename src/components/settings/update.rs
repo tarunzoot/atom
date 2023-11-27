@@ -27,6 +27,7 @@ impl AtomSettings {
             }
             SettingsMessage::ThemeChanged(theme) => self.theme = theme,
             SettingsMessage::ListLayoutChanged(layout) => self.list_layout = layout.into(),
+            SettingsMessage::NewDownloadPositionChanged(pos) => self.new_download_pos = pos,
             SettingsMessage::ScalingChanged(scaling) => self.scaling = scaling,
             SettingsMessage::ThreadsChanged(threads) => self.threads = threads,
             SettingsMessage::NotificationToggle(checked) => self.show_notifications = checked,

@@ -328,7 +328,17 @@ impl<'a> Atom<'a> {
                         }
                     }
                 } else {
-                    self.downloads.insert(get_epoch_ms(), new_download);
+                    match (
+                        self.downloads.first_key_value(),
+                        &self.settings.new_download_pos[..],
+                    ) {
+                        (Some(entry), "First") => {
+                            self.downloads.insert(entry.0 - 1, new_download);
+                        }
+                        _ => {
+                            self.downloads.insert(get_epoch_ms(), new_download);
+                        }
+                    };
                 }
 
                 let _ = self.update(Message::GotoHomePage);

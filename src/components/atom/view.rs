@@ -71,7 +71,7 @@ impl<'a> Atom<'a> {
                 .map(Message::DownloadForm)
         } else {
             let icons_only = (self.metadata.enabled || !self.settings.sidebar_collapsed)
-                || self.settings.scaling > 1.15;
+                || self.settings.scaling > 1.24;
 
             let listings_col = match self.settings.list_layout {
                 crate::components::settings::ListLayout::ListExtended => col!()
