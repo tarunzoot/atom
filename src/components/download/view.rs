@@ -41,7 +41,7 @@ impl AtomDownload {
             '\u{ec74}'
         };
 
-        let transfer_rate = format!("{0:6.2} MB/s", self.transfer_rate);
+        let transfer_rate = format!("{0:<3.2} MB/s", self.transfer_rate);
         let eta = if self.size == 0 || self.transfer_rate == 0.0 {
             String::from("0.0 second(s)")
         } else {
