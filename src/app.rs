@@ -61,7 +61,7 @@ impl<'a> Application for App<'a> {
                     .downloads
                     .iter()
                     .map(|(&index, download)| {
-                        download.subscription(index, &atom.settings.cache_dir)
+                        download.subscription(index, &atom.settings.cache_dir, atom.client.clone())
                     })
                     .collect();
 

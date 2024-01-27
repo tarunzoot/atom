@@ -30,13 +30,17 @@ enum State {
     FileJoining(BufWriter<File>, Vec<BufReader<File>>, usize),
     SequentialFinished,
     ThreadedFinished(String, Vec<String>),
-    Error(String),
     Wait,
 }
 
 impl AtomDownload {
     #[tracing::instrument(name = "Subscription", skip(self))]
-    pub fn subscription(&self, index: usize, cache_dir: &Path) -> Subscription<Message> {
+    pub fn subscription(
+        &self,
+        index: usize,
+        cache_dir: &Path,
+        client: Client,
+    ) -> Subscription<Message> {
         if !self.is_downloading && (self.is_sequential || !self.is_joining) {
             return Subscription::none();
         }
@@ -45,39 +49,13 @@ impl AtomDownload {
 
         if self.is_downloaded() && file_path.exists() {
             return self.unfold_subscription(State::SequentialFinished, index);
-            // if self.is_sequential {
-            // } else {
-            //     let parts = split_file_name(&self.file_name, self.threads)
-            //         .iter()
-            //         .map(|m| cache_dir.join(m).to_string_lossy().to_string())
-            //         .collect();
-            //     let path = PathBuf::from(&self.file_path)
-            //         .join(&self.file_name)
-            //         .to_string_lossy()
-            //         .to_string();
-            //     return self.unfold_subscription(State::ThreadedFinished(path, parts), index);
-            // }
         }
 
-        // should be a global client
-        let client_builder = reqwest::ClientBuilder::new();
-
-        let state = if let Ok(client) = client_builder
-            .danger_accept_invalid_certs(true)
-            .brotli(true)
-            .gzip(true)
-            .deflate(true)
-            .referer(true)
-            .build()
-        {
-            State::Starting(
-                client,
-                self.clone(),
-                cache_dir.to_string_lossy().to_string(),
-            )
-        } else {
-            State::Error("Error: unable to create download client!".to_owned())
-        };
+        let state = State::Starting(
+            client,
+            self.clone(),
+            cache_dir.to_string_lossy().to_string(),
+        );
 
         debug!(download=?self);
 
@@ -88,10 +66,6 @@ impl AtomDownload {
         iced::subscription::unfold(index, state, move |state| async move {
             match state {
                 State::Wait => iced::futures::future::pending().await,
-                State::Error(error) => (
-                    Message::Download(DownloadMessage::Error(error), index),
-                    State::Wait,
-                ),
                 State::SequentialFinished => (
                     Message::Download(DownloadMessage::Finished, index),
                     State::Wait,
@@ -165,7 +139,7 @@ async fn handle_download_starting(
             error: "".to_string(),
         }
     } else {
-        get_content_length(&download.url, &download.headers).await
+        get_content_length(client.clone(), &download.url, &download.headers).await
     };
 
     if !options.error.is_empty() {

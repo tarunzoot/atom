@@ -14,6 +14,7 @@ use crate::{
         save_settings_toml,
     },
 };
+use reqwest::Client;
 use single_instance::SingleInstance;
 use std::{
     collections::{BTreeMap, HashMap},
@@ -37,6 +38,7 @@ pub enum View {
 
 #[derive(Default)]
 pub struct Atom<'a> {
+    pub client: Client,
     pub view: View,
     pub sidebar: AtomSidebar<'a>,
     pub titlebar: AtomTitleBar,
@@ -65,6 +67,17 @@ impl<'a> Atom<'a> {
                     std::process::exit(-1);
                 })
                 .unwrap();
+
+        let client_builder = reqwest::ClientBuilder::new();
+
+        let client = client_builder
+            .danger_accept_invalid_certs(true)
+            .brotli(true)
+            .gzip(true)
+            .deflate(true)
+            .referer(true)
+            .build()
+            .expect("Error: cannot create download client.");
 
         // check if config path can be created or exists
         let config_dir_path = get_conf_directory()
@@ -108,6 +121,7 @@ impl<'a> Atom<'a> {
         let (tray_icon, tray_messages) = Atom::load_system_tray(app_instance.is_single());
 
         Self {
+            client,
             theme: settings.theme.clone().into(),
             default_settings: settings.clone(),
             settings,

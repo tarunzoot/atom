@@ -109,6 +109,7 @@ pub fn hashmap2headermap(headers: &HashMap<String, String>) -> HeaderMap {
 }
 
 pub async fn get_content_length(
+    client: Client,
     link: &str,
     headers: &HashMap<String, String>,
 ) -> DownloadProperties {
@@ -118,63 +119,53 @@ pub async fn get_content_length(
         error: "".to_string(),
     };
 
-    if let Ok(client) = Client::builder()
-        .danger_accept_invalid_certs(true)
-        .brotli(true)
-        .gzip(true)
-        .deflate(true)
-        .build()
+    match client
+        .head(link)
+        .header(USER_AGENT, ATOM_USER_AGENT)
+        // .header("Referer", referrer)
+        .headers(hashmap2headermap(headers))
+        .send()
+        .await
     {
-        match client
-            .head(link)
-            .header(USER_AGENT, ATOM_USER_AGENT)
-            // .header("Referer", referrer)
-            .headers(hashmap2headermap(headers))
-            .send()
-            .await
-        {
-            Ok(response) => {
-                if !response.status().is_success() {
-                    size.error = "Error, unable to get content length!".to_string();
-                } else {
-                    let headers = response.headers();
-                    match (headers.get(ACCEPT_RANGES), headers.get(CONTENT_LENGTH)) {
-                        // todo:
-                        // accept-ranges may be missing
-                        (Some(_), Some(cl)) => {
-                            let cl = cl
-                                .to_str()
-                                .unwrap_or_default()
-                                .parse::<u64>()
-                                .unwrap_or_default();
+        Ok(response) => {
+            if !response.status().is_success() {
+                size.error = "Error, unable to get content length!".to_string();
+            } else {
+                let headers = response.headers();
+                match (headers.get(ACCEPT_RANGES), headers.get(CONTENT_LENGTH)) {
+                    // todo:
+                    // accept-ranges may be missing
+                    (Some(_), Some(cl)) => {
+                        let cl = cl
+                            .to_str()
+                            .unwrap_or_default()
+                            .parse::<u64>()
+                            .unwrap_or_default();
 
-                            size.content_length = cl as usize;
-                            size.download_type = DownloadType::Threaded;
-                        }
-                        (None, Some(cl)) => {
-                            let cl = cl
-                                .to_str()
-                                .unwrap_or_default()
-                                .parse::<u64>()
-                                .unwrap_or_default();
+                        size.content_length = cl as usize;
+                        size.download_type = DownloadType::Threaded;
+                    }
+                    (None, Some(cl)) => {
+                        let cl = cl
+                            .to_str()
+                            .unwrap_or_default()
+                            .parse::<u64>()
+                            .unwrap_or_default();
 
-                            size.content_length = cl as usize;
-                            size.download_type = DownloadType::Sequential;
-                        }
-                        (_, _) => {
-                            size.content_length = 0;
-                            size.download_type = DownloadType::Sequential;
-                        }
+                        size.content_length = cl as usize;
+                        size.download_type = DownloadType::Sequential;
+                    }
+                    (_, _) => {
+                        size.content_length = 0;
+                        size.download_type = DownloadType::Sequential;
                     }
                 }
             }
-            Err(_) => {
-                size.content_length = 0;
-                size.download_type = DownloadType::Sequential;
-            }
         }
-    } else {
-        size.error = "Unable to create download client!".to_string();
+        Err(_) => {
+            size.content_length = 0;
+            size.download_type = DownloadType::Sequential;
+        }
     }
 
     size
