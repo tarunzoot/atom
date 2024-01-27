@@ -248,7 +248,30 @@ impl<'a> Atom<'a> {
                 }
                 DownloadMessage::RemoveDownload(force) => {
                     if force {
-                        self.downloads.remove(&index);
+                        if let Some(download) = self.downloads.remove(&index) {
+                            if !download.is_downloaded() || download.is_deleted {
+                                if download.is_sequential {
+                                    let path =
+                                        PathBuf::from(download.file_path).join(download.file_name);
+                                    if let Err(e) = std::fs::remove_file(&path) {
+                                        warn!("Error deleting file {path:#?} : {e:#?}");
+                                    }
+                                } else {
+                                    let path = PathBuf::from(&self.settings.cache_dir)
+                                        .join(&download.file_name);
+                                    for i in 1..=download.threads {
+                                        let path = path.with_file_name(format!(
+                                            "{}.atom.{}",
+                                            download.file_name, i
+                                        ));
+                                        if let Err(e) = std::fs::remove_file(&path) {
+                                            warn!("Error deleting file {path:#?} : {e:#?}");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         if self.downloads.is_empty() {
                             self.update_view(View::Downloads);
                         }

@@ -6,11 +6,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-reqwest = "0.11"
+reqwest = {version = "0.11", features = ["brotli", "deflate", "gzip"]}
 ring = "0.17"
 directories = "5"
 urlencoding = "2"
-rfd = "0.12"
+rfd = "0.13"
 toml = "0.8"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

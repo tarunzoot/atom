@@ -59,10 +59,14 @@ impl AtomDownload {
             // }
         }
 
+        // should be a global client
         let client_builder = reqwest::ClientBuilder::new();
 
         let state = if let Ok(client) = client_builder
             .danger_accept_invalid_certs(true)
+            .brotli(true)
+            .gzip(true)
+            .deflate(true)
             .referer(true)
             .build()
         {

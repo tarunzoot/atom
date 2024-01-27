@@ -1,6 +1,7 @@
 var webRequests = [];
 
 chrome.webRequest.onBeforeSendHeaders.addListener((details) =>
+// chrome.webRequest.onBeforeRequest.addListener((details) =>
 {
     console.log(details)
 
@@ -22,6 +23,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener((details) =>
     ]
 }, [
     'requestHeaders',
+    // 'requestBody',
     'extraHeaders'
 ]);
 

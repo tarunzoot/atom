@@ -118,7 +118,13 @@ pub async fn get_content_length(
         error: "".to_string(),
     };
 
-    if let Ok(client) = Client::builder().danger_accept_invalid_certs(true).build() {
+    if let Ok(client) = Client::builder()
+        .danger_accept_invalid_certs(true)
+        .brotli(true)
+        .gzip(true)
+        .deflate(true)
+        .build()
+    {
         match client
             .head(link)
             .header(USER_AGENT, ATOM_USER_AGENT)

@@ -8,7 +8,9 @@ use crate::{
     utils::helpers::get_formatted_time,
 };
 use iced::{
-    widget::{button, column as col, container, horizontal_space, progress_bar, row, text},
+    widget::{
+        button, column as col, container, horizontal_space, progress_bar, row, text, tooltip,
+    },
     Element, Length, Renderer,
 };
 
@@ -76,7 +78,7 @@ impl AtomDownload {
         .align_x(iced::alignment::Horizontal::Center);
 
         let progress_col = container(if !self.error.is_empty() {
-            row!().push(text("Error").size(text_size))
+            row!().push(text("Failed").size(text_size))
         } else if self.joined_bytes > 0 {
             row!()
                 .spacing(5)
@@ -119,7 +121,7 @@ impl AtomDownload {
 
             if self.is_downloading {
                 start_pause_btn = start_pause_btn.on_press(DownloadMessage::Paused);
-            } else if self.is_joining {
+            } else if self.is_joining || (self.downloaded > self.size && self.is_downloading) {
             } else {
                 start_pause_btn = start_pause_btn.on_press(DownloadMessage::Downloading);
             }
@@ -129,8 +131,16 @@ impl AtomDownload {
                 .push(GuiElements::round_button('\u{ee09}').on_press(DownloadMessage::MarkDeleted));
         } else {
             actions_row = actions_row.push(
-                GuiElements::round_button('\u{ee09}')
-                    .on_press(DownloadMessage::RemoveDownload(true)),
+                tooltip(
+                    GuiElements::round_button('\u{ee09}')
+                        .on_press(DownloadMessage::RemoveDownload(true)),
+                    "Will remove all the cached/incomplete files from the disk as well.",
+                    tooltip::Position::Top,
+                )
+                .style(AtomStyleContainer::ToolTipContainer)
+                .gap(10)
+                .padding(10)
+                .size(10),
             );
         }
 
@@ -267,10 +277,52 @@ impl AtomDownload {
         }
 
         if self.show_delete_confirm_dialog {
+            let move2trash_btn = tooltip(
+                GuiElements::primary_button(vec![
+                    icon('\u{ec53}', CustomFont::IcoFont),
+                    text("trash"),
+                ])
+                .width(Length::Fixed(150.0))
+                .on_press(DownloadMessage::RemoveDownload(false)),
+                "Will move the download from the main list to the trashed list without deleting the cached/incomplete files.",
+                tooltip::Position::Top,
+            )
+            .style(AtomStyleContainer::ToolTipContainer)
+            .gap(10)
+            .padding(10)
+            .size(10);
+
+            let force_delete_btn = tooltip(
+                GuiElements::primary_button(vec![
+                    icon('\u{ec53}', CustomFont::IcoFont),
+                    text("force delete"),
+                ])
+                .width(Length::Fixed(200.0))
+                .on_press(DownloadMessage::RemoveDownload(true)),
+                "Removes the download from the list and the cached/incomplete files from the disk.",
+                tooltip::Position::Top,
+            )
+            .style(AtomStyleContainer::ToolTipContainer)
+            .gap(10)
+            .padding(10)
+            .size(10);
+
+            let cancel_btn = GuiElements::primary_button(vec![
+                icon('\u{eede}', CustomFont::IcoFont),
+                text("cancel"),
+            ])
+            .width(Length::Fixed(150.0))
+            .on_press(DownloadMessage::HideDialog);
+
             GuiElements::modal(
                 download_container,
                 "Are you sure?",
-                DownloadMessage::RemoveDownload(false),
+                row!()
+                    .spacing(10)
+                    .align_items(iced::Alignment::Center)
+                    .push(move2trash_btn)
+                    .push(force_delete_btn)
+                    .push(cancel_btn),
                 DownloadMessage::HideDialog,
             )
         } else {

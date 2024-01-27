@@ -25,7 +25,8 @@ fn main() -> iced::Result {
         antialiasing: true,
         // default_font: Font::with_name("Azeret Mono"),
         default_font: Font {
-            family: iced::font::Family::Name("Google Sans Mono"),
+            // family: iced::font::Family::Name("Google Sans Mono"),
+            family: iced::font::Family::Name("DM Mono"),
             weight: iced::font::Weight::Normal,
             ..Default::default()
         },

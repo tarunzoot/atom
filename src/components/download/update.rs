@@ -100,6 +100,7 @@ impl AtomDownload {
             DownloadMessage::RemoveDownload(force) => {
                 if !force {
                     self.is_deleted = true;
+                    self.is_downloading = false;
                     self.show_delete_confirm_dialog = false;
                 }
             }

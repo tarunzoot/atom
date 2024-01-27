@@ -226,7 +226,25 @@ impl<'a> AtomDownloadStates<'a> {
                     .width(iced::Length::Fill)
                     .style(AtomStyleContainer::ListHeaderContainer),
                 &conf_string,
-                Message::Sidebar(crate::messages::SidebarMessage::DeleteAll),
+                row!()
+                    .spacing(10)
+                    .align_items(iced::Alignment::Center)
+                    .push(
+                        GuiElements::primary_button(vec![
+                            icon('\u{ec53}', CustomFont::IcoFont),
+                            text("delete"),
+                        ])
+                        .width(Length::Fixed(170.0))
+                        .on_press(Message::Sidebar(crate::messages::SidebarMessage::DeleteAll)),
+                    )
+                    .push(
+                        GuiElements::primary_button(vec![
+                            icon('\u{eede}', CustomFont::IcoFont),
+                            text("cancel"),
+                        ])
+                        .width(Length::Fixed(170.0))
+                        .on_press(Message::GotoHomePage),
+                    ),
                 Message::GotoHomePage,
             )
         } else {
