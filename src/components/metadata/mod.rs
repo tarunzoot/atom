@@ -11,6 +11,7 @@ pub struct AtomDownloadMetadata {
     pub file_path: String,
     pub size: usize,
     pub checksums: HashMap<String, String>,
+    pub finished: bool,
     is_calculating_checksum: bool,
 }
 
@@ -61,5 +62,6 @@ impl AtomDownloadMetadata {
         self.url = download.get_url();
         self.size = download.get_download_size();
         self.is_calculating_checksum = false;
+        self.finished = download.is_downloaded();
     }
 }

@@ -121,7 +121,7 @@ impl AtomDownloadMetadata {
 
         let mut checksum_btn = GuiElements::round_button('\u{ec05}').padding(Padding::from([4, 6]));
 
-        if !self.is_calculating_checksum {
+        if !self.is_calculating_checksum && self.finished {
             checksum_btn = checksum_btn.on_press(MetadataMessage::CalculateChecksum);
         }
 
