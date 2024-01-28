@@ -108,16 +108,16 @@ impl<'a> AtomDownloadStates<'a> {
     ) -> Element<Message, Renderer<Theme>> {
         let count_downloading = downloads
             .iter()
-            .filter(|f| f.1.is_downloading && !f.1.is_deleted)
+            .filter(|f| f.1.downloading && !f.1.deleted)
             .count();
         let count_paused = downloads
             .iter()
-            .filter(|f| !f.1.is_downloaded() && !f.1.is_downloading() && !f.1.is_deleted)
+            .filter(|f| !f.1.is_downloaded() && !f.1.is_downloading() && !f.1.deleted)
             .count();
-        let count_deleted = downloads.iter().filter(|f| f.1.is_deleted).count();
+        let count_deleted = downloads.iter().filter(|f| f.1.deleted).count();
         let count_finished = downloads
             .iter()
-            .filter(|f| f.1.is_downloaded() && !f.1.is_deleted)
+            .filter(|f| f.1.is_downloaded() && !f.1.deleted)
             .count();
 
         let df_buttons_row = self.download_filter_buttons.iter().fold(

@@ -17,13 +17,13 @@ type DownloadTuple<'a> = (&'a usize, &'a AtomDownload);
 impl<'a> Atom<'a> {
     fn filter_downloads_view(&self) -> Element<Message, Renderer<Theme>> {
         let deleted_filter: Box<dyn Fn(&DownloadTuple) -> bool> =
-            Box::new(|f: &(&usize, &AtomDownload)| f.1.is_deleted);
+            Box::new(|f: &(&usize, &AtomDownload)| f.1.deleted);
         let all_filter: Box<dyn Fn(&DownloadTuple) -> bool> =
             Box::new(|f: &(&usize, &AtomDownload)| {
                 if self.titlebar.search_text.is_empty() {
-                    !f.1.is_deleted
+                    !f.1.deleted
                 } else {
-                    !f.1.is_deleted
+                    !f.1.deleted
                         && f.1
                             .get_file_name()
                             .to_lowercase()
@@ -31,13 +31,13 @@ impl<'a> Atom<'a> {
                 }
             });
         let downloading_filter: Box<dyn Fn(&DownloadTuple) -> bool> =
-            Box::new(|f: &(&usize, &AtomDownload)| f.1.is_downloading && !f.1.is_deleted);
+            Box::new(|f: &(&usize, &AtomDownload)| f.1.downloading && !f.1.deleted);
         let paused_filter: Box<dyn Fn(&DownloadTuple) -> bool> =
             Box::new(|f: &(&usize, &AtomDownload)| {
-                !f.1.is_downloading() && !f.1.is_downloaded() && !f.1.is_deleted
+                !f.1.is_downloading() && !f.1.is_downloaded() && !f.1.deleted
             });
         let finished_filter: Box<dyn Fn(&DownloadTuple) -> bool> =
-            Box::new(|f: &(&usize, &AtomDownload)| f.1.is_downloaded() && !f.1.is_deleted);
+            Box::new(|f: &(&usize, &AtomDownload)| f.1.is_downloaded() && !f.1.deleted);
 
         let filtered_downloads = match &self.filter_type {
             DownloadsListFilterMessage::Downloading => {

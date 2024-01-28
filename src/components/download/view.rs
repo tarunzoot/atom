@@ -35,7 +35,7 @@ impl AtomDownload {
         let size = size_format(self.size);
         let progress = ((self.downloaded * 100) as f64 / self.size as f64) as f32;
 
-        let download_state_icon = if self.is_downloading {
+        let download_state_icon = if self.downloading {
             '\u{ec72}'
         } else if self.is_downloaded() {
             '\u{ec7f}'
@@ -94,9 +94,9 @@ impl AtomDownload {
                     ))
                     .size(text_size),
                 )
-        } else if self.size != 0 && self.downloaded >= self.size && !self.is_joining {
+        } else if self.size != 0 && self.downloaded >= self.size && !self.joining {
             row!().push(text("Completed").size(text_size))
-        } else if self.is_joining {
+        } else if self.joining {
             row!().push(text("Joining").size(text_size))
         } else {
             row!()
@@ -116,12 +116,12 @@ impl AtomDownload {
         .align_x(iced::alignment::Horizontal::Center);
 
         let mut actions_row = row!().spacing(5);
-        if !self.is_deleted {
+        if !self.deleted {
             let mut start_pause_btn = GuiElements::round_button(download_state_icon);
 
-            if self.is_downloading {
+            if self.downloading && self.downloaded <= self.size {
                 start_pause_btn = start_pause_btn.on_press(DownloadMessage::Paused);
-            } else if self.is_joining || (self.downloaded > self.size && self.is_downloading) {
+            } else if self.joining || (self.downloaded > self.size && self.downloading) {
             } else {
                 start_pause_btn = start_pause_btn.on_press(DownloadMessage::Downloading);
             }
@@ -259,7 +259,7 @@ impl AtomDownload {
 
         let mut download_container = container(
             button(main_row)
-                .on_press(if self.is_deleted {
+                .on_press(if self.deleted {
                     DownloadMessage::Ignore
                 } else {
                     DownloadMessage::DownloadSelected

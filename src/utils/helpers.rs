@@ -9,7 +9,7 @@ use crate::{
 use iced::subscription;
 use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue, ACCEPT_RANGES, CONTENT_LENGTH, USER_AGENT},
-    Client,
+    Client, Method,
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -120,7 +120,7 @@ pub async fn get_content_length(
     };
 
     match client
-        .head(link)
+        .request(Method::HEAD, link)
         .header(USER_AGENT, ATOM_USER_AGENT)
         // .header("Referer", referrer)
         .headers(hashmap2headermap(headers))

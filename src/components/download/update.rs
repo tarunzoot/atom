@@ -12,7 +12,7 @@ impl AtomDownload {
             }
             DownloadMessage::Error(error) => {
                 self.error = error;
-                self.is_downloading = false;
+                self.downloading = false;
                 warn!("{:#?}", self.error);
                 if settings.show_notifications
                     && notify_rust::Notification::new()
@@ -29,12 +29,12 @@ impl AtomDownload {
                 }
             }
             DownloadMessage::DownloadDoneJoining => {
-                self.is_joining = true;
-                self.is_downloading = false;
+                self.joining = true;
+                self.downloading = false;
             }
             DownloadMessage::Finished => {
-                self.is_downloading = false;
-                self.is_joining = false;
+                self.downloading = false;
+                self.joining = false;
                 self.download_this_session = 0;
                 if settings.show_notifications
                     && notify_rust::Notification::new()
@@ -78,17 +78,17 @@ impl AtomDownload {
             }
             DownloadMessage::JoiningProgress(bytes) => {
                 self.joined_bytes += bytes;
-                self.is_joining = true;
+                self.joining = true;
                 // self.is_downloading = true;
             }
             DownloadMessage::Downloading => {
-                self.is_downloading = true;
+                self.downloading = true;
                 self.error = String::default();
                 self.elapsed_time = Some(SystemTime::now());
             }
             DownloadMessage::Paused => {
-                self.is_downloading = false;
-                self.is_joining = false;
+                self.downloading = false;
+                self.joining = false;
                 self.download_this_session = 0;
             }
             DownloadMessage::DownloadSelected => {
@@ -99,8 +99,8 @@ impl AtomDownload {
             }
             DownloadMessage::RemoveDownload(force) => {
                 if !force {
-                    self.is_deleted = true;
-                    self.is_downloading = false;
+                    self.deleted = true;
+                    self.downloading = false;
                     self.show_delete_confirm_dialog = false;
                 }
             }

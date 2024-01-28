@@ -6,7 +6,7 @@ use crate::{
 use iced::Subscription;
 use reqwest::{
     header::{RANGE, USER_AGENT},
-    Client, Response,
+    Client, Method, Response,
 };
 use std::{
     fs::File,
@@ -41,7 +41,7 @@ impl AtomDownload {
         cache_dir: &Path,
         client: Client,
     ) -> Subscription<Message> {
-        if !self.is_downloading && (self.is_sequential || !self.is_joining) {
+        if !self.downloading && (self.sequential || !self.joining) {
             return Subscription::none();
         }
 
@@ -126,21 +126,19 @@ async fn handle_download_starting(
         .unwrap_or_default()
         .to_string();
 
-    let options = if download.is_sequential && download.size > 0 {
-        DownloadProperties {
-            content_length: download.size,
-            download_type: DownloadType::Sequential,
-            error: "".to_string(),
-        }
-    } else if download.downloaded > 0 && !download.is_sequential && download.size > 0 {
-        DownloadProperties {
-            content_length: download.size,
-            download_type: DownloadType::Threaded,
-            error: "".to_string(),
-        }
-    } else {
-        get_content_length(client.clone(), &download.url, &download.headers).await
+    let mut options = DownloadProperties {
+        content_length: download.size,
+        download_type: if download.sequential {
+            DownloadType::Sequential
+        } else {
+            DownloadType::Threaded
+        },
+        error: "".to_string(),
     };
+
+    if download.downloaded == 0 && download.size == 0 {
+        options = get_content_length(client.clone(), &download.url, &download.headers).await;
+    }
 
     if !options.error.is_empty() {
         return (
@@ -149,7 +147,7 @@ async fn handle_download_starting(
         );
     }
 
-    match (options.download_type, download.is_sequential) {
+    match (options.download_type, download.sequential) {
         (DownloadType::Threaded, false) => {
             let cache_dir_path = PathBuf::from(&cache_dir);
             let files: Vec<String> = split_file_name(&download.file_name, download.threads)
@@ -190,9 +188,19 @@ async fn handle_download_starting(
             {
                 let mut file_size = 0;
                 let mut client = client
-                    .get(&download.url)
+                    .request(
+                        match download.method {
+                            super::DownloadMethod::Get => Method::GET,
+                            super::DownloadMethod::Post => Method::POST,
+                        },
+                        &download.url,
+                    )
                     .header(USER_AGENT, ATOM_USER_AGENT)
                     .headers(hashmap2headermap(&download.headers));
+
+                if let super::DownloadMethod::Post = download.method {
+                    client = client.body(download.request_body);
+                }
 
                 download.size = options.content_length;
 
@@ -297,22 +305,34 @@ async fn handle_threaded_download_starting(
             .open(f)
         {
             let file_len = file.metadata().unwrap().len() as usize;
-            let client = client
-                .get(&download.url)
+            let mut client = client
+                .request(
+                    match download.method {
+                        super::DownloadMethod::Get => Method::GET,
+                        super::DownloadMethod::Post => Method::POST,
+                    },
+                    &download.url,
+                )
+                // .get(&download.url)
                 .header(USER_AGENT, ATOM_USER_AGENT)
-                .headers(hashmap2headermap(&download.headers))
-                .header(
-                    RANGE,
-                    format!(
-                        "bytes={}-{}",
-                        previous_chunk_start + file_len,
-                        if previous_chunk_start + chunk_size >= download.size {
-                            download.size
-                        } else {
-                            previous_chunk_start + chunk_size
-                        }
-                    ),
-                );
+                .headers(hashmap2headermap(&download.headers));
+
+            if let super::DownloadMethod::Post = download.method {
+                client = client.form(&download.request_body);
+            };
+
+            client = client.header(
+                RANGE,
+                format!(
+                    "bytes={}-{}",
+                    previous_chunk_start + file_len,
+                    if previous_chunk_start + chunk_size >= download.size {
+                        download.size
+                    } else {
+                        previous_chunk_start + chunk_size
+                    }
+                ),
+            );
             downloaded += file_len;
             open_chunk_files.push(file);
 

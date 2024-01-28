@@ -3,8 +3,6 @@ mod view;
 use crate::components::{download::AtomDownload, settings::AtomSettings};
 use std::collections::HashMap;
 
-use super::download::DownloadType;
-
 #[derive(Debug, Default)]
 pub struct AtomDownloadForm {
     pub url: String,
@@ -37,11 +35,7 @@ impl AtomDownloadForm {
             .auto_set_file_name_path(&self.file_name)
             .file_size(self.size)
             .headers(self.headers.clone())
-            .download_type(if self.sequential {
-                DownloadType::Sequential
-            } else {
-                DownloadType::Threaded
-            })
+            .download_type(self.sequential)
             .build()
     }
 

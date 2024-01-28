@@ -5,6 +5,12 @@ use crate::messages::DownloadMessage;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::Path, time::SystemTime};
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum DownloadMethod {
+    Get,
+    Post,
+}
+
 #[derive(Debug)]
 pub enum DownloadType {
     Sequential,
@@ -14,19 +20,21 @@ pub enum DownloadType {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AtomDownload {
     pub url: String,
+    pub method: DownloadMethod,
     pub file_path: String,
     pub file_name: String,
     pub downloaded: usize,
     #[serde(skip_deserializing, skip_serializing)]
     pub download_this_session: usize,
     pub size: usize,
-    pub is_downloading: bool,
+    pub downloading: bool,
     pub threads: u8,
     pub error: String,
-    pub is_deleted: bool,
-    pub is_sequential: bool,
+    pub deleted: bool,
+    pub sequential: bool,
     pub added: String,
     pub headers: HashMap<String, String>,
+    pub request_body: String,
     pub transfer_rate: f64,
     pub eta: f64,
     #[serde(skip_deserializing, skip_serializing)]
@@ -34,7 +42,7 @@ pub struct AtomDownload {
     #[serde(skip_deserializing, skip_serializing)]
     pub elapsed_time: Option<SystemTime>,
     #[serde(skip_deserializing, skip_serializing)]
-    pub is_joining: bool,
+    pub joining: bool,
     #[serde(skip_deserializing, skip_serializing)]
     pub show_delete_confirm_dialog: bool,
 }
@@ -43,23 +51,25 @@ impl Default for AtomDownload {
     fn default() -> Self {
         Self {
             url: String::default(),
+            method: DownloadMethod::Get,
             file_path: String::default(),
             file_name: String::default(),
             downloaded: 0,
             download_this_session: 0,
             size: 0,
-            is_downloading: true,
+            downloading: true,
             threads: 6,
             error: String::default(),
-            is_deleted: false,
-            is_sequential: false,
+            deleted: false,
+            sequential: false,
             added: chrono::Local::now().date_naive().to_string(),
             headers: HashMap::default(),
+            request_body: String::default(),
             transfer_rate: 0.0,
             eta: 0.0,
             elapsed_time: Some(SystemTime::now()),
             joined_bytes: 0,
-            is_joining: false,
+            joining: false,
             show_delete_confirm_dialog: false,
         }
     }
@@ -95,11 +105,14 @@ impl AtomDownload {
         self
     }
 
-    pub fn download_type(mut self, download_type: DownloadType) -> Self {
-        self.is_sequential = match download_type {
-            DownloadType::Threaded => false,
-            DownloadType::Sequential => true,
-        };
+    pub fn download_type(mut self, sequential: bool) -> Self {
+        self.sequential = sequential;
+        self
+    }
+
+    pub fn request_body(mut self, body: String) -> Self {
+        self.request_body = body;
+        self.method = DownloadMethod::Post;
         self
     }
 
@@ -155,10 +168,10 @@ impl AtomDownload {
     }
 
     pub fn is_downloaded(&self) -> bool {
-        self.downloaded >= self.size || self.is_deleted
+        self.downloaded >= self.size || self.deleted
     }
 
     pub fn is_downloading(&self) -> bool {
-        self.is_downloading
+        self.downloading
     }
 }

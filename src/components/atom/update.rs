@@ -1,6 +1,6 @@
 use super::{Atom, View};
 use crate::{
-    components::download::{AtomDownload, DownloadType},
+    components::download::AtomDownload,
     components::form::AtomDownloadForm,
     messages::{
         DownloadMessage, DownloadsListFilterMessage, Message, SideBarActiveButton, SideBarState,
@@ -163,13 +163,7 @@ impl<'a> Atom<'a> {
                                                         .file_path(&self.import.download_path)
                                                         .file_name(file_name)
                                                         .file_size(0)
-                                                        .download_type(
-                                                            if self.import.is_sequential {
-                                                                DownloadType::Sequential
-                                                            } else {
-                                                                DownloadType::Threaded
-                                                            },
-                                                        )
+                                                        .download_type(self.import.is_sequential)
                                                         .build()
                                                     {
                                                         Ok(atom_download) => {
@@ -249,8 +243,8 @@ impl<'a> Atom<'a> {
                 DownloadMessage::RemoveDownload(force) => {
                     if force {
                         if let Some(download) = self.downloads.remove(&index) {
-                            if !download.is_downloaded() || download.is_deleted {
-                                if download.is_sequential {
+                            if !download.is_downloaded() || download.deleted {
+                                if download.sequential {
                                     let path =
                                         PathBuf::from(download.file_path).join(download.file_name);
                                     if let Err(e) = std::fs::remove_file(&path) {
@@ -293,17 +287,17 @@ impl<'a> Atom<'a> {
                 }
             },
             Message::NewDownloadReceivedFromBrowser(json) => {
-                let download = AtomDownload::new()
+                let mut download = AtomDownload::new()
                     .headers(json.headers)
                     .url(json.url)
                     .file_name(json.file_name)
                     .file_size(json.size)
                     .file_path(&self.settings.downloads_dir)
-                    .download_type(if json.size == 0 {
-                        DownloadType::Sequential
-                    } else {
-                        DownloadType::Threaded
-                    });
+                    .download_type(json.sequential);
+
+                if json.method == "POST" {
+                    download = download.request_body(json.body);
+                }
 
                 match download.build() {
                     Ok(atom_download) => {
@@ -334,7 +328,7 @@ impl<'a> Atom<'a> {
                         if (download.url == new_download.url
                             || (download.file_name == new_download.file_name
                                 && download.file_path == new_download.file_path))
-                            && !download.is_deleted
+                            && !download.deleted
                         {
                             Some(index)
                         } else {
@@ -347,7 +341,7 @@ impl<'a> Atom<'a> {
                             .join(&existing_download.file_name);
                         if !file_path.exists() {
                             *existing_download = new_download;
-                            existing_download.is_downloading = true;
+                            existing_download.downloading = true;
                         }
                     }
                 } else {
@@ -423,7 +417,7 @@ impl<'a> Atom<'a> {
                 }
                 SidebarMessage::ResumeAll => {
                     self.downloads.iter_mut().for_each(|(&_, download)| {
-                        if !download.is_downloaded() && !download.is_downloading {
+                        if !download.is_downloaded() && !download.downloading {
                             download.update(DownloadMessage::Downloading, &self.settings);
                         }
                     });
@@ -438,24 +432,24 @@ impl<'a> Atom<'a> {
                         SideBarActiveButton::Overview => self.downloads.clear(),
                         SideBarActiveButton::Downloading => {
                             self.downloads.retain(|_, download| {
-                                !(download.downloaded < download.size && download.is_downloading)
-                                    || download.is_deleted
+                                !(download.downloaded < download.size && download.downloading)
+                                    || download.deleted
                             });
                         }
                         SideBarActiveButton::Paused => {
                             self.downloads.retain(|_, download| {
-                                download.is_downloading
+                                download.downloading
                                     || download.size <= download.downloaded
-                                    || download.is_deleted
+                                    || download.deleted
                             });
                         }
                         SideBarActiveButton::Finished => {
                             self.downloads.retain(|_, download| {
-                                download.downloaded < download.size || download.is_deleted
+                                download.downloaded < download.size || download.deleted
                             });
                         }
                         SideBarActiveButton::Trash => {
-                            self.downloads.retain(|_, download| !download.is_deleted);
+                            self.downloads.retain(|_, download| !download.deleted);
                         }
                         _ => {}
                     }
