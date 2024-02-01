@@ -85,6 +85,7 @@ impl AtomDownload {
                 self.downloading = true;
                 self.error = String::default();
                 self.elapsed_time = Some(SystemTime::now());
+                self.download_this_session = 0;
             }
             DownloadMessage::Paused => {
                 self.downloading = false;
