@@ -15,7 +15,7 @@ pub struct AtomTitleBar {
 }
 
 impl AtomTitleBar {
-    pub fn view(&self, settings: &AtomSettings) -> Element<TitleBarMessage, Renderer<Theme>> {
+    pub fn view(&self, settings: &AtomSettings) -> Element<TitleBarMessage, Theme, Renderer> {
         container(
             row!()
                 .spacing(20)
@@ -71,19 +71,19 @@ impl AtomTitleBar {
                                             row!()
                                                 .push(
                                                     button(icon('\u{ef9a}', CustomFont::IcoFont))
-                                                        .padding(15)
+                                                        .padding(14)
                                                         .style(AtomStyleButton::HeaderButtons)
                                                         .on_press(TitleBarMessage::AppMinimize),
                                                 )
                                                 .push(
                                                     button(icon('\u{ef52}', CustomFont::IcoFont))
-                                                        .padding(15)
+                                                        .padding(14)
                                                         .style(AtomStyleButton::HeaderButtons)
                                                         .on_press(TitleBarMessage::AppMaximize),
                                                 )
                                                 .push(
                                                     button(icon('\u{eee1}', CustomFont::IcoFont))
-                                                        .padding(15)
+                                                        .padding(14)
                                                         .style(AtomStyleButton::HeaderButtons)
                                                         .on_press(
                                                             if settings.quit_action_closes_app {

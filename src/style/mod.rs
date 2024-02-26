@@ -7,13 +7,14 @@ pub mod toggle;
 
 use iced::{
     application,
+    border::Radius,
     overlay::menu,
     widget::{
         pick_list,
         scrollable::{self, Scrollbar, Scroller},
         text,
     },
-    Background, BorderRadius, Color,
+    Background, Border, Color,
 };
 
 #[macro_export]
@@ -134,24 +135,36 @@ pub struct AtomStyleScrollbar;
 impl scrollable::StyleSheet for Theme {
     type Style = AtomStyleScrollbar;
 
-    fn active(&self, _style: &Self::Style) -> scrollable::Scrollbar {
-        Scrollbar {
-            border_radius: BorderRadius::from(5.0),
-            border_width: 2.0,
-            // border_color: ATOM_BUTTON_BACKGROUND,
-            // background: Some(Background::Color(ATOM_BUTTON_BACKGROUND)),
-            border_color: Color::TRANSPARENT,
-            background: None,
-            scroller: Scroller {
-                color: color!(50, 50, 50, 0),
-                border_radius: BorderRadius::from(5.0),
-                border_width: 3.0,
-                border_color: color!(50, 50, 50, 0),
+    fn active(&self, _style: &Self::Style) -> scrollable::Appearance {
+        scrollable::Appearance {
+            container: Default::default(),
+            scrollbar: Scrollbar {
+                border: Border {
+                    radius: Radius::from(5.0),
+                    width: 2.0,
+                    // border_color: ATOM_BUTTON_BACKGROUND,
+                    // background: Some(Background::Color(ATOM_BUTTON_BACKGROUND)),
+                    color: Color::TRANSPARENT,
+                },
+                background: None,
+                scroller: Scroller {
+                    color: color!(50, 50, 50, 0),
+                    border: Border {
+                        radius: Radius::from(5.0),
+                        width: 3.0,
+                        color: color!(50, 50, 50, 0),
+                    },
+                },
             },
+            gap: Default::default(),
         }
     }
 
-    fn hovered(&self, style: &Self::Style, _is_mouse_over_scrollbar: bool) -> Scrollbar {
+    fn hovered(
+        &self,
+        style: &Self::Style,
+        _is_mouse_over_scrollbar: bool,
+    ) -> scrollable::Appearance {
         self.active(style)
     }
 }
@@ -184,18 +197,23 @@ impl pick_list::StyleSheet for Theme {
             },
             placeholder_color: color_palette.1,
             background: Background::Color(Color::TRANSPARENT),
-            border_radius: BorderRadius::from(5.0),
-            border_width: 1.0,
-            border_color: color_palette.0,
+            border: Border {
+                radius: Radius::from(5.0),
+                width: 1.0,
+                color: color_palette.0,
+            },
             handle_color: color_palette.0,
         }
     }
 
     fn hovered(&self, style: &<Self as pick_list::StyleSheet>::Style) -> pick_list::Appearance {
         pick_list::Appearance {
-            border_color: Color {
-                a: 0.8,
-                ..self.active(style).border_color
+            border: Border {
+                color: Color {
+                    a: 0.8,
+                    ..self.active(style).border.color
+                },
+                ..self.active(style).border
             },
             ..self.active(style)
         }
@@ -217,9 +235,11 @@ impl menu::StyleSheet for Theme {
                 _ => Color::WHITE,
             },
             background: Background::Color(Color::TRANSPARENT),
-            border_width: 1.0,
-            border_radius: BorderRadius::from(2.0),
-            border_color: color_palette,
+            border: Border {
+                width: 1.0,
+                radius: Radius::from(2.0),
+                color: color_palette,
+            },
             selected_text_color: match self {
                 Theme::Light => Color::WHITE,
                 _ => Color::BLACK,
@@ -239,7 +259,7 @@ impl iced::widget::rule::StyleSheet for Theme {
         iced::widget::rule::Appearance {
             color: self.accent(),
             width: 5,
-            radius: BorderRadius::from(5.0),
+            radius: Radius::from(5.0),
             fill_mode: iced::widget::rule::FillMode::Full,
         }
     }

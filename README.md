@@ -53,4 +53,6 @@ Atom is tested and used on Windows only. Atom may or may not work as intended on
 Contributions are greatly appreciated! Being a newbie at Rust and Iced, I would very highly value your suggestions and feedback.
 
 
-<!-- Happy downloading with ATOM Download Manager! -->
+<!-- Happy downloading with ATOM Download Manager!
+7f5da1e901cfffc26e57bbb987329be0d72fa39f6dadd9a44f985cd05e26da133eef3f8653f3df178c2cbb954a9e5a77d0a17756ac88f62cfcc660b184ca10ea
+-->

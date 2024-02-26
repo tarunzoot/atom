@@ -6,8 +6,9 @@ use crate::{
     utils::helpers::{handle_web_request, listen_for_tray_events},
 };
 use iced::{
-    executor, subscription,
+    event, executor,
     widget::{container, text},
+    window::Id,
     Application, Command, Length, Subscription,
 };
 
@@ -65,7 +66,7 @@ impl<'a> Application for App<'a> {
                     })
                     .collect();
 
-                subscriptions.push(subscription::events().map(Message::EventsOccurred));
+                subscriptions.push(event::listen().map(Message::EventsOccurred));
                 subscriptions.push(atom.metadata.subscription().map(Message::Metadata));
                 // subscriptions.push(iced::window::frames().map(|_| Message::Tick));
                 subscriptions.push(handle_web_request(atom.should_exit));
@@ -84,7 +85,7 @@ impl<'a> Application for App<'a> {
                 if let Message::LoadingComplete = message {
                     let atom = Atom::new();
                     if atom.settings.maximized {
-                        command = iced::window::toggle_maximize();
+                        command = iced::window::toggle_maximize(Id::MAIN);
                     }
                     *self = App::Loaded(atom);
                 }
@@ -95,7 +96,7 @@ impl<'a> Application for App<'a> {
         }
     }
 
-    fn view(&self) -> iced::Element<'_, Self::Message, iced::Renderer<Self::Theme>> {
+    fn view(&self) -> iced::Element<'_, Self::Message, Theme> {
         match self {
             App::Loading => container(
                 text("loading...")

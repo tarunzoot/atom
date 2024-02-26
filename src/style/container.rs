@@ -1,6 +1,6 @@
 use super::Theme;
 use crate::color;
-use iced::{widget::container, Background, BorderRadius, Color};
+use iced::{border::Radius, widget::container, Background, Border, Color, Shadow};
 
 struct ColorPalette {
     accent: Color,
@@ -102,6 +102,7 @@ impl container::StyleSheet for Theme {
                 | AtomStyleContainer::ButtonContainer => None,
                 _ => Some(appearance.text),
             },
+            shadow: Shadow::default(),
             background: match style {
                 AtomStyleContainer::LogoContainer | AtomStyleContainer::MenuBarActiveContainer => {
                     Some(Background::Color(appearance.accent))
@@ -161,39 +162,43 @@ impl container::StyleSheet for Theme {
                 )),
                 _ => Some(Background::Color(appearance.background)),
             },
-            border_radius: match style {
-                AtomStyleContainer::MenuBarActiveContainer
-                | AtomStyleContainer::ListContainer
-                | AtomStyleContainer::ToolTipContainer => BorderRadius::from(10.0),
-                AtomStyleContainer::PreviewContainer
-                | AtomStyleContainer::ListHeaderContainer
-                | AtomStyleContainer::ListItemContainer
-                | AtomStyleContainer::ErrorContainer => BorderRadius::from(5.0),
-                _ => BorderRadius::from(0.0),
-            },
-            border_width: match style {
-                AtomStyleContainer::ListContainer => 2.0,
-                AtomStyleContainer::ErrorContainer | AtomStyleContainer::ListItemContainer => 1.0,
-                AtomStyleContainer::ToolTipContainer => 0.5,
-                AtomStyleContainer::MenuBarActiveContainer => 0.1,
-                _ => 0.0,
-            },
-            border_color: match style {
-                AtomStyleContainer::MainContainer
-                | AtomStyleContainer::LogoContainer
-                | AtomStyleContainer::PreviewContainer => appearance.border,
-                AtomStyleContainer::ListItemContainer => {
-                    style.color_offset(appearance.background, 30.0)
-                }
-                AtomStyleContainer::ErrorContainer => color!(251, 50, 50, 0.7),
-                AtomStyleContainer::ListHeaderContainer => appearance.accent,
-                AtomStyleContainer::ToolTipContainer
-                | AtomStyleContainer::HeaderButtonsContainer
-                | AtomStyleContainer::MenuBarActiveContainer
-                | AtomStyleContainer::MenuBarInActiveContainer => {
-                    style.color_offset(appearance.background, 40.0)
-                }
-                _ => style.color_offset(appearance.background, 20.0),
+            border: Border {
+                radius: match style {
+                    AtomStyleContainer::MenuBarActiveContainer
+                    | AtomStyleContainer::ListContainer
+                    | AtomStyleContainer::ToolTipContainer => Radius::from(10.0),
+                    AtomStyleContainer::PreviewContainer
+                    | AtomStyleContainer::ListHeaderContainer
+                    | AtomStyleContainer::ListItemContainer
+                    | AtomStyleContainer::ErrorContainer => Radius::from(5.0),
+                    _ => Radius::from(0.0),
+                },
+                width: match style {
+                    AtomStyleContainer::ListContainer => 2.0,
+                    AtomStyleContainer::ErrorContainer | AtomStyleContainer::ListItemContainer => {
+                        1.0
+                    }
+                    AtomStyleContainer::ToolTipContainer => 0.5,
+                    AtomStyleContainer::MenuBarActiveContainer => 0.1,
+                    _ => 0.0,
+                },
+                color: match style {
+                    AtomStyleContainer::MainContainer
+                    | AtomStyleContainer::LogoContainer
+                    | AtomStyleContainer::PreviewContainer => appearance.border,
+                    AtomStyleContainer::ListItemContainer => {
+                        style.color_offset(appearance.background, 30.0)
+                    }
+                    AtomStyleContainer::ErrorContainer => color!(251, 50, 50, 0.7),
+                    AtomStyleContainer::ListHeaderContainer => appearance.accent,
+                    AtomStyleContainer::ToolTipContainer
+                    | AtomStyleContainer::HeaderButtonsContainer
+                    | AtomStyleContainer::MenuBarActiveContainer
+                    | AtomStyleContainer::MenuBarInActiveContainer => {
+                        style.color_offset(appearance.background, 40.0)
+                    }
+                    _ => style.color_offset(appearance.background, 20.0),
+                },
             },
         }
     }

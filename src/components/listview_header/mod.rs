@@ -8,7 +8,7 @@ use iced::{
     Element, Font, Renderer,
 };
 
-pub fn view() -> Element<'static, Message, Renderer<Theme>> {
+pub fn view() -> Element<'static, Message, Theme, Renderer> {
     let icon_size = 14;
     let text_size = 14;
     let font = Font {

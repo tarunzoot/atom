@@ -1,6 +1,6 @@
 use super::Theme;
 use crate::color;
-use iced::{widget::button, Background, BorderRadius, Color, Vector};
+use iced::{border::Radius, widget::button, Background, Border, Color, Shadow, Vector};
 
 struct ColorPalette {
     background: Color,
@@ -75,24 +75,26 @@ impl button::StyleSheet for Theme {
                 | AtomStyleButton::HeaderButtons => None,
                 _ => Some(Background::Color(color_palette.background)),
             },
-            border_radius: match style {
-                AtomStyleButton::RoundButton => BorderRadius::from(50.0),
-                AtomStyleButton::HeaderButtons => BorderRadius::from(0.0),
-                _ => BorderRadius::from(5.0),
-            },
-            border_width: match style {
-                AtomStyleButton::HeaderButtons => 0.0,
-                _ => 1.0,
-            },
-            border_color: match style {
-                AtomStyleButton::Neutral
-                | AtomStyleButton::ShortcutKeyButton
-                | AtomStyleButton::SidebarButton
-                | AtomStyleButton::SidebarButtonActive => Color::TRANSPARENT,
-                AtomStyleButton::RoundButton | AtomStyleButton::HeaderButtons => {
-                    style.color_offset(color_palette.border, 20.0)
-                }
-                AtomStyleButton::PrimaryButton => color_palette.border,
+            border: Border {
+                radius: match style {
+                    AtomStyleButton::RoundButton => Radius::from(50.0),
+                    AtomStyleButton::HeaderButtons => Radius::from(0.0),
+                    _ => Radius::from(5.0),
+                },
+                width: match style {
+                    AtomStyleButton::HeaderButtons => 0.0,
+                    _ => 1.0,
+                },
+                color: match style {
+                    AtomStyleButton::Neutral
+                    | AtomStyleButton::ShortcutKeyButton
+                    | AtomStyleButton::SidebarButton
+                    | AtomStyleButton::SidebarButtonActive => Color::TRANSPARENT,
+                    AtomStyleButton::RoundButton | AtomStyleButton::HeaderButtons => {
+                        style.color_offset(color_palette.border, 20.0)
+                    }
+                    AtomStyleButton::PrimaryButton => color_palette.border,
+                },
             },
             text_color: match style {
                 AtomStyleButton::SidebarButtonActive => color_palette.background,
@@ -110,6 +112,14 @@ impl button::StyleSheet for Theme {
                 _ => color_palette.text,
             },
             shadow_offset: Default::default(),
+            shadow: match style {
+                AtomStyleButton::ShortcutKeyButton => Shadow {
+                    color: color_palette.border,
+                    offset: Vector::new(0.0, 4.0),
+                    blur_radius: 2.0,
+                },
+                _ => Shadow::default(),
+            },
         }
     }
 
@@ -127,15 +137,20 @@ impl button::StyleSheet for Theme {
                 )),
                 _ => Some(Background::Color(color_palette.background)),
             },
-            border_color: match style {
-                AtomStyleButton::Neutral
-                | AtomStyleButton::ShortcutKeyButton
-                | AtomStyleButton::SidebarButton
-                | AtomStyleButton::SidebarButtonActive => Color::TRANSPARENT,
-                AtomStyleButton::HeaderButtons => style.color_offset(color_palette.border, 40.0),
-                AtomStyleButton::RoundButton | AtomStyleButton::PrimaryButton => {
-                    color_palette.background
-                }
+            border: Border {
+                color: match style {
+                    AtomStyleButton::Neutral
+                    | AtomStyleButton::ShortcutKeyButton
+                    | AtomStyleButton::SidebarButton
+                    | AtomStyleButton::SidebarButtonActive => Color::TRANSPARENT,
+                    AtomStyleButton::HeaderButtons => {
+                        style.color_offset(color_palette.border, 40.0)
+                    }
+                    AtomStyleButton::RoundButton | AtomStyleButton::PrimaryButton => {
+                        color_palette.background
+                    }
+                },
+                ..self.active(style).border
             },
             ..self.active(style)
         }
@@ -161,16 +176,19 @@ impl button::StyleSheet for Theme {
                     _ => Some(Background::Color(color_palette.border)),
                 },
             },
-            border_color: match style {
-                AtomStyleButton::PrimaryButton => color!(80, 80, 80, 0.4),
-                _ => self.active(style).border_color,
+            border: Border {
+                color: match style {
+                    AtomStyleButton::PrimaryButton => color!(80, 80, 80, 0.4),
+                    _ => self.active(style).border.color,
+                },
+                ..self.active(style).border
             },
             text_color: match style {
                 AtomStyleButton::SidebarButtonActive => color_palette.background,
                 AtomStyleButton::SidebarButton
                 | AtomStyleButton::ShortcutKeyButton
                 | AtomStyleButton::HeaderButtons
-                | AtomStyleButton::Neutral => Color::WHITE,
+                | AtomStyleButton::Neutral => color_palette.background,
                 _ => match self {
                     Theme::Light => color_palette.background,
                     Theme::RedLight => Color::BLACK,

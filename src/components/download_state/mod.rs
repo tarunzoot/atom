@@ -105,7 +105,7 @@ impl<'a> AtomDownloadStates<'a> {
         downloads: &BTreeMap<usize, AtomDownload>,
         layout: &ListLayout,
         icons_only: bool,
-    ) -> Element<Message, Renderer<Theme>> {
+    ) -> Element<Message, Theme, Renderer> {
         let count_downloading = downloads
             .iter()
             .filter(|f| f.1.downloading && !f.1.deleted)
@@ -183,7 +183,7 @@ impl<'a> AtomDownloadStates<'a> {
                     .style(AtomStyleContainer::ButtonContainer)
                     .center_y()
                     .center_x()
-                    .width(iced::Length::Fill)
+                    .width(iced::Length::Shrink)
                     .padding(0),
                 )
                 .padding(match dfb.state {
@@ -198,16 +198,19 @@ impl<'a> AtomDownloadStates<'a> {
                 .on_press(dfb.message.clone());
 
                 if matches!(dfb.state, SideBarActiveButton::PauseAll) {
-                    row = row.push(horizontal_space(Length::Fill));
+                    row = row.push(horizontal_space().width(Length::Fill));
                 }
 
                 if let Some(tooltip_text) = dfb.tooltip {
                     row.push(
-                        tooltip(df_button, tooltip_text, tooltip::Position::Top)
-                            .size(10)
-                            .gap(5)
-                            .padding(10)
-                            .style(AtomStyleContainer::ToolTipContainer),
+                        tooltip(
+                            df_button,
+                            text(tooltip_text).size(10),
+                            tooltip::Position::Top,
+                        )
+                        .gap(5)
+                        .padding(10)
+                        .style(AtomStyleContainer::ToolTipContainer),
                     )
                 } else {
                     row.push(df_button)

@@ -14,11 +14,11 @@ impl GuiElements {
     pub fn modal<'a, T, U>(
         base: T,
         confirmation_text: &str,
-        actions: impl Into<Element<'a, U, Renderer<Theme>>>,
+        actions: impl Into<Element<'a, U, Theme, Renderer>>,
         on_blur: U,
-    ) -> Element<'a, U, Renderer<Theme>>
+    ) -> Element<'a, U, Theme, Renderer>
     where
-        T: Into<Element<'a, U, Renderer<Theme>>>,
+        T: Into<Element<'a, U, Theme, Renderer>>,
         U: Clone + std::fmt::Debug + 'static,
     {
         Modal::new(
@@ -55,9 +55,9 @@ impl GuiElements {
     //     confirmation_text: &str,
     //     message_confirm_positive: U,
     //     message_confirm_negative: U,
-    // ) -> Element<'a, U, Renderer<Theme>>
+    // ) -> Element<'a, U, Renderer>
     // where
-    //     T: Into<Element<'a, U, Renderer<Theme>>>,
+    //     T: Into<Element<'a, U, Renderer>>,
     //     U: Clone + std::fmt::Debug + 'static,
     // {
     //     Modal::new(
@@ -110,8 +110,8 @@ impl GuiElements {
     // }
 
     pub fn primary_button<'a, T>(
-        contents: Vec<impl Into<Element<'a, T, Renderer<Theme>>>>,
-    ) -> iced::widget::Button<'a, T, Renderer<Theme>>
+        contents: Vec<impl Into<Element<'a, T, Theme, Renderer>>>,
+    ) -> iced::widget::Button<'a, T, Theme, Renderer>
     where
         T: std::fmt::Debug + 'a,
     {
@@ -123,34 +123,34 @@ impl GuiElements {
 
         button(
             container(content_row)
-                .width(iced::Length::Fill)
+                .width(iced::Length::Shrink)
                 .center_x()
                 .style(AtomStyleContainer::ButtonContainer),
         )
         .padding(Padding::from([7, 15, 7, 15]))
     }
 
-    pub fn round_button<'a, T>(icon_code: char) -> iced::widget::Button<'a, T, Renderer<Theme>>
+    pub fn round_button<'a, T>(icon_code: char) -> iced::widget::Button<'a, T, Theme, Renderer>
     where
         T: std::fmt::Debug + 'a,
     {
         button(
             container(icon(icon_code, CustomFont::IcoFont).size(12))
-                .width(iced::Length::Fill)
+                .width(iced::Length::Shrink)
                 .style(AtomStyleContainer::ButtonContainer),
         )
         .padding(Padding::from([6, 8, 6, 8]))
         .style(AtomStyleButton::RoundButton)
     }
 
-    pub fn round_text_button<'a, T, U>(content: U) -> iced::widget::Button<'a, T, Renderer<Theme>>
+    pub fn round_text_button<'a, T, U>(content: U) -> iced::widget::Button<'a, T, Theme, Renderer>
     where
         T: std::fmt::Debug + 'a,
         U: std::fmt::Display + 'a,
     {
         button(
             container(text(content).size(10).font(Font::with_name("DM Mono")))
-                .width(iced::Length::Fill)
+                .width(iced::Length::Shrink)
                 .style(AtomStyleContainer::ButtonContainer),
         )
         .padding(Padding::from([6, 9]))

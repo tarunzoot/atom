@@ -8,7 +8,11 @@ use crate::{
     },
     utils::helpers::{get_epoch_ms, save_downloads_toml, save_settings_toml},
 };
-use iced::{keyboard, window, Command, Event};
+use iced::{
+    keyboard::{self, key::Named},
+    window::{self, Id},
+    Command, Event,
+};
 use std::path::PathBuf;
 use tracing::{error, warn};
 
@@ -35,34 +39,43 @@ impl<'a> Atom<'a> {
     pub fn update(&mut self, message: Message) -> iced::Command<Message> {
         match message {
             Message::Ignore => {}
-            Message::EventsOccurred(event) => {
-                if let Event::Keyboard(keyboard::Event::KeyPressed {
-                    key_code,
-                    modifiers,
-                }) = event
-                {
-                    if keyboard::KeyCode::Tab == key_code {
+            Message::EventsOccurred(ref event) => {
+                if let Event::Keyboard(keyboard::Event::KeyPressed { modifiers, key, .. }) = event {
+                    if keyboard::Key::Named(Named::Tab) == *key {
                         if modifiers.shift() {
                             return iced::widget::focus_previous();
-                        } else {
-                            return iced::widget::focus_next();
                         }
+                        return iced::widget::focus_next();
                     }
 
                     if modifiers.control() || modifiers.command() {
-                        let message = match key_code {
-                            keyboard::KeyCode::N => {
+                        let message = match key.as_ref() {
+                            keyboard::Key::Character("n") => {
                                 Message::Sidebar(SidebarMessage::NewDownloadForm)
                             }
-                            keyboard::KeyCode::Q => Message::TitleBar(TitleBarMessage::AppExit),
-                            keyboard::KeyCode::I => Message::Sidebar(SidebarMessage::Import),
-                            keyboard::KeyCode::P => Message::Sidebar(SidebarMessage::PauseAll),
-                            keyboard::KeyCode::R => Message::Sidebar(SidebarMessage::ResumeAll),
-                            keyboard::KeyCode::H => Message::GotoHomePage,
-                            keyboard::KeyCode::D => Message::Sidebar(SidebarMessage::DeleteConfirm),
-                            keyboard::KeyCode::Comma => Message::Sidebar(SidebarMessage::Settings),
-                            keyboard::KeyCode::K => Message::Sidebar(SidebarMessage::Shortcuts),
-                            keyboard::KeyCode::F => {
+                            keyboard::Key::Character("q") => {
+                                Message::TitleBar(TitleBarMessage::AppExit)
+                            }
+                            keyboard::Key::Character("i") => {
+                                Message::Sidebar(SidebarMessage::Import)
+                            }
+                            keyboard::Key::Character("p") => {
+                                Message::Sidebar(SidebarMessage::PauseAll)
+                            }
+                            keyboard::Key::Character("r") => {
+                                Message::Sidebar(SidebarMessage::ResumeAll)
+                            }
+                            keyboard::Key::Character("h") => Message::GotoHomePage,
+                            keyboard::Key::Character("d") => {
+                                Message::Sidebar(SidebarMessage::DeleteConfirm)
+                            }
+                            keyboard::Key::Character(",") => {
+                                Message::Sidebar(SidebarMessage::Settings)
+                            }
+                            keyboard::Key::Character("k") => {
+                                Message::Sidebar(SidebarMessage::Shortcuts)
+                            }
+                            keyboard::Key::Character("f") => {
                                 return iced::widget::text_input::focus(
                                     iced::widget::text_input::Id::new("search"),
                                 )
@@ -85,9 +98,10 @@ impl<'a> Atom<'a> {
                 if let Event::Mouse(iced::mouse::Event::ButtonPressed(iced::mouse::Button::Left)) =
                     event
                 {
-                    return window::drag();
+                    return window::drag(Id::MAIN);
                 }
-                if let Event::Window(window::Event::CloseRequested) = event {
+
+                if let Event::Window(Id::MAIN, window::Event::CloseRequested) = event {
                     if !save_settings_toml(&self.settings) {
                         eprintln!("Error: saving settings failed!");
                     }
@@ -103,10 +117,10 @@ impl<'a> Atom<'a> {
             }
             Message::TitleBar(message) => match message {
                 TitleBarMessage::AppMaximize => {
-                    return window::toggle_maximize();
+                    return window::toggle_maximize(Id::MAIN);
                 }
                 TitleBarMessage::AppMinimize => {
-                    return window::minimize(true);
+                    return window::minimize(Id::MAIN, true);
                 }
                 TitleBarMessage::AppHide => {
                     if !self.instance.as_ref().unwrap().is_single() {
@@ -114,10 +128,10 @@ impl<'a> Atom<'a> {
                             Message::TitleBar(TitleBarMessage::AppExit)
                         });
                     }
-                    return window::change_mode(window::Mode::Hidden);
+                    return window::change_mode(Id::MAIN, window::Mode::Hidden);
                 }
                 TitleBarMessage::AppShow => {
-                    return window::change_mode(window::Mode::Windowed);
+                    return window::change_mode(Id::MAIN, window::Mode::Windowed);
                 }
                 TitleBarMessage::AppExit => {
                     self.should_exit = true;
@@ -131,10 +145,10 @@ impl<'a> Atom<'a> {
                     ) {
                         warn!("Error: saving downloads failed!");
                     }
-                    return window::close();
+                    return window::close(Id::MAIN);
                 }
                 TitleBarMessage::SearchDownload(search_text) => {
-                    self.titlebar.search_text = search_text
+                    self.titlebar.search_text = search_text.to_ascii_lowercase();
                 }
             },
             Message::Import(message) => match message {
@@ -313,7 +327,7 @@ impl<'a> Atom<'a> {
                                 Command::perform(async {}, |_| {
                                     Message::TitleBar(TitleBarMessage::AppShow)
                                 }),
-                                window::gain_focus(),
+                                window::gain_focus(Id::MAIN),
                             ]);
                         }
                     }
@@ -336,13 +350,13 @@ impl<'a> Atom<'a> {
                         }
                     })
                 {
-                    if let Some(existing_download) = self.downloads.get_mut(&existing_download_id) {
-                        let file_path = PathBuf::from(&existing_download.file_path)
-                            .join(&existing_download.file_name);
-                        if !file_path.exists() {
-                            *existing_download = new_download;
-                            existing_download.downloading = true;
-                        }
+                    let mut existing_download =
+                        self.downloads.remove(&existing_download_id).unwrap();
+                    existing_download.downloading = true;
+                    if let Some(entry) = self.downloads.first_key_value() {
+                        self.downloads.insert(entry.0 - 1, existing_download);
+                    } else {
+                        self.downloads.insert(get_epoch_ms(), existing_download);
                     }
                 } else {
                     match (

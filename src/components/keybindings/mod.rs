@@ -12,7 +12,7 @@ use iced::{
     Element, Padding, Renderer,
 };
 
-pub fn view() -> Element<'static, Message, Renderer<Theme>> {
+pub fn view() -> Element<'static, Message, Theme, Renderer> {
     let shortcuts = vec![
         ("Add new download", "N"),
         ("Open imports view", "I"),
@@ -37,7 +37,7 @@ pub fn view() -> Element<'static, Message, Renderer<Theme>> {
                 .style(AtomStyleContainer::LogoContainer)
                 .padding(Padding::from([10, 30, 10, 30])),
         )
-        .push(vertical_space(10));
+        .push(vertical_space().height(10));
 
     for shortcut in shortcuts {
         let number_of_shortcuts = shortcut.len();
@@ -87,7 +87,7 @@ pub fn view() -> Element<'static, Message, Renderer<Theme>> {
 
         if number_of_shortcuts != 4 {
             for _ in 0..4 - number_of_shortcuts {
-                shortcut_col = shortcut_col.push(horizontal_space(Length::Fill));
+                shortcut_col = shortcut_col.push(horizontal_space().width(Length::Fill));
             }
         }
 

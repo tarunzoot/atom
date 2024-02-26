@@ -15,7 +15,7 @@ use iced::{
 };
 
 impl AtomDownload {
-    pub fn view(&self, layout: &ListLayout) -> Element<DownloadMessage, Renderer<Theme>> {
+    pub fn view(&self, layout: &ListLayout) -> Element<DownloadMessage, Theme, Renderer> {
         let text_size = 12.0;
         let size_format = |size: usize| -> (f64, &str) {
             let suffix: [&str; 4] = ["Bytes", "KB", "MB", "GB"];
@@ -134,13 +134,13 @@ impl AtomDownload {
                 tooltip(
                     GuiElements::round_button('\u{ee09}')
                         .on_press(DownloadMessage::RemoveDownload(true)),
-                    "Will remove all the cached/incomplete files from the disk as well.",
+                    text("Will remove all the cached/incomplete files from the disk as well.")
+                        .size(10),
                     tooltip::Position::Top,
                 )
                 .style(AtomStyleContainer::ToolTipContainer)
                 .gap(10)
-                .padding(10)
-                .size(10),
+                .padding(10),
             );
         }
 
@@ -158,7 +158,7 @@ impl AtomDownload {
                             .push(actions_row.align_items(iced::Alignment::Center)),
                     )
                     .push(
-                        container(horizontal_space(Length::Fill))
+                        container(horizontal_space().width(Length::Fill))
                             .height(Length::Fixed(1.0))
                             .style(AtomStyleContainer::ListItemContainer)
                             .width(Length::Fill),
@@ -284,13 +284,12 @@ impl AtomDownload {
                 ])
                 .width(Length::Fixed(150.0))
                 .on_press(DownloadMessage::RemoveDownload(false)),
-                "Will move the download from the main list to the trashed list without deleting the cached/incomplete files.",
+                text("Will move the download from the main list to the trashed list without deleting the cached/incomplete files.").size(10),
                 tooltip::Position::Top,
             )
             .style(AtomStyleContainer::ToolTipContainer)
             .gap(10)
-            .padding(10)
-            .size(10);
+            .padding(10);
 
             let force_delete_btn = tooltip(
                 GuiElements::primary_button(vec![
@@ -299,13 +298,12 @@ impl AtomDownload {
                 ])
                 .width(Length::Fixed(200.0))
                 .on_press(DownloadMessage::RemoveDownload(true)),
-                "Removes the download from the list and the cached/incomplete files from the disk.",
+                text("Removes the download from the list and the cached/incomplete files from the disk.").size(10),
                 tooltip::Position::Top,
             )
             .style(AtomStyleContainer::ToolTipContainer)
             .gap(10)
-            .padding(10)
-            .size(10);
+            .padding(10);
 
             let cancel_btn = GuiElements::primary_button(vec![
                 icon('\u{eede}', CustomFont::IcoFont),

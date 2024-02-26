@@ -15,7 +15,7 @@ use iced::{
 };
 
 impl AtomSettings {
-    pub fn view(&self, theme: &Theme) -> Element<SettingsMessage, Renderer<Theme>> {
+    pub fn view(&self, theme: &Theme) -> Element<SettingsMessage, Theme, Renderer> {
         let config_dir_col = col!()
             .spacing(5)
             .push(text("Configuration Directory"))
@@ -108,11 +108,10 @@ impl AtomSettings {
             .spacing(10)
             .text_alignment(iced::alignment::Horizontal::Left)
             .width(iced::Length::Shrink),
-            "Adding downloads from browser auto starts the download without showing new download form",
+            text("Adding downloads from browser auto starts the download without showing new download form").size(12),
             tooltip::Position::Top,
         )
         .style(AtomStyleContainer::ToolTipContainer)
-        .size(14)
         .padding(10)
         .gap(5);
 
@@ -160,102 +159,107 @@ impl AtomSettings {
         .padding(20)
         .style(AtomStyleContainer::ListContainer);
 
-        let settings_col = scrollable(
-            col!()
-                .spacing(20)
-                .padding(Padding::from([0, 10, 10, 10]))
-                .push(
-                    container(text("Settings"))
-                        .style(AtomStyleContainer::LogoContainer)
-                        .padding(Padding::from([10, 30, 10, 30])),
-                )
-                .push(config_dir_col)
-                .push(temp_dir_col)
-                .push(default_dir_col)
-                .push(
-                    row!()
-                        .spacing(10)
-                        .push(
-                            col!()
-                                .width(Length::Fill)
-                                .spacing(5)
-                                .push(text("Theme"))
-                                .push(
-                                    pick_list(
-                                        theme.variants(),
-                                        Some(self.theme.clone()),
-                                        SettingsMessage::ThemeChanged,
-                                    )
-                                    .width(Length::Fill),
-                                ),
-                        )
-                        .push(
-                            col!()
-                                .width(Length::Fill)
-                                .spacing(5)
-                                .push(text("List View Layout"))
-                                .push(
-                                    pick_list(
-                                        ListLayout::variants(),
-                                        Some(self.list_layout.clone().into()),
-                                        SettingsMessage::ListLayoutChanged,
-                                    )
-                                    .width(Length::Fill),
-                                ),
-                        )
-                        .push(
-                            col!()
-                                .width(Length::Fill)
-                                .spacing(5)
-                                .push(text("New Download Position"))
-                                .push(
-                                    pick_list(
-                                        vec!["First".to_string(), "Last".to_string()],
-                                        Some(self.new_download_pos.clone()),
-                                        SettingsMessage::NewDownloadPositionChanged,
-                                    )
-                                    .width(Length::Fill),
-                                ),
-                        ),
-                )
-                .push(
-                    container(
-                        col!().spacing(5).push(
-                            row!()
-                                .align_items(iced::Alignment::Center)
-                                .spacing(30)
-                                .push(
-                                    col!()
-                                        .width(Length::Fill)
-                                        .push(text(format!("Threads : {}", self.threads)))
-                                        .push(
-                                            slider(2..=8, self.threads, |threads| {
-                                                SettingsMessage::ThreadsChanged(threads)
-                                            })
-                                            .width(iced::Length::Fill),
-                                        ),
-                                )
-                                .push(
-                                    col!()
-                                        .width(Length::Fill)
-                                        .push(text(format!("UI Scaling : {0:>1.2}", self.scaling)))
-                                        .push(
-                                            slider(1.00..=2.00, self.scaling, |scaling| {
-                                                SettingsMessage::ScalingChanged(scaling)
-                                            })
-                                            .step(0.01)
-                                            .width(iced::Length::Fill),
-                                        ),
-                                ),
-                        ),
+        let settings_col = col!()
+            .spacing(20)
+            .padding(Padding::from([0, 10, 10, 10]))
+            .push(
+                container(text("Settings"))
+                    .style(AtomStyleContainer::LogoContainer)
+                    .padding(Padding::from([10, 30, 10, 30])),
+            )
+            .push(scrollable(
+                col!()
+                    .spacing(20)
+                    .push(config_dir_col)
+                    .push(temp_dir_col)
+                    .push(default_dir_col)
+                    .push(
+                        row!()
+                            .spacing(10)
+                            .push(
+                                col!()
+                                    .width(Length::Fill)
+                                    .spacing(5)
+                                    .push(text("Theme"))
+                                    .push(
+                                        pick_list(
+                                            theme.variants(),
+                                            Some(self.theme.clone()),
+                                            SettingsMessage::ThemeChanged,
+                                        )
+                                        .width(Length::Fill),
+                                    ),
+                            )
+                            .push(
+                                col!()
+                                    .width(Length::Fill)
+                                    .spacing(5)
+                                    .push(text("List View Layout"))
+                                    .push(
+                                        pick_list(
+                                            ListLayout::variants(),
+                                            Some::<String>(self.list_layout.clone().into()),
+                                            SettingsMessage::ListLayoutChanged,
+                                        )
+                                        .width(Length::Fill),
+                                    ),
+                            )
+                            .push(
+                                col!()
+                                    .width(Length::Fill)
+                                    .spacing(5)
+                                    .push(text("New Download Position"))
+                                    .push(
+                                        pick_list(
+                                            vec!["First".to_string(), "Last".to_string()],
+                                            Some(self.new_download_pos.clone()),
+                                            SettingsMessage::NewDownloadPositionChanged,
+                                        )
+                                        .width(Length::Fill),
+                                    ),
+                            ),
                     )
-                    .padding(20)
-                    .style(AtomStyleContainer::ListContainer),
-                )
-                .push(options_row)
-                .push(buttons_row)
-                .width(iced::Length::Fill),
-        );
+                    .push(
+                        container(
+                            col!().spacing(5).push(
+                                row!()
+                                    .align_items(iced::Alignment::Center)
+                                    .spacing(30)
+                                    .push(
+                                        col!()
+                                            .width(Length::Fill)
+                                            .push(text(format!("Threads : {}", self.threads)))
+                                            .push(
+                                                slider(2..=8, self.threads, |threads| {
+                                                    SettingsMessage::ThreadsChanged(threads)
+                                                })
+                                                .width(iced::Length::Fill),
+                                            ),
+                                    )
+                                    .push(
+                                        col!()
+                                            .width(Length::Fill)
+                                            .push(text(format!(
+                                                "UI Scaling : {0:>1.2}",
+                                                self.scaling
+                                            )))
+                                            .push(
+                                                slider(1.00..=2.00, self.scaling, |scaling| {
+                                                    SettingsMessage::ScalingChanged(scaling)
+                                                })
+                                                .step(0.01)
+                                                .width(iced::Length::Fill),
+                                            ),
+                                    ),
+                            ),
+                        )
+                        .padding(20)
+                        .style(AtomStyleContainer::ListContainer),
+                    )
+                    .push(options_row)
+                    .push(buttons_row)
+                    .width(iced::Length::Fill),
+            ));
 
         container(settings_col)
             .style(AtomStyleContainer::ListContainer)

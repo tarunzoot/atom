@@ -1,6 +1,6 @@
 use super::Theme;
 use crate::color;
-use iced::{widget::progress_bar, Background, BorderRadius, Color};
+use iced::{border::Radius, widget::progress_bar, Background, Color};
 
 struct ColorPalette {
     background: Color,
@@ -44,7 +44,7 @@ impl progress_bar::StyleSheet for Theme {
         progress_bar::Appearance {
             background: Background::Color(color_palette.background),
             bar: Background::Color(color_palette.bar),
-            border_radius: BorderRadius::from(5.0),
+            border_radius: Radius::from(5.0),
         }
     }
 }

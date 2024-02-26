@@ -1,6 +1,6 @@
 use super::Theme;
 use crate::color;
-use iced::{widget::text_input, Background, BorderRadius, Color};
+use iced::{border::Radius, widget::text_input, Background, Border, Color};
 
 struct ColorPalette {
     accent: Color,
@@ -67,29 +67,31 @@ impl text_input::StyleSheet for Theme {
 
         text_input::Appearance {
             background: Background::Color(appearance.background),
-            border_radius: match style {
-                AtomStyleInput::Search => BorderRadius::from(20.0),
-                _ => BorderRadius::from(5.0),
-            },
-            border_width: 1.0,
-            border_color: match self {
-                Theme::Tangerine => Color::TRANSPARENT,
-                Theme::Default => match style {
-                    AtomStyleInput::Search => Color {
-                        a: 0.1,
-                        ..appearance.placeholder
-                    },
-                    _ => appearance.accent,
-                },
-                _ => match style {
-                    AtomStyleInput::Search => Color {
-                        a: 0.4,
-                        ..appearance.placeholder
-                    },
-                    _ => appearance.accent,
-                },
-            },
             icon_color: appearance.accent,
+            border: Border {
+                color: match self {
+                    Theme::Tangerine => Color::TRANSPARENT,
+                    Theme::Default => match style {
+                        AtomStyleInput::Search => Color {
+                            a: 0.1,
+                            ..appearance.placeholder
+                        },
+                        _ => appearance.accent,
+                    },
+                    _ => match style {
+                        AtomStyleInput::Search => Color {
+                            a: 0.4,
+                            ..appearance.placeholder
+                        },
+                        _ => appearance.accent,
+                    },
+                },
+                width: 1.0,
+                radius: match style {
+                    AtomStyleInput::Search => Radius::from(20.0),
+                    _ => Radius::from(5.0),
+                },
+            },
         }
     }
 
@@ -102,10 +104,12 @@ impl text_input::StyleSheet for Theme {
         let appearance = style.appearance(self);
 
         text_input::Appearance {
-            border_color: appearance.disabled_border,
+            border: Border {
+                color: appearance.disabled_border,
+                ..self.active(style).border
+            },
             icon_color: appearance.accent,
             background: Background::Color(appearance.background),
-            ..self.active(style)
         }
     }
 
@@ -113,7 +117,10 @@ impl text_input::StyleSheet for Theme {
         let appearance = style.appearance(self);
 
         text_input::Appearance {
-            border_color: appearance.accent,
+            border: Border {
+                color: appearance.accent,
+                ..self.active(style).border
+            },
             ..self.active(style)
         }
     }
@@ -138,9 +145,11 @@ impl text_input::StyleSheet for Theme {
 
         text_input::Appearance {
             background: Background::Color(appearance.background),
-            border_color: appearance.hover_border,
+            border: Border {
+                color: appearance.hover_border,
+                ..self.active(style).border
+            },
             icon_color: appearance.accent,
-            ..self.active(style)
         }
     }
 }

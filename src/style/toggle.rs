@@ -44,16 +44,20 @@ impl toggler::StyleSheet for Theme {
         if is_active {
             toggler::Appearance {
                 background: color_palette.background,
-                background_border: Some(color_palette.background),
+                background_border_color: color_palette.background,
                 foreground: color_palette.foreground,
-                foreground_border: Some(Color::TRANSPARENT),
+                foreground_border_color: Color::TRANSPARENT,
+                background_border_width: 2.0,
+                foreground_border_width: 2.0,
             }
         } else {
             toggler::Appearance {
                 background: Color::TRANSPARENT,
-                background_border: Some(color_palette.background),
+                background_border_color: color_palette.background,
                 foreground: color_palette.background,
-                foreground_border: Some(Color::TRANSPARENT),
+                foreground_border_color: Color::TRANSPARENT,
+                background_border_width: 2.0,
+                foreground_border_width: 2.0,
             }
         }
     }
@@ -64,16 +68,18 @@ impl toggler::StyleSheet for Theme {
         if is_active {
             toggler::Appearance {
                 background: color_palette.background,
-                background_border: Some(color_palette.background),
+                background_border_color: color_palette.background,
                 foreground: color_palette.foreground,
-                foreground_border: Some(color_palette.foreground),
+                foreground_border_color: color_palette.foreground,
+                ..self.active(style, true)
             }
         } else {
             toggler::Appearance {
                 background: Color::TRANSPARENT,
-                background_border: Some(color_palette.background),
+                background_border_color: color_palette.background,
                 foreground: color_palette.background,
-                foreground_border: Some(color_palette.background),
+                foreground_border_color: color_palette.background,
+                ..self.active(style, false)
             }
         }
     }

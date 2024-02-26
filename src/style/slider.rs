@@ -2,8 +2,9 @@ use super::Theme;
 use crate::color;
 
 use iced::{
+    border::Radius,
     widget::slider::{self, Handle, Rail},
-    BorderRadius, Color,
+    Color,
 };
 
 struct ColorPalette {
@@ -57,7 +58,7 @@ impl slider::StyleSheet for Theme {
             rail: Rail {
                 colors: color_palette.rails,
                 width: 5.0,
-                border_radius: BorderRadius::default(),
+                border_radius: Radius::default(),
             },
             handle: Handle {
                 shape: slider::HandleShape::Circle { radius: 10.0 },
@@ -82,7 +83,7 @@ impl slider::StyleSheet for Theme {
                     },
                 ),
                 width: 5.0,
-                border_radius: BorderRadius::default(),
+                border_radius: Radius::default(),
             },
             handle: Handle {
                 shape: slider::HandleShape::Circle { radius: 10.0 },

@@ -19,7 +19,7 @@ pub const SYMBOLS_BYTES: &[u8] =
 pub const ICOFONT: iced::Font = iced::Font::with_name("IcoFont");
 pub const SYMBOLS: iced::Font = iced::Font::with_name("Symbols Nerd Font Mono");
 
-pub fn file_type_icon(file_type: &str) -> Text<'static, Renderer<Theme>> {
+pub fn file_type_icon(file_type: &str) -> Text<'static, Theme, Renderer> {
     let file_icon = match &file_type.to_lowercase()[..] {
         "jpg" | "jpeg" | "png" | "tiff" | "gif" | "webp" | "bmp" => '\u{ef4b}',
         "js" | "json" | "html" | "css" | "jsx" | "gulp" | "php" | "sass" | "scss" | "py"
@@ -51,7 +51,7 @@ pub enum CustomFont {
     IcoFont,
 }
 
-pub fn icon(unicode: char, custom_font: CustomFont) -> Text<'static, Renderer<Theme>> {
+pub fn icon(unicode: char, custom_font: CustomFont) -> Text<'static, Theme, Renderer> {
     match custom_font {
         CustomFont::IcoFont => text(&unicode.to_string())
             .font(ICOFONT)

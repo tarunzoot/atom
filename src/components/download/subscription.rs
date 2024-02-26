@@ -182,7 +182,6 @@ async fn handle_download_starting(
         _ => {
             if let Ok(file) = std::fs::OpenOptions::new()
                 .create(true)
-                .write(true)
                 .append(true)
                 .open(&file_path)
             {
@@ -300,7 +299,6 @@ async fn handle_threaded_download_starting(
         previous_chunk_start = (i * chunk_size) + i;
         if let Ok(file) = std::fs::OpenOptions::new()
             .create(true)
-            .write(true)
             .append(true)
             .open(f)
         {

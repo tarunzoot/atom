@@ -12,7 +12,7 @@ use iced::{
 };
 
 impl AtomImport {
-    pub fn view(&self) -> Element<ImportMessage, Renderer<Theme>> {
+    pub fn view(&self) -> Element<ImportMessage, Theme, Renderer> {
         let mut start_download_btn =
             GuiElements::primary_button(vec![icon('\u{eee5}', IcoFont), text("start download")]);
 

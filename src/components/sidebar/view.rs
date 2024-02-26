@@ -10,7 +10,7 @@ use iced::{
 };
 
 impl<'a> AtomSidebar<'a> {
-    pub fn get_sidebar_button(&self) -> Element<SidebarMessage, Renderer<Theme>> {
+    pub fn get_sidebar_button(&self) -> Element<SidebarMessage, Theme, Renderer> {
         let icon_size = 20;
         let button_padding = 0;
 
@@ -26,7 +26,7 @@ impl<'a> AtomSidebar<'a> {
                             (mb.icon, mb.tooltip)
                         };
 
-                    let mut mbtn_bar = container(text(".").width(iced::Length::Fixed(0.0)))
+                    let mut mbtn_bar = container(text("").width(iced::Length::Fixed(0.0)))
                         .padding(0)
                         .height(Length::Fixed(25.0))
                         .width(Length::Fixed(5.0));
@@ -51,14 +51,14 @@ impl<'a> AtomSidebar<'a> {
                     }
 
                     if mb.text == "Collapse" || mb.text == "Expand" {
-                        col = col.push(vertical_space(Length::Fill));
+                        col = col.push(vertical_space().height(Length::Fill));
                     }
 
                     let mut mbtn = button(
                         container(content_row)
                             .style(AtomStyleContainer::ButtonContainer)
                             .center_y()
-                            .width(iced::Length::Fill)
+                            // .width(iced::Length::Fill)
                             .padding(button_padding),
                     )
                     .width(if matches!(self.state, SideBarState::Collapsed) {
@@ -82,10 +82,9 @@ impl<'a> AtomSidebar<'a> {
                     }
 
                     col.push(
-                        tooltip(mbtn, mb_tooltip, tooltip::Position::Right)
+                        tooltip(mbtn, text(mb_tooltip).size(12), tooltip::Position::Right)
                             .gap(10)
                             .padding(10)
-                            .size(14)
                             .style(AtomStyleContainer::ToolTipContainer),
                     )
                 },
@@ -93,12 +92,16 @@ impl<'a> AtomSidebar<'a> {
             .into()
     }
 
-    pub fn view(&self) -> Element<SidebarMessage, Renderer<Theme>> {
+    pub fn view(&self) -> Element<SidebarMessage, Theme, Renderer> {
         let menu_buttons = self.get_sidebar_button();
 
         container(
             col!()
-                .width(iced::Length::Fill)
+                .width(if matches!(self.state, SideBarState::Collapsed) {
+                    iced::Length::Shrink
+                } else {
+                    iced::Length::Fill
+                })
                 .height(iced::Length::Fill)
                 .spacing(10)
                 .push(

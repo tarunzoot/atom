@@ -15,7 +15,7 @@ use iced::{
 };
 
 impl AtomDownloadForm {
-    pub fn view(&self, downloads_count: usize) -> Element<DownloadFormMessage, Renderer<Theme>> {
+    pub fn view(&self, downloads_count: usize) -> Element<DownloadFormMessage, Theme, Renderer> {
         let mut download_btn = GuiElements::primary_button(vec![
             icon('\u{eee5}', CustomFont::IcoFont),
             text("download"),
@@ -166,11 +166,10 @@ impl AtomDownloadForm {
                                             CustomFont::IcoFont,
                                         ),text("import headers")])
                                         .on_press(DownloadFormMessage::ImportHeaders),
-                                        "Import headers from a file.\nFile format is: HeaderName: HeaderValue\nFor e.g.:\nContent-Type: text/html\nContent-Length: 123456789",
+                                        text("Import headers from a file.\nFile format is: HeaderName: HeaderValue\nFor e.g.:\nContent-Type: text/html\nContent-Length: 123456789").size(12),
                                         tooltip::Position::Top,
                                     )
                                     .gap(10)
-                                    .size(12)
                                     .padding(10)
                                     .style(AtomStyleContainer::ToolTipContainer),
                                 ),
@@ -191,10 +190,11 @@ impl AtomDownloadForm {
                 .push(
                     buttons_row
                 )
-                .height(iced::Length::Fill)
+                .height(iced::Length::Shrink)
                 .width(iced::Length::Fill),
         )
         .padding(Padding::from([0, 10, 10, 10]))
+        .height(Length::Shrink)
         .style(AtomStyleContainer::ListContainer)
         .into()
     }

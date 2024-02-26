@@ -15,7 +15,7 @@ use iced::{
 type DownloadTuple<'a> = (&'a usize, &'a AtomDownload);
 
 impl<'a> Atom<'a> {
-    fn filter_downloads_view(&self) -> Element<Message, Renderer<Theme>> {
+    fn filter_downloads_view(&self) -> Element<Message, Theme, Renderer> {
         let deleted_filter: Box<dyn Fn(&DownloadTuple) -> bool> =
             Box::new(|f: &(&usize, &AtomDownload)| f.1.deleted);
         let all_filter: Box<dyn Fn(&DownloadTuple) -> bool> =
@@ -73,18 +73,22 @@ impl<'a> Atom<'a> {
             let icons_only = (self.metadata.enabled || !self.settings.sidebar_collapsed)
                 || self.settings.scaling > 1.24;
 
+            let filters_view = self.filters.view(
+                &self.sidebar.active,
+                &self.downloads,
+                &self.settings.list_layout,
+                icons_only,
+            );
+
             let listings_col = match self.settings.list_layout {
                 crate::components::settings::ListLayout::ListExtended => col!()
                     .spacing(10)
-                    .push(self.filters.view(
-                        &self.sidebar.active,
-                        &self.downloads,
-                        &self.settings.list_layout,
-                        icons_only,
-                    ))
-                    .push(filtered_content.direction(scrollable::Direction::Vertical(
-                        Properties::new().margin(0).scroller_width(0).width(0),
-                    ))),
+                    .push(filters_view)
+                    .push(filtered_content.height(Length::FillPortion(1)).direction(
+                        scrollable::Direction::Vertical(
+                            Properties::new().margin(0).scroller_width(0).width(0),
+                        ),
+                    )),
                 crate::components::settings::ListLayout::List => col!()
                     .spacing(10)
                     // .push(self.filters.view(&self.sidebar.active, &self.downloads))
@@ -92,15 +96,10 @@ impl<'a> Atom<'a> {
                         container(
                             col!()
                                 .spacing(0)
-                                .push(self.filters.view(
-                                    &self.sidebar.active,
-                                    &self.downloads,
-                                    &self.settings.list_layout,
-                                    icons_only,
-                                ))
+                                .push(filters_view)
                                 .push(
-                                    container(vertical_space(Length::Fixed(1.0)))
-                                        .height(1.0)
+                                    container(vertical_space().height(Length::Fixed(1.0)))
+                                        .height(Length::Fixed(1.0))
                                         .width(Length::Fill),
                                 )
                                 .push(
@@ -111,10 +110,13 @@ impl<'a> Atom<'a> {
                                             .style(AtomStyleContainer::LogoContainer),
                                     ),
                                 )
-                                .push(filtered_content.direction(scrollable::Direction::Vertical(
-                                    Properties::new().margin(0).scroller_width(0).width(0),
-                                ))),
+                                .push(filtered_content.height(Length::Fill).direction(
+                                    scrollable::Direction::Vertical(
+                                        Properties::new().margin(0).scroller_width(0).width(0),
+                                    ),
+                                )),
                         )
+                        .height(Length::Shrink)
                         .style(AtomStyleContainer::ListHeaderContainer),
                         // .style(AtomStyleContainer::Transparent),
                     ),
@@ -124,11 +126,12 @@ impl<'a> Atom<'a> {
                 .width(Length::Fill)
                 .height(Length::Fill)
                 .align_y(iced::alignment::Vertical::Top)
+                .style(AtomStyleContainer::Transparent)
                 .into()
         }
     }
 
-    pub fn view(&self) -> iced::Element<'_, Message, iced::Renderer<Theme>> {
+    pub fn view(&self) -> iced::Element<'_, Message, Theme, Renderer> {
         if !self.instance.as_ref().unwrap().is_single() {
             let main_row = col!()
                 .width(Length::Fill)
@@ -166,12 +169,17 @@ impl<'a> Atom<'a> {
         };
 
         let mut items_row = row!()
+            .width(Length::Fill)
             .push(
-                col!().align_items(Alignment::Center).push(
-                    container(self.sidebar.view().map(Message::Sidebar))
-                        .padding(Padding::from([20, 15]))
-                        .height(iced::Length::Fill),
-                ),
+                col!()
+                    .width(iced::Length::Shrink)
+                    .align_items(Alignment::Center)
+                    .push(
+                        container(self.sidebar.view().map(Message::Sidebar))
+                            .padding(Padding::from([20, 15]))
+                            .height(iced::Length::Fill)
+                            .width(Length::Shrink),
+                    ),
             )
             .push(
                 container(
@@ -181,7 +189,8 @@ impl<'a> Atom<'a> {
                             .height(Length::Fill)
                             .width(Length::FillPortion(1)),
                     )
-                    .style(AtomStyleContainer::ListContainer),
+                    .width(Length::Shrink)
+                    .height(Length::Shrink),
                 )
                 .padding(Padding::from([
                     20,
@@ -189,14 +198,16 @@ impl<'a> Atom<'a> {
                     20,
                     0,
                 ]))
-                .width(iced::Length::Fill),
+                .width(Length::Fill)
+                .height(Length::Shrink),
             );
 
         if self.metadata.enabled {
             items_row = items_row.push(
                 container(self.metadata.view().map(Message::Metadata))
                     .padding(Padding::from([20, 15]))
-                    .height(iced::Length::Fill),
+                    .height(iced::Length::Fill)
+                    .width(Length::Shrink),
             );
         }
 
