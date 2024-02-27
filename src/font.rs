@@ -9,7 +9,7 @@ use iced::{
     Renderer,
 };
 
-pub const MONOSPAED_FONT_BYTES: &[u8] =
+pub const MONOSPACED_FONT_BYTES: &[u8] =
     // include_bytes!("../resources/fonts/Google-Sans-Mono-Regular.ttf");
     include_bytes!("../resources/fonts/DMMono-Regular.ttf");
 pub const LEXEND_BYTES: &[u8] = include_bytes!("../resources/fonts/LexendDeca-Black.ttf");

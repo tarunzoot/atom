@@ -3,7 +3,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use crate::app::App;
-use font::{ICOFONT_BYTES, LEXEND_BYTES, MONOSPAED_FONT_BYTES, SYMBOLS_BYTES};
+use font::{ICOFONT_BYTES, LEXEND_BYTES, MONOSPACED_FONT_BYTES, SYMBOLS_BYTES};
 use iced::{window::settings::PlatformSpecific, Application, Font, Pixels, Settings, Size};
 use tracing_subscriber::{prelude::*, registry, EnvFilter};
 mod app;
@@ -32,7 +32,7 @@ fn main() -> iced::Result {
             ..Default::default()
         },
         fonts: vec![
-            MONOSPAED_FONT_BYTES.into(),
+            MONOSPACED_FONT_BYTES.into(),
             LEXEND_BYTES.into(),
             ICOFONT_BYTES.into(),
             SYMBOLS_BYTES.into(),
