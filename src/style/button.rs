@@ -114,7 +114,13 @@ impl button::StyleSheet for Theme {
             shadow_offset: Default::default(),
             shadow: match style {
                 AtomStyleButton::ShortcutKeyButton => Shadow {
-                    color: color_palette.border,
+                    color: match self {
+                        Theme::Default | Theme::Tangerine => Color {
+                            a: 0.2,
+                            ..Color::BLACK
+                        },
+                        _ => color_palette.border,
+                    },
                     offset: Vector::new(0.0, 4.0),
                     blur_radius: 2.0,
                 },
