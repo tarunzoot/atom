@@ -284,18 +284,11 @@ impl AtomSettings {
                                                 self.scaling
                                             )))
                                             .push(
-                                                tooltip(
-                                                    slider(1.00..=2.00, self.scaling, |scaling| {
-                                                        SettingsMessage::ScalingChanged(scaling)
-                                                    })
-                                                    .step(0.01)
-                                                    .width(iced::Length::Fill),
-                                                    text("Applies in real time").size(12),
-                                                    tooltip::Position::Top,
-                                                )
-                                                .gap(10)
-                                                .padding(10)
-                                                .style(AtomStyleContainer::ToolTipContainer),
+                                                slider(1.00..=2.00, self.scaling, |scaling| {
+                                                    SettingsMessage::ScalingChanged(scaling)
+                                                })
+                                                .step(0.01)
+                                                .width(iced::Length::Fill),
                                             ),
                                     ),
                             ),

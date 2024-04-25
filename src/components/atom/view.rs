@@ -228,6 +228,10 @@ impl<'a> Atom<'a> {
             .push(self.titlebar.view(&self.settings).map(Message::TitleBar))
             .push(items_row);
 
-        container(main_row).padding(0).width(Length::Fill).into()
+        container(main_row)
+            .padding(1)
+            .style(AtomStyleContainer::HeaderContainer)
+            .width(Length::Fill)
+            .into()
     }
 }

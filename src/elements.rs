@@ -50,65 +50,6 @@ impl GuiElements {
         .into()
     }
 
-    // pub fn modal<'a, T, U>(
-    //     base: T,
-    //     confirmation_text: &str,
-    //     message_confirm_positive: U,
-    //     message_confirm_negative: U,
-    // ) -> Element<'a, U, Renderer>
-    // where
-    //     T: Into<Element<'a, U, Renderer>>,
-    //     U: Clone + std::fmt::Debug + 'static,
-    // {
-    //     Modal::new(
-    //         base,
-    //         container(
-    //             col!()
-    //                 .align_items(Alignment::Center)
-    //                 .spacing(30)
-    //                 .push(
-    //                     container(text("Confirmation Dialog"))
-    //                         .style(AtomStyleContainer::LogoContainer)
-    //                         .padding(Padding::from([10, 30, 10, 30])),
-    //                 )
-    //                 .push(
-    //                     row!()
-    //                         .align_items(Alignment::Center)
-    //                         .spacing(5)
-    //                         .push(icon('\u{efca}', CustomFont::IcoFont).size(24))
-    //                         .push(text(confirmation_text).size(24)),
-    //                 )
-    //                 .push(
-    //                     row!()
-    //                         .spacing(10)
-    //                         .align_items(Alignment::Center)
-    //                         .push(
-    //                             GuiElements::primary_button(vec![
-    //                                 icon('\u{ec53}', CustomFont::IcoFont),
-    //                                 text("delete"),
-    //                             ])
-    //                             .width(Length::Fixed(170.0))
-    //                             .on_press(message_confirm_positive),
-    //                         )
-    //                         .push(
-    //                             GuiElements::primary_button(vec![
-    //                                 icon('\u{eede}', CustomFont::IcoFont),
-    //                                 text("cancel"),
-    //                             ])
-    //                             .width(Length::Fixed(170.0))
-    //                             .on_press(message_confirm_negative.clone()),
-    //                         ),
-    //                 )
-    //                 .padding(Padding::from([0, 20, 20, 20])),
-    //         )
-    //         .style(AtomStyleContainer::ToolTipContainer)
-    //         .padding(Padding::from([0, 30]))
-    //         .width(Length::Shrink),
-    //     )
-    //     .on_blur(message_confirm_negative)
-    //     .into()
-    // }
-
     pub fn primary_button<'a, T>(
         contents: Vec<impl Into<Element<'a, T, Theme, Renderer>>>,
     ) -> iced::widget::Button<'a, T, Theme, Renderer>

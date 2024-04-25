@@ -326,6 +326,10 @@ impl<'a> Atom<'a> {
                                 Command::perform(async {}, |_| {
                                     Message::TitleBar(TitleBarMessage::AppShow)
                                 }),
+                                // window::request_user_attention(
+                                //     Id::MAIN,
+                                //     Some(UserAttention::Critical),
+                                // ),
                                 window::gain_focus(Id::MAIN),
                             ]);
                         }

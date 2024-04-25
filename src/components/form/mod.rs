@@ -21,6 +21,9 @@ impl AtomDownloadForm {
     pub fn new(download: AtomDownload, settings: &AtomSettings) -> Self {
         Self {
             url: download.url,
+            #[cfg(target_os = "windows")]
+            file_name: format!("{}\\{}", settings.downloads_dir, download.file_name),
+            #[cfg(not(target_os = "windows"))]
             file_name: format!("{}/{}", settings.downloads_dir, download.file_name),
             size: download.size,
             headers: download.headers,
