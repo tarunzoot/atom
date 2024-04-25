@@ -41,7 +41,7 @@ pub fn view() -> Element<'static, Message, Theme, Renderer> {
                 )
                 .style(AtomStyleContainer::Transparent)
                 .align_x(iced::alignment::Horizontal::Center)
-                .width(iced::Length::Fill),
+                .width(iced::Length::Fixed(130.0)),
             )
             .push(
                 container(
@@ -53,7 +53,7 @@ pub fn view() -> Element<'static, Message, Theme, Renderer> {
                 )
                 .style(AtomStyleContainer::Transparent)
                 .align_x(iced::alignment::Horizontal::Center)
-                .width(iced::Length::Fill),
+                .width(iced::Length::Fixed(180.0)),
             )
             .push(
                 container(
@@ -64,7 +64,7 @@ pub fn view() -> Element<'static, Message, Theme, Renderer> {
                         .push(text("Speed").size(text_size).font(font)),
                 )
                 .style(AtomStyleContainer::Transparent)
-                .align_x(iced::alignment::Horizontal::Left)
+                .align_x(iced::alignment::Horizontal::Center)
                 .width(iced::Length::Fixed(100.0)),
             )
             .push(
@@ -100,8 +100,9 @@ pub fn view() -> Element<'static, Message, Theme, Renderer> {
                         .push(text("Actions").size(text_size).font(font)),
                 )
                 .style(AtomStyleContainer::Transparent)
-                .align_x(iced::alignment::Horizontal::Right)
-                .width(iced::Length::Fixed(80.0)),
+                .align_x(iced::alignment::Horizontal::Center)
+                .width(iced::Length::Fixed(75.0)),
+                // .width(iced::Length::Fixed(95.0)),
             )
             .spacing(10)
             .align_items(iced::Alignment::Center),

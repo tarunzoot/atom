@@ -91,7 +91,7 @@ impl AtomSettings {
             );
 
         let notification_toggler = toggler(
-            Some("Show download notification      ".into()),
+            Some("Show download notification".into()),
             self.show_notifications,
             SettingsMessage::NotificationToggle,
         )
@@ -108,7 +108,7 @@ impl AtomSettings {
             .spacing(10)
             .text_alignment(iced::alignment::Horizontal::Left)
             .width(iced::Length::Shrink),
-            text("Adding downloads from browser auto starts the download without showing new download form").size(12),
+            text("Adding downloads from browser auto starts the download without showing new download form(disables auto open feature)").size(12),
             tooltip::Position::Top,
         )
         .style(AtomStyleContainer::ToolTipContainer)
@@ -133,6 +133,38 @@ impl AtomSettings {
         .text_alignment(iced::alignment::Horizontal::Left)
         .width(iced::Length::Shrink);
 
+        let stretch_list_toggler = tooltip(
+            toggler(
+                Some("Stretch List Background  ".into()),
+                self.stretch_list_view,
+                SettingsMessage::ListBackgroundToggle,
+            )
+            .spacing(10)
+            .text_alignment(iced::alignment::Horizontal::Left)
+            .width(iced::Length::Shrink),
+            text("Stretch the list view container to fill the available space(applies a background color)").size(12),
+            tooltip::Position::Top,
+        )
+        .gap(10)
+        .padding(10)
+        .style(AtomStyleContainer::ToolTipContainer);
+
+        let new_download_notification_toggler = tooltip(
+            toggler(
+                Some("New Download Notification".into()),
+                self.new_download_notification,
+                SettingsMessage::NewDownloadNotificationToggle,
+            )
+            .spacing(10)
+            .text_alignment(iced::alignment::Horizontal::Left)
+            .width(iced::Length::Shrink),
+            text("A notification is shown when a new download is added").size(12),
+            tooltip::Position::Top,
+        )
+        .gap(10)
+        .padding(10)
+        .style(AtomStyleContainer::ToolTipContainer);
+
         let options_row = container(
             row!()
                 .spacing(10)
@@ -150,9 +182,17 @@ impl AtomSettings {
                     col!()
                         .spacing(10)
                         .width(Length::Fill)
-                        .align_items(iced::Alignment::End)
+                        .align_items(iced::Alignment::Center)
                         .push(close_btn_toggler)
                         .push(maximized_toggler),
+                )
+                .push(
+                    col!()
+                        .spacing(10)
+                        .width(Length::Fill)
+                        .align_items(iced::Alignment::End)
+                        .push(stretch_list_toggler)
+                        .push(new_download_notification_toggler),
                 ),
         )
         .width(Length::Fill)
@@ -244,11 +284,18 @@ impl AtomSettings {
                                                 self.scaling
                                             )))
                                             .push(
-                                                slider(1.00..=2.00, self.scaling, |scaling| {
-                                                    SettingsMessage::ScalingChanged(scaling)
-                                                })
-                                                .step(0.01)
-                                                .width(iced::Length::Fill),
+                                                tooltip(
+                                                    slider(1.00..=2.00, self.scaling, |scaling| {
+                                                        SettingsMessage::ScalingChanged(scaling)
+                                                    })
+                                                    .step(0.01)
+                                                    .width(iced::Length::Fill),
+                                                    text("Applies in real time").size(12),
+                                                    tooltip::Position::Top,
+                                                )
+                                                .gap(10)
+                                                .padding(10)
+                                                .style(AtomStyleContainer::ToolTipContainer),
                                             ),
                                     ),
                             ),

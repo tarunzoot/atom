@@ -47,13 +47,13 @@ impl AtomStyleContainer {
             Theme::Light => ColorPalette {
                 accent,
                 background: color!(250, 250, 250, 1),
-                border: color!(150, 150, 150, 0.1),
+                border: color!(150, 150, 150, 0.2),
                 text: accent,
             },
             Theme::RedLight => ColorPalette {
                 accent,
                 background: color!(250, 250, 250, 1),
-                border: color!(150, 150, 150, 0.1),
+                border: color!(150, 150, 150, 0.2),
                 text: Color {
                     a: 0.85,
                     ..Color::BLACK
@@ -136,10 +136,6 @@ impl container::StyleSheet for Theme {
                 | AtomStyleContainer::MenuBarInActiveContainer
                 | AtomStyleContainer::HeaderButtonsContainer => None,
                 AtomStyleContainer::ListItemContainer => match self {
-                    Theme::Light => Some(Background::Color(Color {
-                        a: 0.01,
-                        ..appearance.border
-                    })),
                     _ => Some(Background::Color(
                         style.color_offset(appearance.background, 15.0),
                     )),
@@ -151,8 +147,9 @@ impl container::StyleSheet for Theme {
                     style.color_offset(appearance.background, 20.0),
                 )),
                 AtomStyleContainer::ListHeaderContainer => match self {
-                    Theme::Light => Some(Background::Color(appearance.border)),
-                    Theme::RedLight => Some(Background::Color(appearance.border)),
+                    Theme::Light | Theme::RedLight => Some(Background::Color(
+                        style.color_offset(appearance.background, 30.0),
+                    )),
                     _ => Some(Background::Color(
                         style.color_offset(appearance.background, 30.0),
                     )),

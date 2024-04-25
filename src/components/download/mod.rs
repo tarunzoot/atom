@@ -37,6 +37,7 @@ pub struct AtomDownload {
     pub request_body: String,
     pub transfer_rate: f64,
     pub eta: f64,
+    pub auto_open: bool,
     #[serde(skip_deserializing, skip_serializing)]
     pub joined_bytes: usize,
     #[serde(skip_deserializing, skip_serializing)]
@@ -71,6 +72,7 @@ impl Default for AtomDownload {
             joined_bytes: 0,
             joining: false,
             show_delete_confirm_dialog: false,
+            auto_open: false,
         }
     }
 }
@@ -87,6 +89,11 @@ impl AtomDownload {
 
     pub fn headers(mut self, headers: HashMap<String, String>) -> Self {
         self.headers = headers;
+        self
+    }
+
+    pub fn auto_open(mut self, open: bool) -> Self {
+        self.auto_open = open;
         self
     }
 

@@ -44,6 +44,7 @@ pub enum DownloadFormMessage {
     BrowseSaveAsFolder,
     ImportHeaders,
     AutoReferer(bool),
+    AutoOpen(bool),
     AddNewDownload,
     ClosePane,
 }
@@ -67,6 +68,8 @@ pub enum SettingsMessage {
     QuitActionToggle(bool),
     MaximizedActionToggle(bool),
     AutoStartDownloadToggle(bool),
+    ListBackgroundToggle(bool),
+    NewDownloadNotificationToggle(bool),
     ThemeChanged(String),
     ListLayoutChanged(String),
     NewDownloadPositionChanged(String),

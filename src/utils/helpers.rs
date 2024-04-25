@@ -19,7 +19,7 @@ use std::{
     path::{Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
 };
-use tracing::warn;
+use tracing::{debug, warn};
 use tray_icon::menu::MenuEvent;
 
 pub const ATOM_USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.72 Safari/537.36";
@@ -201,6 +201,44 @@ pub fn get_conf_directory<'a>() -> Result<PathBuf, &'a str> {
         || Err("basedir failed (get_conf_directory)!"),
         |basedirs| Ok(basedirs.cache_dir().join("atom")),
     )
+}
+
+/**
+ * opens specified file according to the OS
+ */
+pub fn open_file(file: &str) {
+    #[cfg(target_os = "windows")]
+    std::process::Command::new("explorer.exe")
+        .arg(&file)
+        .spawn()
+        .ok();
+    #[cfg(target_os = "macos")]
+    std::process::Command::new("open").arg(&file).spawn().ok();
+    #[cfg(target_os = "linux")]
+    std::process::Command::new("xdg-open")
+        .arg(&file)
+        .spawn()
+        .ok();
+}
+
+/**
+ * show desktop notification
+ */
+pub fn show_notification(subtitle: &str, body: &str, timeout: u32) {
+    if notify_rust::Notification::new()
+        .summary("A.T.O.M")
+        .subtitle(subtitle)
+        .auto_icon()
+        .body(body)
+        .icon("atom")
+        .timeout(notify_rust::Timeout::Milliseconds(timeout))
+        .show()
+        .is_err()
+    {
+        debug!(
+            "[ATOM] : notification error: subtitle: {subtitle}, body: {body}, timeout: {timeout}!"
+        );
+    }
 }
 
 /**

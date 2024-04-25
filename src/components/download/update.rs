@@ -1,7 +1,10 @@
 use super::{AtomDownload, DownloadMessage};
-use crate::components::settings::AtomSettings;
-use std::time::SystemTime;
-use tracing::{debug, warn};
+use crate::{
+    components::settings::AtomSettings,
+    utils::helpers::{open_file, show_notification},
+};
+use std::{path::PathBuf, time::SystemTime};
+use tracing::warn;
 
 impl AtomDownload {
     pub fn update(&mut self, state: DownloadMessage, settings: &AtomSettings) {
@@ -36,18 +39,8 @@ impl AtomDownload {
                 self.downloading = false;
                 self.joining = false;
                 self.download_this_session = 0;
-                if settings.show_notifications
-                    && notify_rust::Notification::new()
-                        .summary("A.T.O.M")
-                        .subtitle("Download Complete")
-                        .auto_icon()
-                        .body(&self.file_name)
-                        .icon("atom")
-                        .timeout(notify_rust::Timeout::Milliseconds(6000))
-                        .show()
-                        .is_err()
-                {
-                    debug!("[ATOM] : download notification failed!");
+                if settings.show_notifications {
+                    show_notification("Download Complete", &self.file_name, 6000);
                 }
 
                 let cache_dir = settings.cache_dir.to_string_lossy().to_string();
@@ -55,6 +48,14 @@ impl AtomDownload {
                     let file = format!("{}/{}.atom.{}", cache_dir, self.file_name, i);
                     std::fs::remove_file(file).ok();
                 });
+
+                if self.auto_open {
+                    let path = PathBuf::from(&self.file_path)
+                        .join(&self.file_name)
+                        .to_string_lossy()
+                        .to_string();
+                    open_file(&path);
+                }
             }
             DownloadMessage::DownloadProgress(downloaded) => {
                 if downloaded > self.downloaded {

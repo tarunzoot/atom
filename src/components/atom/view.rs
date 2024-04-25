@@ -110,11 +110,17 @@ impl<'a> Atom<'a> {
                                             .style(AtomStyleContainer::LogoContainer),
                                     ),
                                 )
-                                .push(filtered_content.height(Length::Fill).direction(
-                                    scrollable::Direction::Vertical(
-                                        Properties::new().margin(0).scroller_width(0).width(0),
-                                    ),
-                                )),
+                                .push(
+                                    filtered_content
+                                        .height(if self.settings.stretch_list_view {
+                                            Length::Fill
+                                        } else {
+                                            Length::Shrink
+                                        })
+                                        .direction(scrollable::Direction::Vertical(
+                                            Properties::new().margin(0).scroller_width(0).width(0),
+                                        )),
+                                ),
                         )
                         .height(Length::Shrink)
                         .style(AtomStyleContainer::ListHeaderContainer),
@@ -164,7 +170,10 @@ impl<'a> Atom<'a> {
                 .download_form
                 .view(self.downloads.len())
                 .map(Message::DownloadForm),
-            View::Settings => self.settings.view(&self.theme).map(Message::Settings),
+            View::Settings => self
+                .phantom_settings
+                .view(&self.theme)
+                .map(Message::Settings),
             View::Shortcuts => keybindings::view(),
         };
 

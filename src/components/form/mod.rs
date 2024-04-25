@@ -14,6 +14,7 @@ pub struct AtomDownloadForm {
     pub header_name: String,
     pub header_value: String,
     pub auto_referer: bool,
+    pub auto_open: bool,
 }
 
 impl AtomDownloadForm {
@@ -36,6 +37,7 @@ impl AtomDownloadForm {
             .file_size(self.size)
             .headers(self.headers.clone())
             .download_type(self.sequential)
+            .auto_open(self.auto_open)
             .build()
     }
 

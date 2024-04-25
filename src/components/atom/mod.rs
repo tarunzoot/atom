@@ -46,6 +46,7 @@ pub struct Atom<'a> {
     pub download_form: AtomDownloadForm,
     pub downloads: BTreeMap<usize, AtomDownload>,
     pub settings: AtomSettings,
+    pub phantom_settings: AtomSettings,
     pub metadata: AtomDownloadMetadata,
     pub filter_type: DownloadsListFilterMessage,
     pub import: AtomImport,
@@ -53,7 +54,6 @@ pub struct Atom<'a> {
     pub instance: Option<SingleInstance>,
     pub tray: Option<TrayIcon>,
     pub tray_event: HashMap<MenuId, Message>,
-    pub default_settings: AtomSettings,
     pub theme: Theme,
 }
 
@@ -123,7 +123,7 @@ impl<'a> Atom<'a> {
         Self {
             client,
             theme: settings.theme.clone().into(),
-            default_settings: settings.clone(),
+            phantom_settings: settings.clone(),
             settings,
             sidebar,
             downloads,

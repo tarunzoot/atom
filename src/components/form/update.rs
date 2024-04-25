@@ -19,8 +19,12 @@ impl AtomDownloadForm {
                         if let Some(file_name) = file_name.last() {
                             urlencoding::decode(file_name)
                                 .map(|file_name| {
-                                    self.file_name =
-                                        format!("{}{}", settings.downloads_dir, file_name)
+                                    if !file_name.is_empty() {
+                                        self.file_name =
+                                            format!("{}{}", settings.downloads_dir, file_name)
+                                    } else {
+                                        self.file_name = String::default()
+                                    }
                                 })
                                 .ok();
                         }
@@ -48,6 +52,7 @@ impl AtomDownloadForm {
             DownloadFormMessage::DeleteHeader(header_name) => {
                 self.headers.remove(&header_name);
             }
+            DownloadFormMessage::AutoOpen(open) => self.auto_open = open,
             DownloadFormMessage::AutoReferer(checked) => {
                 if !self.url.is_empty() {
                     self.auto_referer = checked;

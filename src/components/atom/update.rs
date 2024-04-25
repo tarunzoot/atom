@@ -1,12 +1,11 @@
 use super::{Atom, View};
 use crate::{
-    components::download::AtomDownload,
-    components::form::AtomDownloadForm,
+    components::{download::AtomDownload, form::AtomDownloadForm},
     messages::{
         DownloadMessage, DownloadsListFilterMessage, Message, SideBarActiveButton, SideBarState,
         SidebarMessage, TitleBarMessage,
     },
-    utils::helpers::{get_epoch_ms, save_downloads_toml, save_settings_toml},
+    utils::helpers::{get_epoch_ms, save_downloads_toml, save_settings_toml, show_notification},
 };
 use iced::{
     keyboard::{self, key::Named},
@@ -237,18 +236,18 @@ impl<'a> Atom<'a> {
             }
             Message::Settings(message) => match message {
                 crate::messages::SettingsMessage::ClosePane => {
-                    self.settings = self.default_settings.clone();
+                    self.phantom_settings = self.settings.clone();
                     let _ = self.update(Message::GotoHomePage);
                 }
                 crate::messages::SettingsMessage::SaveSettings => {
+                    self.settings = self.phantom_settings.clone();
                     if !save_settings_toml(&self.settings) {
                         warn!("Warning: unable to save settings => {:#?}", self.settings);
                     }
-                    self.default_settings = self.settings.clone();
                     self.theme = self.settings.theme.clone().into();
                     self.update_view(View::Downloads);
                 }
-                _ => return self.settings.update(message),
+                _ => return self.phantom_settings.update(message),
             },
             Message::Download(state, index) => match state {
                 DownloadMessage::DownloadSelected => {
@@ -337,6 +336,10 @@ impl<'a> Atom<'a> {
             Message::AddNewDownload(mut new_download) => {
                 new_download.threads = self.settings.threads;
 
+                if self.settings.new_download_notification {
+                    show_notification("Download added", &new_download.file_name, 2000);
+                }
+
                 if let Some(existing_download_id) =
                     self.downloads.iter().find_map(|(&index, download)| {
                         if (download.url == new_download.url
@@ -353,6 +356,7 @@ impl<'a> Atom<'a> {
                     let mut existing_download =
                         self.downloads.remove(&existing_download_id).unwrap();
                     existing_download.downloading = true;
+
                     if let Some(entry) = self.downloads.first_key_value() {
                         self.downloads.insert(entry.0 - 1, existing_download);
                     } else {

@@ -59,6 +59,7 @@ impl AtomDownload {
             row!()
                 .align_items(iced::Alignment::Center)
                 .spacing(10)
+                .push(icon('\u{eb04}', CustomFont::Symbols).size(12))
                 .push(file_type_icon(self.file_name.split('.').last().unwrap()).size(20))
                 .push(text(&self.file_name).size(text_size)),
         )
@@ -73,7 +74,7 @@ impl AtomDownload {
             ))
             .size(text_size),
         )
-        .width(iced::Length::Fill)
+        .width(iced::Length::Fixed(130.0))
         .style(AtomStyleContainer::Transparent)
         .align_x(iced::alignment::Horizontal::Center);
 
@@ -111,23 +112,26 @@ impl AtomDownload {
                     .size(text_size),
                 )
         })
-        .width(iced::Length::Fill)
+        .width(iced::Length::Fixed(180.0))
         .style(AtomStyleContainer::Transparent)
         .align_x(iced::alignment::Horizontal::Center);
 
         let mut actions_row = row!().spacing(5);
         if !self.deleted {
             let mut start_pause_btn = GuiElements::round_button(download_state_icon);
+            // let mut edit_btn = GuiElements::round_button('\u{ec55}');
 
             if self.downloading && self.downloaded <= self.size {
                 start_pause_btn = start_pause_btn.on_press(DownloadMessage::Paused);
             } else if self.joining || (self.downloaded > self.size && self.downloading) {
             } else {
                 start_pause_btn = start_pause_btn.on_press(DownloadMessage::Downloading);
+                // edit_btn = edit_btn.on_press(DownloadMessage::MarkDeleted);
             }
 
             actions_row = actions_row
                 .push(start_pause_btn)
+                // .push(edit_btn)
                 .push(GuiElements::round_button('\u{ee09}').on_press(DownloadMessage::MarkDeleted));
         } else {
             actions_row = actions_row.push(
@@ -234,7 +238,7 @@ impl AtomDownload {
                         container(text(&transfer_rate).size(text_size))
                             .width(iced::Length::Fixed(100.0))
                             .style(AtomStyleContainer::Transparent)
-                            .align_x(iced::alignment::Horizontal::Left),
+                            .align_x(iced::alignment::Horizontal::Center),
                     )
                     .push(
                         container(text(&eta).size(text_size))
@@ -250,7 +254,8 @@ impl AtomDownload {
                     )
                     .push(
                         container(actions_row)
-                            .width(iced::Length::Fixed(80.0))
+                            .width(iced::Length::Fixed(75.0))
+                            // .width(iced::Length::Fixed(95.0))
                             .style(AtomStyleContainer::Transparent)
                             .align_x(iced::alignment::Horizontal::Right),
                     ),

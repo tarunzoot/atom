@@ -42,11 +42,14 @@ fn main() -> iced::Result {
         id: Some("A.T.O.M".to_owned()),
         window: iced::window::Settings {
             size: Size {
-                width: 1200.0,
-                height: 750.0,
+                width: 1024.0,
+                height: 576.0,
             },
             position: iced::window::Position::Centered,
-            min_size: None,
+            min_size: Some(Size {
+                width: 1024.0,
+                height: 576.0,
+            }),
             max_size: None,
             resizable: true,
             decorations: false,

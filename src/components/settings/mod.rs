@@ -49,6 +49,8 @@ pub struct AtomSettings {
     pub auto_start_download: bool,
     pub theme: String,
     pub list_layout: ListLayout,
+    pub stretch_list_view: bool,
+    pub new_download_notification: bool,
     pub scaling: f64,
     pub maximized: bool,
     pub new_download_pos: String,
@@ -67,10 +69,12 @@ impl Default for AtomSettings {
             create_dir_all(&cache_dir_path).ok();
         }
 
+        let downloads_dir = get_downloads_directory("");
+
         Self {
-            config_dir: config_dir_path,
-            cache_dir: cache_dir_path,
-            downloads_dir: get_downloads_directory(""),
+            config_dir: config_dir_path.clone(),
+            cache_dir: cache_dir_path.clone(),
+            downloads_dir: downloads_dir.clone(),
             threads: 6,
             sidebar_collapsed: true,
             show_notifications: true,
@@ -79,8 +83,10 @@ impl Default for AtomSettings {
             theme: "Default".to_owned(),
             list_layout: ListLayout::ListExtended,
             scaling: 1.0,
-            maximized: false,
+            maximized: true,
             new_download_pos: "First".to_string(),
+            new_download_notification: true,
+            stretch_list_view: false,
         }
     }
 }
