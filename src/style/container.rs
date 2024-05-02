@@ -135,25 +135,18 @@ impl container::StyleSheet for Theme {
                 | AtomStyleContainer::ButtonContainer
                 | AtomStyleContainer::MenuBarInActiveContainer
                 | AtomStyleContainer::HeaderButtonsContainer => None,
-                AtomStyleContainer::ListItemContainer => match self {
-                    _ => Some(Background::Color(
-                        style.color_offset(appearance.background, 15.0),
-                    )),
-                },
+                AtomStyleContainer::ListItemContainer => Some(Background::Color(
+                    style.color_offset(appearance.background, 15.0),
+                )),
                 AtomStyleContainer::ErrorContainer => Some(Background::Color(
                     style.color_offset(appearance.background, 20.0),
                 )),
                 AtomStyleContainer::PreviewContainer => Some(Background::Color(
                     style.color_offset(appearance.background, 20.0),
                 )),
-                AtomStyleContainer::ListHeaderContainer => match self {
-                    Theme::Light | Theme::RedLight => Some(Background::Color(
-                        style.color_offset(appearance.background, 30.0),
-                    )),
-                    _ => Some(Background::Color(
-                        style.color_offset(appearance.background, 30.0),
-                    )),
-                },
+                AtomStyleContainer::ListHeaderContainer => Some(Background::Color(
+                    style.color_offset(appearance.background, 30.0),
+                )),
                 AtomStyleContainer::ToolTipContainer => Some(Background::Color(
                     style.color_offset(appearance.background, 20.0),
                 )),

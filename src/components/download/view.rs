@@ -59,7 +59,7 @@ impl AtomDownload {
             row!()
                 .align_items(iced::Alignment::Center)
                 .spacing(10)
-                .push(icon('\u{eb04}', CustomFont::Symbols).size(12))
+                .push(icon('\u{ee57}', CustomFont::Symbols).size(12))
                 .push(file_type_icon(self.file_name.split('.').last().unwrap()).size(20))
                 .push(text(&self.file_name).size(text_size)),
         )

@@ -284,7 +284,7 @@ impl AtomSettings {
                                                 self.scaling
                                             )))
                                             .push(
-                                                slider(1.00..=2.00, self.scaling, |scaling| {
+                                                slider(0.70..=2.00, self.scaling, |scaling| {
                                                     SettingsMessage::ScalingChanged(scaling)
                                                 })
                                                 .step(0.01)

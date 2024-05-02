@@ -209,7 +209,7 @@ pub fn get_conf_directory<'a>() -> Result<PathBuf, &'a str> {
 pub fn open_file(file: &str) {
     #[cfg(target_os = "windows")]
     std::process::Command::new("explorer.exe")
-        .arg(&file)
+        .arg(file)
         .spawn()
         .ok();
     #[cfg(target_os = "macos")]

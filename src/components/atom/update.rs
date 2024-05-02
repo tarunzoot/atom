@@ -86,11 +86,12 @@ impl<'a> Atom<'a> {
                     }
                 }
 
-                // if let Event::Window(window::Event::Resized { width, height: _ }) = event {
-                //     if width > 1200 {
-                //         self.scale_factor = 1.20;
+                // if let Event::Window(Id::MAIN, window::Event::Resized { width, height }) = event {
+                //     // self.dimensions = (*width, *height);
+                //     if *width <= 1025 || *height <= 600 {
+                //         self.phantom_settings.scaling = 0.80;
                 //     } else {
-                //         self.scale_factor = 1.0;
+                //         self.phantom_settings.scaling = self.settings.scaling;
                 //     }
                 // }
 

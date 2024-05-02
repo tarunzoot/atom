@@ -49,6 +49,9 @@ impl<'a> Atom<'a> {
             DownloadsListFilterMessage::All => self.downloads.iter().filter(all_filter),
         };
 
+        let icons_only = (self.metadata.enabled || !self.settings.sidebar_collapsed)
+            || self.settings.scaling > 1.24;
+
         let filtered_content = scrollable(filtered_downloads.fold(
             col!().padding(1).spacing(match self.settings.list_layout {
                 crate::components::settings::ListLayout::ListExtended => 10,
@@ -70,9 +73,6 @@ impl<'a> Atom<'a> {
                 .view(self.downloads.len())
                 .map(Message::DownloadForm)
         } else {
-            let icons_only = (self.metadata.enabled || !self.settings.sidebar_collapsed)
-                || self.settings.scaling > 1.24;
-
             let filters_view = self.filters.view(
                 &self.sidebar.active,
                 &self.downloads,
@@ -80,7 +80,7 @@ impl<'a> Atom<'a> {
                 icons_only,
             );
 
-            let listings_col = match self.settings.list_layout {
+            let downloads_list_col = match self.settings.list_layout {
                 crate::components::settings::ListLayout::ListExtended => col!()
                     .spacing(10)
                     .push(filters_view)
@@ -128,7 +128,7 @@ impl<'a> Atom<'a> {
                     ),
             };
 
-            container(listings_col)
+            container(downloads_list_col)
                 .width(Length::Fill)
                 .height(Length::Fill)
                 .align_y(iced::alignment::Vertical::Top)

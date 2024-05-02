@@ -74,7 +74,7 @@ impl Default for AtomSettings {
         Self {
             config_dir: config_dir_path.clone(),
             cache_dir: cache_dir_path.clone(),
-            downloads_dir: downloads_dir.clone(),
+            downloads_dir,
             threads: 6,
             sidebar_collapsed: true,
             show_notifications: true,

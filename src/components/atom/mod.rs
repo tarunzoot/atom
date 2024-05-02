@@ -55,6 +55,7 @@ pub struct Atom<'a> {
     pub tray: Option<TrayIcon>,
     pub tray_event: HashMap<MenuId, Message>,
     pub theme: Theme,
+    // pub dimensions: (u32, u32), // width x height
 }
 
 impl<'a> Atom<'a> {
