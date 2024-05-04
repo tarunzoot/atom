@@ -262,35 +262,39 @@ impl AtomSettings {
                     .push(
                         container(
                             col!().spacing(5).push(
-                                row!()
-                                    .align_items(iced::Alignment::Center)
-                                    .spacing(30)
-                                    .push(
-                                        col!()
-                                            .width(Length::Fill)
-                                            .push(text(format!("Threads : {}", self.threads)))
-                                            .push(
-                                                slider(2..=8, self.threads, |threads| {
-                                                    SettingsMessage::ThreadsChanged(threads)
-                                                })
-                                                .width(iced::Length::Fill),
-                                            ),
-                                    )
-                                    .push(
-                                        col!()
-                                            .width(Length::Fill)
-                                            .push(text(format!(
-                                                "UI Scaling : {0:>1.2}",
-                                                self.scaling
-                                            )))
-                                            .push(
-                                                slider(0.70..=2.00, self.scaling, |scaling| {
-                                                    SettingsMessage::ScalingChanged(scaling)
-                                                })
-                                                .step(0.01)
-                                                .width(iced::Length::Fill),
-                                            ),
-                                    ),
+                                row![
+                                    col![
+                                        text(format!("Threads : {}", self.threads)),
+                                        slider(2..=8, self.threads, |threads| {
+                                            SettingsMessage::ThreadsChanged(threads)
+                                        })
+                                        .width(iced::Length::Fill)
+                                    ]
+                                    .width(Length::Fill),
+                                    col![
+                                        text(format!("UI Scaling : {0:>1.2}", self.scaling)),
+                                        slider(0.70..=2.00, self.scaling, |scaling| {
+                                            SettingsMessage::ScalingChanged(scaling)
+                                        })
+                                        .step(0.01)
+                                        .width(iced::Length::Fill),
+                                    ]
+                                    .width(Length::Fill),
+                                    col![
+                                        text(format!(
+                                            "Font Size : {0:>2.0}",
+                                            self.font_size.floor()
+                                        )),
+                                        slider(12.0..=28.00, self.font_size, |font_size| {
+                                            SettingsMessage::TextSizeChanged(font_size)
+                                        })
+                                        .step(0.01)
+                                        .width(iced::Length::Fill),
+                                    ]
+                                    .width(Length::Fill)
+                                ]
+                                .align_items(iced::Alignment::Center)
+                                .spacing(30),
                             ),
                         )
                         .padding(20)

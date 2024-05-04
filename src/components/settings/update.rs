@@ -29,6 +29,7 @@ impl AtomSettings {
             SettingsMessage::ListLayoutChanged(layout) => self.list_layout = layout.into(),
             SettingsMessage::NewDownloadPositionChanged(pos) => self.new_download_pos = pos,
             SettingsMessage::ScalingChanged(scaling) => self.scaling = scaling,
+            SettingsMessage::TextSizeChanged(text_size) => self.font_size = text_size,
             SettingsMessage::ThreadsChanged(threads) => self.threads = threads,
             SettingsMessage::NotificationToggle(checked) => self.show_notifications = checked,
             SettingsMessage::QuitActionToggle(checked) => self.quit_action_closes_app = checked,

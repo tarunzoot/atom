@@ -54,6 +54,7 @@ pub struct AtomSettings {
     pub scaling: f64,
     pub maximized: bool,
     pub new_download_pos: String,
+    pub font_size: f32,
 }
 
 impl Default for AtomSettings {
@@ -87,6 +88,7 @@ impl Default for AtomSettings {
             new_download_pos: "First".to_string(),
             new_download_notification: true,
             stretch_list_view: false,
+            font_size: 16.0,
         }
     }
 }

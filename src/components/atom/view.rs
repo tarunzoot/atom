@@ -60,7 +60,11 @@ impl<'a> Atom<'a> {
                 count += 1;
                 column.push(
                     download
-                        .view(&self.settings.list_layout, responsive)
+                        .view(
+                            &self.settings.list_layout,
+                            self.settings.font_size,
+                            responsive,
+                        )
                         .map(|message| Message::Download(message, *index)),
                 )
             });

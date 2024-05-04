@@ -78,41 +78,55 @@ impl AtomDownload {
     }
 
     fn get_file_name_view(&self, text_size: f32) -> Element<DownloadMessage, Theme, Renderer> {
+        let downloaded = self.get_formatted_size(self.downloaded);
+        let size = self.get_formatted_size(self.size);
+
         col![row![
-            icon('\u{ee57}', CustomFont::Symbols).size(text_size),
-            file_type_icon(self.file_name.split('.').last().unwrap()).size(text_size + 8.0),
-            text(&self.file_name).size(text_size)
+            file_type_icon(self.file_name.split('.').last().unwrap()).size(text_size * 2.0),
+            col![
+                text(&self.file_name).size(text_size),
+                row![
+                    icon('\u{f15fc}', CustomFont::Symbols)
+                        .size(text_size - 4.0)
+                        .style(AtomStyleText::Dimmed),
+                    text(format!(
+                        "{0:<4.2} {1} of {2:>4.2} {3}",
+                        downloaded.0, downloaded.1, size.0, size.1
+                    ))
+                    .width(Length::Shrink)
+                    .size(text_size - 3.0)
+                    .style(AtomStyleText::Dimmed),
+                ]
+                .align_items(iced::Alignment::Center)
+                .spacing(5)
+            ]
+            .spacing(5)
         ]
         .align_items(iced::Alignment::Center)
-        .spacing(10),]
-        .width(Length::FillPortion(3))
+        .spacing(10)]
+        .width(Length::FillPortion(5))
         .align_items(iced::Alignment::Start)
         .into()
     }
 
-    fn get_file_size_view(&self, text_size: f32) -> Element<DownloadMessage, Theme, Renderer> {
-        let downloaded = self.get_formatted_size(self.downloaded);
-        let size = self.get_formatted_size(self.size);
+    // fn get_file_size_view(&self, text_size: f32) -> Element<DownloadMessage, Theme, Renderer> {
+    //     let downloaded = self.get_formatted_size(self.downloaded);
+    //     let size = self.get_formatted_size(self.size);
 
-        let text_col = col![
-            text(format!("{0:>4.2} {1}", size.0, size.1)).size(text_size),
-            row![
-                text(format!("{0:<4.2} {1}", downloaded.0, downloaded.1))
-                    .width(Length::Shrink)
-                    .size(text_size - 2.0)
-                    .style(AtomStyleText::Dimmed),
-                text(format!(" • {}%", self.get_progress_percent().floor()))
-                    .width(Length::Shrink)
-                    .size(text_size - 2.0)
-            ]
-            .align_items(iced::Alignment::Center)
-            .spacing(2),
-        ]
-        .spacing(5)
-        .align_items(iced::Alignment::Start);
+    //     let text_col = col![row![
+    //         text(format!("{0:<4.2}{1} of ", downloaded.0, downloaded.1))
+    //             .width(Length::Shrink)
+    //             .size(text_size)
+    //             .style(AtomStyleText::Dimmed),
+    //         text(format!("{0:>4.2}{1}", size.0, size.1)).size(text_size)
+    //     ]
+    //     .align_items(iced::Alignment::Center)
+    //     .spacing(2)]
+    //     .spacing(5)
+    //     .align_items(iced::Alignment::Start);
 
-        text_col.width(Length::Fill).into()
-    }
+    //     text_col.width(Length::FillPortion(2)).into()
+    // }
 
     fn get_failed_view(
         &self,
@@ -197,7 +211,7 @@ impl AtomDownload {
         responsive: bool,
     ) -> Element<DownloadMessage, Theme, Renderer> {
         let length = if matches!(layout, ListLayout::List) {
-            Length::Fill
+            Length::FillPortion(2)
         } else {
             Length::Shrink
         };
@@ -237,12 +251,6 @@ impl AtomDownload {
                             .size(text_size - 2.0),
                     );
                 }
-
-                upper_row = upper_row.push(
-                    text(self.get_formatted_eta())
-                        .width(Length::Shrink)
-                        .size(text_size - 2.0),
-                );
 
                 progress_row = progress_row.push(
                     col![
@@ -314,7 +322,6 @@ impl AtomDownload {
     ) -> Element<DownloadMessage, Theme, Renderer> {
         let text_size = text_size - 2.0;
         let file_name_col = self.get_file_name_view(text_size);
-        let file_size_col = self.get_file_size_view(text_size);
         let status_col = self.get_status_view(ListLayout::List, text_size, responsive);
         let transfer_rate_col = self.get_transfer_rate_view(text_size);
         let actions_col = self.get_actions_view(Length::Fixed(75.0));
@@ -324,7 +331,11 @@ impl AtomDownload {
             .padding(10)
             .spacing(15)
             .push(file_name_col)
-            .push(file_size_col)
+            .push(
+                text(self.get_formatted_eta())
+                    .width(Length::FillPortion(1))
+                    .size(text_size),
+            )
             .push(status_col);
 
         if !responsive {
@@ -348,29 +359,35 @@ impl AtomDownload {
             .unwrap_or_else(|| OsStr::new(""))
             .to_string_lossy();
 
-        row![
-            icon('\u{ee57}', CustomFont::Symbols).size(text_size),
-            file_type_icon(&extension).size(text_size * 2.5),
-            col![
+        row![col![
+            row![
+                file_type_icon(&extension)
+                    .size(text_size - 2.0)
+                    .style(AtomStyleText::Accented),
                 text(&self.file_name).size(text_size - 2.0),
-                row![
-                    text(get_file_type(&extension))
-                        .size(text_size - 4.0)
-                        .style(AtomStyleText::Dimmed),
-                    text("•").style(AtomStyleText::Dimmed),
-                    icon('\u{ec45}', CustomFont::IcoFont)
-                        .size(text_size - 6.0)
-                        .style(AtomStyleText::Dimmed),
-                    text(&self.added)
-                        .size(text_size - 4.0)
-                        .style(AtomStyleText::Dimmed)
-                ]
-                .spacing(5)
-                .align_items(iced::Alignment::Center),
             ]
             .spacing(5)
-            .align_items(iced::Alignment::Start),
+            .align_items(iced::Alignment::Center),
+            row![
+                icon('\u{ee57}', CustomFont::Symbols)
+                    .size(text_size - 6.0)
+                    .style(AtomStyleText::Dimmed),
+                text(get_file_type(&extension))
+                    .size(text_size - 4.0)
+                    .style(AtomStyleText::Dimmed),
+                text("•").style(AtomStyleText::Dimmed),
+                icon('\u{ec45}', CustomFont::IcoFont)
+                    .size(text_size - 6.0)
+                    .style(AtomStyleText::Dimmed),
+                text(&self.added)
+                    .size(text_size - 4.0)
+                    .style(AtomStyleText::Dimmed)
+            ]
+            .spacing(5)
+            .align_items(iced::Alignment::Center),
         ]
+        .spacing(5)
+        .align_items(iced::Alignment::Start),]
         .width(Length::FillPortion(5))
         .align_items(iced::Alignment::Center)
         .spacing(10)
@@ -391,17 +408,19 @@ impl AtomDownload {
                 icon('\u{e90b}', CustomFont::IcoFont)
                     .size(icon_size)
                     .style(AtomStyleText::Dimmed),
-                text("Size").style(AtomStyleText::Dimmed).size(text_size),
+                text("Size")
+                    .style(AtomStyleText::Dimmed)
+                    .size(text_size)
+                    .width(Length::Fill),
+                text(format!("{0:<4.2} {1}", downloaded.0, downloaded.1))
+                    .size(text_size)
+                    .style(AtomStyleText::Dimmed)
             ]
             .spacing(5)
             .align_items(iced::Alignment::Center),
-            row![text(format!(
-                "{0:<4.2} {1} of {2:>4.2} {3}",
-                downloaded.0, downloaded.1, size.0, size.1
-            ))
-            .size(text_size),]
-            .spacing(5)
-            .align_items(iced::Alignment::Center)
+            row![text(format!("{0:>4.2} {1}", size.0, size.1)).size(text_size + 2.0)]
+                .spacing(5)
+                .align_items(iced::Alignment::Center)
         ]
         .spacing(10)
         .align_items(iced::Alignment::Start)]
@@ -420,17 +439,19 @@ impl AtomDownload {
                 icon('\u{eff3}', CustomFont::IcoFont)
                     .size(icon_size)
                     .style(AtomStyleText::Dimmed),
-                text("Speed").style(AtomStyleText::Dimmed).size(text_size),
+                text("Speed")
+                    .style(AtomStyleText::Dimmed)
+                    .size(text_size)
+                    .width(Length::Fill),
+                text(self.get_formatted_eta())
+                    .size(text_size)
+                    .style(AtomStyleText::Dimmed)
             ]
             .spacing(5)
             .align_items(iced::Alignment::Center),
-            row![
-                text(self.get_formatted_transfer_rate()).size(text_size),
-                text("in").size(text_size),
-                text(self.get_formatted_eta()).size(text_size)
-            ]
-            .spacing(5)
-            .align_items(iced::Alignment::Center)
+            row![text(self.get_formatted_transfer_rate()).size(text_size + 2.0)]
+                .spacing(5)
+                .align_items(iced::Alignment::Center)
         ]
         .spacing(10)
         .align_items(iced::Alignment::Start)]
@@ -452,7 +473,19 @@ impl AtomDownload {
                 icon('\u{e982}', CustomFont::IcoFont)
                     .size(icon_size)
                     .style(AtomStyleText::Dimmed),
-                text("Status").size(text_size).style(AtomStyleText::Dimmed),
+                text("Status")
+                    .size(text_size)
+                    .style(AtomStyleText::Dimmed)
+                    .width(Length::Fill),
+                text(if self.is_downloading() {
+                    "In Progress"
+                } else if self.is_downloaded() {
+                    "Done"
+                } else {
+                    "Paused"
+                })
+                .size(text_size)
+                .style(AtomStyleText::Dimmed)
             ]
             .spacing(5)
             .align_items(iced::Alignment::Center),
@@ -504,9 +537,10 @@ impl AtomDownload {
     pub fn view(
         &self,
         layout: &ListLayout,
+        text_size: f32,
         responsive: bool,
     ) -> Element<DownloadMessage, Theme, Renderer> {
-        let text_size = 16.0 - if responsive { 4.0 } else { 2.0 };
+        let text_size = text_size - if responsive { 4.0 } else { 2.0 };
 
         let main_row = match layout {
             crate::components::settings::ListLayout::ListExtended => {

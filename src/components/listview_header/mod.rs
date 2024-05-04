@@ -26,19 +26,18 @@ pub fn view(responsive: bool) -> Element<'static, Message, Theme, Renderer> {
     )
     .style(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    .width(iced::Length::FillPortion(3));
+    .width(iced::Length::FillPortion(5));
 
     let file_size_container = container(
         row!()
             .spacing(7)
             .align_items(iced::Alignment::Center)
-            .push(icon('\u{e90b}', CustomFont::IcoFont).size(icon_size - 2))
-            .push(text("Size").size(text_size).font(font)),
+            .push(icon('\u{f022}', CustomFont::IcoFont).size(icon_size - 2))
+            .push(text("E . T . A").size(text_size).font(font)),
     )
     .style(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    // .width(iced::Length::Fixed(80.0));
-    .width(iced::Length::Fill);
+    .width(iced::Length::FillPortion(1));
 
     let status_container = container(
         row!()
@@ -49,8 +48,7 @@ pub fn view(responsive: bool) -> Element<'static, Message, Theme, Renderer> {
     )
     .style(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    // .width(iced::Length::Fixed(180.0));
-    .width(iced::Length::Fill);
+    .width(iced::Length::FillPortion(2));
 
     let speed_con = container(
         row!()
@@ -61,7 +59,6 @@ pub fn view(responsive: bool) -> Element<'static, Message, Theme, Renderer> {
     )
     .style(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    // .width(iced::Length::Fixed(100.0));
     .width(iced::Length::Fill);
 
     let added_con = container(

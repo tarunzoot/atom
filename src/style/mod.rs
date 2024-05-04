@@ -112,6 +112,7 @@ pub enum AtomStyleText {
     #[default]
     Default,
     Dimmed,
+    Accented,
 }
 
 impl text::StyleSheet for Theme {
@@ -124,6 +125,9 @@ impl text::StyleSheet for Theme {
             },
             AtomStyleText::Dimmed => text::Appearance {
                 color: Some(Color::from_rgb(180.0 / 255.0, 180.0 / 255.0, 180.0 / 255.0)),
+            },
+            AtomStyleText::Accented => text::Appearance {
+                color: Some(Theme::accent(self)),
             },
         }
     }

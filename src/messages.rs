@@ -74,6 +74,7 @@ pub enum SettingsMessage {
     ListLayoutChanged(String),
     NewDownloadPositionChanged(String),
     ScalingChanged(f64),
+    TextSizeChanged(f32),
     DownloadDirSelected(Option<PathBuf>),
     // BrowseCacheDirClicked,
     ClosePane,
