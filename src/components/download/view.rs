@@ -1,49 +1,35 @@
+use std::{ffi::OsStr, path::PathBuf};
+
 use super::AtomDownload;
 use crate::{
     components::settings::ListLayout,
     elements::GuiElements,
-    font::{file_type_icon, icon, CustomFont},
+    font::{file_type_icon, get_file_type, icon, CustomFont},
     messages::DownloadMessage,
-    style::{button::AtomStyleButton, container::AtomStyleContainer, Theme},
+    style::{button::AtomStyleButton, container::AtomStyleContainer, AtomStyleText, Theme},
     utils::helpers::get_formatted_time,
 };
 use iced::{
-    widget::{
-        button, column as col, container, horizontal_space, progress_bar, row, text, tooltip,
-    },
-    Element, Length, Renderer,
+    widget::{button, column as col, container, progress_bar, row, text, tooltip, vertical_space},
+    Element, Length, Padding, Renderer,
 };
 
 impl AtomDownload {
-    pub fn view(&self, layout: &ListLayout) -> Element<DownloadMessage, Theme, Renderer> {
-        let text_size = 12.0;
-        let size_format = |size: usize| -> (f64, &str) {
-            let suffix: [&str; 4] = ["Bytes", "KB", "MB", "GB"];
-            let size_len = size.to_string().len();
-            let size_len = if size_len % 3 == 0 {
-                (size_len / 3) - 1
-            } else {
-                size_len / 3
-            };
-            let base: usize = 1024;
-            let power = base.pow(size_len as u32);
-            let size_formatted = size as f64 / power as f64;
-            (size_formatted, suffix[size_len])
-        };
-
-        let downloaded = size_format(self.downloaded);
-        let size = size_format(self.size);
-        let progress = ((self.downloaded * 100) as f64 / self.size as f64) as f32;
-
-        let download_state_icon = if self.downloading {
-            '\u{ec72}'
-        } else if self.is_downloaded() {
-            '\u{ec7f}'
+    fn get_formatted_size(&self, size: usize) -> (f64, &str) {
+        let suffix: [&str; 4] = ["Bytes", "KB", "MB", "GB"];
+        let size_len = size.to_string().len();
+        let size_len = if size_len % 3 == 0 {
+            (size_len / 3) - 1
         } else {
-            '\u{ec74}'
+            size_len / 3
         };
+        let base: usize = 1024;
+        let power = base.pow(size_len as u32);
+        let size_formatted = size as f64 / power as f64;
+        (size_formatted, suffix[size_len])
+    }
 
-        let transfer_rate = format!("{0:<3.2} MB/s", self.transfer_rate);
+    fn get_formatted_eta(&self) -> String {
         let eta = if self.size == 0 || self.transfer_rate == 0.0 {
             String::from("0.0 second(s)")
         } else {
@@ -54,71 +40,237 @@ impl AtomDownload {
             } as f64;
             get_formatted_time((size / (self.transfer_rate * (1000.0 * 1000.0))) as u64)
         };
+        eta
+    }
 
-        let file_name_col = container(
-            row!()
-                .align_items(iced::Alignment::Center)
-                .spacing(10)
-                .push(icon('\u{ee57}', CustomFont::Symbols).size(12))
-                .push(file_type_icon(self.file_name.split('.').last().unwrap()).size(20))
-                .push(text(&self.file_name).size(text_size)),
+    fn get_formatted_transfer_rate(&self) -> String {
+        format!("{0:<3.2} MB/s", self.transfer_rate)
+    }
+
+    fn get_formatted_progress_percent(&self, decimals: bool) -> String {
+        let percent = self.get_progress_percent();
+        if decimals {
+            format!("{0:>4.2} %", if percent.is_nan() { 0.0 } else { percent })
+        } else {
+            format!(
+                "{0:>4.0}%",
+                if percent.is_nan() {
+                    0.0
+                } else {
+                    percent.floor()
+                }
+            )
+        }
+    }
+
+    fn get_progress_percent(&self) -> f32 {
+        ((self.downloaded * 100) as f64 / self.size as f64) as f32
+    }
+
+    fn get_download_state_icon(&self) -> char {
+        if self.downloading {
+            '\u{ec72}'
+        } else if self.is_downloaded() {
+            '\u{ec7f}'
+        } else {
+            '\u{ec74}'
+        }
+    }
+
+    fn get_file_name_view(&self, text_size: f32) -> Element<DownloadMessage, Theme, Renderer> {
+        col![row![
+            icon('\u{ee57}', CustomFont::Symbols).size(text_size),
+            file_type_icon(self.file_name.split('.').last().unwrap()).size(text_size + 8.0),
+            text(&self.file_name).size(text_size)
+        ]
+        .align_items(iced::Alignment::Center)
+        .spacing(10),]
+        .width(Length::FillPortion(3))
+        .align_items(iced::Alignment::Start)
+        .into()
+    }
+
+    fn get_file_size_view(&self, text_size: f32) -> Element<DownloadMessage, Theme, Renderer> {
+        let downloaded = self.get_formatted_size(self.downloaded);
+        let size = self.get_formatted_size(self.size);
+
+        let text_col = col![
+            text(format!("{0:>4.2} {1}", size.0, size.1)).size(text_size),
+            row![
+                text(format!("{0:<4.2} {1}", downloaded.0, downloaded.1))
+                    .width(Length::Shrink)
+                    .size(text_size - 2.0)
+                    .style(AtomStyleText::Dimmed),
+                text(format!(" • {}%", self.get_progress_percent().floor()))
+                    .width(Length::Shrink)
+                    .size(text_size - 2.0)
+            ]
+            .align_items(iced::Alignment::Center)
+            .spacing(2),
+        ]
+        .spacing(5)
+        .align_items(iced::Alignment::Start);
+
+        text_col.width(Length::Fill).into()
+    }
+
+    fn get_failed_view(
+        &self,
+        text_size: f32,
+        length: Length,
+    ) -> Element<DownloadMessage, Theme, Renderer> {
+        row!()
+            .push(
+                container(
+                    row![
+                        icon('\u{eedd}', CustomFont::IcoFont),
+                        text("Failed").size(text_size - 2.0)
+                    ]
+                    .spacing(5)
+                    .align_items(iced::Alignment::Center),
+                )
+                .style(AtomStyleContainer::PillError)
+                .padding(Padding::from([3, 10])),
+            )
+            .width(length)
+            .into()
+    }
+
+    fn get_completed_view(
+        &self,
+        text_size: f32,
+        length: Length,
+    ) -> Element<DownloadMessage, Theme, Renderer> {
+        row![container(
+            row![
+                icon('\u{eed7}', CustomFont::IcoFont).size(text_size),
+                text("Completed").size(text_size - 2.0)
+            ]
+            .spacing(5)
+            .align_items(iced::Alignment::Center),
         )
-        .width(iced::Length::FillPortion(2))
-        .style(AtomStyleContainer::Transparent)
-        .align_x(iced::alignment::Horizontal::Left);
+        .style(AtomStyleContainer::PillSuccess)
+        .padding(Padding::from([3, 10]))]
+        .width(length)
+        .into()
+    }
 
-        let file_size_col = container(
+    fn get_joining_view(
+        &self,
+        text_size: f32,
+        length: Length,
+    ) -> Element<DownloadMessage, Theme, Renderer> {
+        row![container(row![
+            icon('\u{e984}', CustomFont::IcoFont).size(text_size - 2.0),
+            text("Joining").size(text_size)
+        ])
+        .style(AtomStyleContainer::PillSuccess)
+        .padding(Padding::from([3, 10])),]
+        .width(length)
+        .into()
+    }
+
+    fn get_joining_progress_view(
+        &self,
+        text_size: f32,
+        length: Length,
+    ) -> Element<DownloadMessage, Theme, Renderer> {
+        let status = ((100 * self.joined_bytes) / self.size) as f32;
+        row![
+            progress_bar(0.0..=100.0, status).height(iced::Length::Fixed(5.0)),
             text(format!(
-                "{0:<4.2} / {1:>4.2} {2}",
-                downloaded.0, size.0, size.1
+                "{0:>4.2} %",
+                if status.is_nan() { 0.0 } else { status }
             ))
             .size(text_size),
-        )
-        .width(iced::Length::Fixed(130.0))
-        .style(AtomStyleContainer::Transparent)
-        .align_x(iced::alignment::Horizontal::Center);
+        ]
+        .spacing(5)
+        .align_items(iced::Alignment::Center)
+        .width(length)
+        .into()
+    }
 
-        let progress_col = container(if !self.error.is_empty() {
-            row!().push(text("Failed").size(text_size))
-        } else if self.joined_bytes > 0 {
-            row!()
-                .spacing(5)
-                .align_items(iced::Alignment::Center)
-                .push(
-                    progress_bar(0.0..=100.0, ((100 * self.joined_bytes) / self.size) as f32)
-                        .height(iced::Length::Fixed(5.0)),
-                )
-                .push(
-                    text(format!(
-                        "{0:>4.2} %",
-                        if progress.is_nan() { 0.0 } else { progress }
-                    ))
-                    .size(text_size),
-                )
-        } else if self.size != 0 && self.downloaded >= self.size && !self.joining {
-            row!().push(text("Completed").size(text_size))
-        } else if self.joining {
-            row!().push(text("Joining").size(text_size))
+    fn get_status_view(
+        &self,
+        layout: ListLayout,
+        text_size: f32,
+        responsive: bool,
+    ) -> Element<DownloadMessage, Theme, Renderer> {
+        let length = if matches!(layout, ListLayout::List) {
+            Length::Fill
         } else {
-            row!()
-                .spacing(5)
-                .align_items(iced::Alignment::Center)
-                .push(progress_bar(0.0..=100.0, progress).height(iced::Length::Fixed(5.0)))
-                .push(
-                    text(format!(
-                        "{0:>4.2} %",
-                        if progress.is_nan() { 0.0 } else { progress }
-                    ))
-                    .size(text_size),
-                )
-        })
-        .width(iced::Length::Fixed(180.0))
-        .style(AtomStyleContainer::Transparent)
-        .align_x(iced::alignment::Horizontal::Center);
+            Length::Shrink
+        };
 
+        if !self.error.is_empty() {
+            return self.get_failed_view(text_size, length);
+        } else if self.joined_bytes > 0 {
+            return self.get_joining_progress_view(text_size, length);
+        } else if self.size != 0 && self.downloaded >= self.size && !self.joining {
+            return self.get_completed_view(text_size, length);
+        } else if self.joining {
+            return self.get_joining_view(text_size, length);
+        }
+
+        let progress = self.get_progress_percent();
+        let percent_el = text(self.get_formatted_progress_percent(true)).size(text_size - 2.0);
+        let progress_bar_el = progress_bar(0.0..=100.0, progress).height(iced::Length::Fixed(5.0));
+        let mut progress_row = row!()
+            .spacing(5)
+            .align_items(iced::Alignment::Center)
+            .width(length);
+
+        match layout {
+            ListLayout::ListExtended => {
+                progress_row = progress_row
+                    .push(icon('\u{eff4}', CustomFont::IcoFont).size(text_size))
+                    .push(progress_bar_el)
+                    .push(percent_el);
+                return progress_row.into();
+            }
+            ListLayout::List => {
+                let mut upper_row = row!().align_items(iced::Alignment::Center);
+                if responsive {
+                    upper_row = upper_row.push(
+                        text(self.get_formatted_transfer_rate())
+                            .width(Length::Fill)
+                            .size(text_size - 2.0),
+                    );
+                }
+
+                upper_row = upper_row.push(
+                    text(self.get_formatted_eta())
+                        .width(Length::Shrink)
+                        .size(text_size - 2.0),
+                );
+
+                progress_row = progress_row.push(
+                    col![
+                        upper_row,
+                        row![progress_bar_el, percent_el]
+                            .align_items(iced::Alignment::Center)
+                            .spacing(5)
+                    ]
+                    .align_items(iced::Alignment::Start)
+                    .spacing(5),
+                );
+            }
+        }
+
+        progress_row.into()
+    }
+
+    fn get_transfer_rate_view(&self, text_size: f32) -> Element<DownloadMessage, Theme, Renderer> {
+        col![text(self.get_formatted_transfer_rate()).size(text_size)]
+            .width(iced::Length::Fill)
+            .align_items(iced::Alignment::Start)
+            .into()
+    }
+
+    fn get_actions_view(&self, length: Length) -> Element<DownloadMessage, Theme, Renderer> {
         let mut actions_row = row!().spacing(5);
         if !self.deleted {
-            let mut start_pause_btn = GuiElements::round_button(download_state_icon);
+            let mut start_pause_btn = GuiElements::round_button(self.get_download_state_icon());
             // let mut edit_btn = GuiElements::round_button('\u{ec55}');
 
             if self.downloading && self.downloaded <= self.size {
@@ -147,122 +299,223 @@ impl AtomDownload {
                 .padding(10),
             );
         }
+        container(actions_row)
+            .width(length)
+            // .width(Length::Fixed(95.0))
+            .style(AtomStyleContainer::Transparent)
+            .align_x(iced::alignment::Horizontal::Right)
+            .into()
+    }
+
+    fn list_view(
+        &self,
+        responsive: bool,
+        text_size: f32,
+    ) -> Element<DownloadMessage, Theme, Renderer> {
+        let text_size = text_size - 2.0;
+        let file_name_col = self.get_file_name_view(text_size);
+        let file_size_col = self.get_file_size_view(text_size);
+        let status_col = self.get_status_view(ListLayout::List, text_size, responsive);
+        let transfer_rate_col = self.get_transfer_rate_view(text_size);
+        let actions_col = self.get_actions_view(Length::Fixed(75.0));
+
+        let mut main_row = row!()
+            .align_items(iced::Alignment::Center)
+            .padding(10)
+            .spacing(15)
+            .push(file_name_col)
+            .push(file_size_col)
+            .push(status_col);
+
+        if !responsive {
+            main_row = main_row.push(transfer_rate_col);
+        }
+
+        main_row = main_row
+            .push(text(&self.added).size(text_size).width(Length::Fill))
+            .push(actions_col);
+
+        col!().push(main_row).into()
+    }
+
+    fn get_extended_file_name_view(
+        &self,
+        text_size: f32,
+    ) -> Element<DownloadMessage, Theme, Renderer> {
+        let path_buf = PathBuf::from(&self.file_name);
+        let extension = path_buf
+            .extension()
+            .unwrap_or_else(|| OsStr::new(""))
+            .to_string_lossy();
+
+        row![
+            icon('\u{ee57}', CustomFont::Symbols).size(text_size),
+            file_type_icon(&extension).size(text_size * 2.5),
+            col![
+                text(&self.file_name).size(text_size - 2.0),
+                row![
+                    text(get_file_type(&extension))
+                        .size(text_size - 4.0)
+                        .style(AtomStyleText::Dimmed),
+                    text("•").style(AtomStyleText::Dimmed),
+                    icon('\u{ec45}', CustomFont::IcoFont)
+                        .size(text_size - 6.0)
+                        .style(AtomStyleText::Dimmed),
+                    text(&self.added)
+                        .size(text_size - 4.0)
+                        .style(AtomStyleText::Dimmed)
+                ]
+                .spacing(5)
+                .align_items(iced::Alignment::Center),
+            ]
+            .spacing(5)
+            .align_items(iced::Alignment::Start),
+        ]
+        .width(Length::FillPortion(5))
+        .align_items(iced::Alignment::Center)
+        .spacing(10)
+        .into()
+    }
+
+    fn get_extended_file_size_view(
+        &self,
+        text_size: f32,
+    ) -> Element<DownloadMessage, Theme, Renderer> {
+        let downloaded = self.get_formatted_size(self.downloaded);
+        let size = self.get_formatted_size(self.size);
+        let icon_size = text_size - 4.0;
+        let text_size = text_size - 4.0;
+
+        col![col![
+            row![
+                icon('\u{e90b}', CustomFont::IcoFont)
+                    .size(icon_size)
+                    .style(AtomStyleText::Dimmed),
+                text("Size").style(AtomStyleText::Dimmed).size(text_size),
+            ]
+            .spacing(5)
+            .align_items(iced::Alignment::Center),
+            row![text(format!(
+                "{0:<4.2} {1} of {2:>4.2} {3}",
+                downloaded.0, downloaded.1, size.0, size.1
+            ))
+            .size(text_size),]
+            .spacing(5)
+            .align_items(iced::Alignment::Center)
+        ]
+        .spacing(10)
+        .align_items(iced::Alignment::Start)]
+        .spacing(0)
+        .align_items(iced::Alignment::Center)
+        .width(Length::FillPortion(2))
+        .into()
+    }
+
+    fn get_extended_speed_view(&self, text_size: f32) -> Element<DownloadMessage, Theme, Renderer> {
+        let icon_size = text_size - 4.0;
+        let text_size = text_size - 4.0;
+
+        col![col![
+            row![
+                icon('\u{eff3}', CustomFont::IcoFont)
+                    .size(icon_size)
+                    .style(AtomStyleText::Dimmed),
+                text("Speed").style(AtomStyleText::Dimmed).size(text_size),
+            ]
+            .spacing(5)
+            .align_items(iced::Alignment::Center),
+            row![
+                text(self.get_formatted_transfer_rate()).size(text_size),
+                text("in").size(text_size),
+                text(self.get_formatted_eta()).size(text_size)
+            ]
+            .spacing(5)
+            .align_items(iced::Alignment::Center)
+        ]
+        .spacing(10)
+        .align_items(iced::Alignment::Start)]
+        .spacing(0)
+        .align_items(iced::Alignment::Center)
+        .width(Length::FillPortion(2))
+        .into()
+    }
+
+    fn get_extended_status_view(
+        &self,
+        text_size: f32,
+    ) -> Element<DownloadMessage, Theme, Renderer> {
+        let icon_size = text_size - 4.0;
+        let text_size = text_size - 4.0;
+
+        col![col![
+            row![
+                icon('\u{e982}', CustomFont::IcoFont)
+                    .size(icon_size)
+                    .style(AtomStyleText::Dimmed),
+                text("Status").size(text_size).style(AtomStyleText::Dimmed),
+            ]
+            .spacing(5)
+            .align_items(iced::Alignment::Center),
+            self.get_status_view(ListLayout::ListExtended, text_size, false)
+        ]
+        .spacing(10)
+        .align_items(iced::Alignment::Start)]
+        .spacing(0)
+        .align_items(iced::Alignment::Center)
+        .width(Length::FillPortion(2))
+        .into()
+    }
+
+    fn vertical_line(&self) -> Element<DownloadMessage, Theme, Renderer> {
+        col![container(
+            vertical_space()
+                .height(Length::Fixed(30.0))
+                .width(Length::Fixed(1.0)),
+        )
+        .style(AtomStyleContainer::ListItemContainer)
+        .width(Length::Fixed(1.0))]
+        .align_items(iced::Alignment::Center)
+        .width(Length::Shrink)
+        .into()
+    }
+
+    fn list_extended_view(&self, text_size: f32) -> Element<DownloadMessage, Theme, Renderer> {
+        let actions_col = self.get_actions_view(Length::Shrink);
+
+        col![row![
+            self.get_extended_file_name_view(text_size),
+            self.vertical_line(),
+            self.get_extended_file_size_view(text_size),
+            self.vertical_line(),
+            self.get_extended_speed_view(text_size),
+            self.vertical_line(),
+            self.get_extended_status_view(text_size),
+            self.vertical_line(),
+            actions_col
+        ]
+        .spacing(10)
+        .align_items(iced::Alignment::Center)
+        .width(Length::Fill)]
+        .padding(10)
+        .spacing(5)
+        .into()
+    }
+
+    pub fn view(
+        &self,
+        layout: &ListLayout,
+        responsive: bool,
+    ) -> Element<DownloadMessage, Theme, Renderer> {
+        let text_size = 16.0 - if responsive { 4.0 } else { 2.0 };
 
         let main_row = match layout {
             crate::components::settings::ListLayout::ListExtended => {
-                let icon_size = 12.0;
-                col!()
-                    .padding(10)
-                    .spacing(10)
-                    .push(
-                        row!()
-                            .spacing(10)
-                            .align_items(iced::Alignment::Center)
-                            .push(file_name_col.width(Length::Fill))
-                            .push(actions_row.align_items(iced::Alignment::Center)),
-                    )
-                    .push(
-                        container(horizontal_space().width(Length::Fill))
-                            .height(Length::Fixed(1.0))
-                            .style(AtomStyleContainer::ListItemContainer)
-                            .width(Length::Fill),
-                    )
-                    .push(
-                        row!()
-                            .spacing(20)
-                            .align_items(iced::Alignment::Center)
-                            .push(
-                                row!()
-                                    .spacing(5)
-                                    .align_items(iced::Alignment::Center)
-                                    .push(icon('\u{ec45}', CustomFont::IcoFont).size(icon_size))
-                                    .push(text(&self.added).size(text_size)),
-                            )
-                            .push(text("•"))
-                            .push(
-                                row!()
-                                    .spacing(5)
-                                    .align_items(iced::Alignment::Center)
-                                    .push(icon('\u{efbe}', CustomFont::IcoFont).size(icon_size))
-                                    .push(file_size_col.width(Length::Shrink)),
-                            )
-                            .push(text("•"))
-                            .push(
-                                row!()
-                                    .spacing(5)
-                                    .align_items(iced::Alignment::Center)
-                                    .push(icon('\u{eff3}', CustomFont::IcoFont).size(icon_size))
-                                    .push(text(&transfer_rate).size(text_size)),
-                            )
-                            .push(text("•"))
-                            .push(
-                                row!()
-                                    .spacing(5)
-                                    .align_items(iced::Alignment::Center)
-                                    .push(icon('\u{f022}', CustomFont::IcoFont).size(icon_size))
-                                    .push(text(&eta).size(text_size)),
-                            )
-                            .push(text("•"))
-                            .push(
-                                row!()
-                                    .spacing(5)
-                                    .align_items(iced::Alignment::Center)
-                                    .push(
-                                        icon(
-                                            if self.error.is_empty() {
-                                                if progress >= 100.0 {
-                                                    '\u{eed7}'
-                                                } else {
-                                                    '\u{ec60}'
-                                                }
-                                            } else {
-                                                '\u{eede}'
-                                            },
-                                            CustomFont::IcoFont,
-                                        )
-                                        .size(icon_size),
-                                    )
-                                    .push(progress_col.width(Length::Shrink)),
-                            ),
-                    )
+                self.list_extended_view(text_size)
             }
-            crate::components::settings::ListLayout::List => col!().push(
-                row!()
-                    .align_items(iced::Alignment::Center)
-                    .padding(10)
-                    .spacing(10)
-                    .push(file_name_col)
-                    .push(file_size_col)
-                    .push(progress_col)
-                    .push(
-                        container(text(&transfer_rate).size(text_size))
-                            .width(iced::Length::Fixed(100.0))
-                            .style(AtomStyleContainer::Transparent)
-                            .align_x(iced::alignment::Horizontal::Center),
-                    )
-                    .push(
-                        container(text(&eta).size(text_size))
-                            .width(iced::Length::Fixed(100.0))
-                            .style(AtomStyleContainer::Transparent)
-                            .align_x(iced::alignment::Horizontal::Left),
-                    )
-                    .push(
-                        container(text(&self.added).size(text_size))
-                            .width(iced::Length::Fixed(80.0))
-                            .style(AtomStyleContainer::Transparent)
-                            .align_x(iced::alignment::Horizontal::Left),
-                    )
-                    .push(
-                        container(actions_row)
-                            .width(iced::Length::Fixed(75.0))
-                            // .width(iced::Length::Fixed(95.0))
-                            .style(AtomStyleContainer::Transparent)
-                            .align_x(iced::alignment::Horizontal::Right),
-                    ),
-            ),
+            crate::components::settings::ListLayout::List => self.list_view(responsive, text_size),
         };
 
-        let mut download_container = container(
+        let download_container = container(
             button(main_row)
                 .on_press(if self.deleted {
                     DownloadMessage::Ignore
@@ -273,13 +526,8 @@ impl AtomDownload {
                 .style(AtomStyleButton::Neutral),
         )
         .width(iced::Length::Shrink)
-        .padding(0);
-
-        if self.error.is_empty() {
-            download_container = download_container.style(AtomStyleContainer::ListItemContainer);
-        } else {
-            download_container = download_container.style(AtomStyleContainer::ErrorContainer);
-        }
+        .padding(0)
+        .style(AtomStyleContainer::ListItemContainer);
 
         if self.show_delete_confirm_dialog {
             let move2trash_btn = tooltip(

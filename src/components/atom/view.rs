@@ -50,21 +50,23 @@ impl<'a> Atom<'a> {
         };
 
         let icons_only = (self.metadata.enabled || !self.settings.sidebar_collapsed)
-            || self.settings.scaling > 1.24;
+            || self.settings.scaling >= 1.15;
+        let responsive = (self.dimensions.0 < 1025 || self.dimensions.1 < 577) && icons_only;
 
-        let filtered_content = scrollable(filtered_downloads.fold(
-            col!().padding(1).spacing(match self.settings.list_layout {
-                crate::components::settings::ListLayout::ListExtended => 10,
-                crate::components::settings::ListLayout::List => 0,
-            }),
-            |column, (index, download)| {
+        let mut count = 0;
+
+        let mut downloads =
+            filtered_downloads.fold(col!().spacing(0), |column, (index, download)| {
+                count += 1;
                 column.push(
                     download
-                        .view(&self.settings.list_layout)
+                        .view(&self.settings.list_layout, responsive)
                         .map(|message| Message::Download(message, *index)),
                 )
-            },
-        ));
+            });
+        downloads = downloads.padding(if count > 0 { 1 } else { 0 });
+
+        let filtered_content = scrollable(downloads);
 
         if self.downloads.is_empty()
             && !matches!(self.filter_type, DownloadsListFilterMessage::Deleted)
@@ -81,14 +83,24 @@ impl<'a> Atom<'a> {
             );
 
             let downloads_list_col = match self.settings.list_layout {
-                crate::components::settings::ListLayout::ListExtended => col!()
-                    .spacing(10)
-                    .push(filters_view)
-                    .push(filtered_content.height(Length::FillPortion(1)).direction(
-                        scrollable::Direction::Vertical(
-                            Properties::new().margin(0).scroller_width(0).width(0),
-                        ),
-                    )),
+                crate::components::settings::ListLayout::ListExtended => {
+                    col!().spacing(10).push(filters_view).push(
+                        container(
+                            filtered_content
+                                .height(if self.settings.stretch_list_view {
+                                    Length::Fill
+                                } else {
+                                    Length::Shrink
+                                })
+                                .direction(scrollable::Direction::Vertical(
+                                    Properties::new().margin(0).scroller_width(0).width(0),
+                                )),
+                        )
+                        .width(Length::Fill)
+                        .padding(0)
+                        .style(AtomStyleContainer::ListHeaderContainer),
+                    )
+                }
                 crate::components::settings::ListLayout::List => col!()
                     .spacing(10)
                     // .push(self.filters.view(&self.sidebar.active, &self.downloads))
@@ -103,7 +115,7 @@ impl<'a> Atom<'a> {
                                         .width(Length::Fill),
                                 )
                                 .push(
-                                    col!().push(listview_header::view()).push(
+                                    col!().push(listview_header::view(responsive)).push(
                                         container(text(" ").size(10))
                                             .height(iced::Length::Fixed(1.0))
                                             .width(iced::Length::Fill)

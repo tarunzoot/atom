@@ -21,7 +21,7 @@ pub const SYMBOLS: iced::Font = iced::Font::with_name("Symbols Nerd Font Mono");
 
 pub fn file_type_icon(file_type: &str) -> Text<'static, Theme, Renderer> {
     let file_icon = match &file_type.to_lowercase()[..] {
-        "jpg" | "jpeg" | "png" | "tiff" | "gif" | "webp" | "bmp" => '\u{ef4b}',
+        "jpg" | "jpeg" | "png" | "tiff" | "gif" | "webp" | "bmp" => '\u{eb1a}',
         "js" | "json" | "html" | "css" | "jsx" | "gulp" | "php" | "sass" | "scss" | "py"
         | "pyd" | "pyc" | "rs" | "java" | "vue" | "sh" | "bat" | "cmd" | "go" | "vim" | "c"
         | "cpp" | "h" | "hpp" => '\u{eb0c}',
@@ -44,6 +44,30 @@ pub fn file_type_icon(file_type: &str) -> Text<'static, Theme, Renderer> {
         _ => '\u{eb12}',
     };
     icon(file_icon, CustomFont::IcoFont)
+}
+
+pub fn get_file_type(file_type: &str) -> &str {
+    match &file_type.to_lowercase()[..] {
+        "jpg" | "jpeg" | "png" | "tiff" | "gif" | "webp" | "bmp" => "Image",
+        "js" | "json" | "html" | "css" | "jsx" | "gulp" | "php" | "sass" | "scss" | "py"
+        | "pyd" | "pyc" | "rs" | "java" | "vue" | "sh" | "bat" | "cmd" | "go" | "vim" | "c"
+        | "cpp" | "h" | "hpp" => "Programming",
+        "ttf" | "woff" | "woff2" | "otf" | "eot" => "Font",
+        "mp4" | "mkv" | "webm" | "ts" | "mov" | "avi" | "wmv" | "flv" | "f4v" | "swf" | "mpeg" => {
+            "Video"
+        }
+        "ini" | "conf" | "toml" | "lock" | "xml" | "xhtml" | "xshtml" | "plist" => "Configuration",
+        "url" | "link" | "desktop" => "Shortcut",
+        "pdf" | "docx" | "doc" | "odt" | "md" | "ppt" | "pptx" => "Document",
+        "zip" | "gz" | "7z" | "rar" | "xz" | "tar.xz" | "iso" => "Archive",
+        "vmdk" | "vdi" => "Virtual Machine",
+        "deb" | "exe" | "msi" | "rpm" | "bin" | "appImage" | "dmg" => "Executable",
+        "ai" | "psd" => "Graphic",
+        "sql" | "csv" | "db" | "tsv" => "Database",
+        "txt" => "Text",
+        "mp3" | "wma" | "flac" | "midi" | "opus" | "m3u" | "ogg" | "oga" => "Audio",
+        _ => "Generic",
+    }
 }
 
 pub enum CustomFont {

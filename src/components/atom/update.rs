@@ -86,14 +86,14 @@ impl<'a> Atom<'a> {
                     }
                 }
 
-                // if let Event::Window(Id::MAIN, window::Event::Resized { width, height }) = event {
-                //     // self.dimensions = (*width, *height);
-                //     if *width <= 1025 || *height <= 600 {
-                //         self.phantom_settings.scaling = 0.80;
-                //     } else {
-                //         self.phantom_settings.scaling = self.settings.scaling;
-                //     }
-                // }
+                if let Event::Window(Id::MAIN, window::Event::Resized { width, height }) = event {
+                    self.dimensions = (*width, *height);
+                    // if *width <= 1025 || *height <= 600 {
+                    //     self.phantom_settings.scaling = 0.80;
+                    // } else {
+                    //     self.phantom_settings.scaling = self.settings.scaling;
+                    // }
+                }
 
                 if let Event::Mouse(iced::mouse::Event::ButtonPressed(iced::mouse::Button::Left)) =
                     event

@@ -16,7 +16,6 @@ pub enum AtomStyleContainer {
     LogoContainer,
     ListContainer,
     ListItemContainer,
-    ErrorContainer,
     PreviewContainer,
     ButtonContainer,
     HeaderContainer,
@@ -26,6 +25,8 @@ pub enum AtomStyleContainer {
     ToolTipContainer,
     MenuBarActiveContainer,
     MenuBarInActiveContainer,
+    PillSuccess,
+    PillError,
 }
 
 impl AtomStyleContainer {
@@ -100,6 +101,8 @@ impl container::StyleSheet for Theme {
                 AtomStyleContainer::MenuBarActiveContainer => Some(color!(215, 252, 112)),
                 AtomStyleContainer::MenuBarInActiveContainer
                 | AtomStyleContainer::ButtonContainer => None,
+                AtomStyleContainer::PillError => Some(appearance.text),
+                AtomStyleContainer::PillSuccess => Some(style.color_offset(appearance.text, 180.0)),
                 _ => Some(appearance.text),
             },
             shadow: Shadow::default(),
@@ -131,15 +134,14 @@ impl container::StyleSheet for Theme {
                         style.color_offset(appearance.background, 10.0),
                     )),
                 },
+                AtomStyleContainer::PillSuccess => Some(Background::Color(appearance.accent)),
+                AtomStyleContainer::PillError => Some(Background::Color(color!(251, 50, 50, 0.7))),
                 AtomStyleContainer::Transparent
                 | AtomStyleContainer::ButtonContainer
                 | AtomStyleContainer::MenuBarInActiveContainer
                 | AtomStyleContainer::HeaderButtonsContainer => None,
                 AtomStyleContainer::ListItemContainer => Some(Background::Color(
                     style.color_offset(appearance.background, 15.0),
-                )),
-                AtomStyleContainer::ErrorContainer => Some(Background::Color(
-                    style.color_offset(appearance.background, 20.0),
                 )),
                 AtomStyleContainer::PreviewContainer => Some(Background::Color(
                     style.color_offset(appearance.background, 20.0),
@@ -159,15 +161,15 @@ impl container::StyleSheet for Theme {
                     | AtomStyleContainer::ToolTipContainer => Radius::from(10.0),
                     AtomStyleContainer::PreviewContainer
                     | AtomStyleContainer::ListHeaderContainer
-                    | AtomStyleContainer::ListItemContainer
-                    | AtomStyleContainer::ErrorContainer => Radius::from(5.0),
+                    | AtomStyleContainer::ListItemContainer => Radius::from(5.0),
+                    AtomStyleContainer::PillError | AtomStyleContainer::PillSuccess => {
+                        Radius::from(20.0)
+                    }
                     _ => Radius::from(0.0),
                 },
                 width: match style {
                     AtomStyleContainer::ListContainer => 2.0,
-                    AtomStyleContainer::ErrorContainer | AtomStyleContainer::ListItemContainer => {
-                        1.0
-                    }
+                    AtomStyleContainer::ListItemContainer => 1.0,
                     AtomStyleContainer::ToolTipContainer => 0.5,
                     AtomStyleContainer::MenuBarActiveContainer => 0.1,
                     _ => 0.0,
@@ -179,7 +181,6 @@ impl container::StyleSheet for Theme {
                     AtomStyleContainer::ListItemContainer => {
                         style.color_offset(appearance.background, 30.0)
                     }
-                    AtomStyleContainer::ErrorContainer => color!(251, 50, 50, 0.7),
                     AtomStyleContainer::ListHeaderContainer => appearance.accent,
                     AtomStyleContainer::ToolTipContainer
                     | AtomStyleContainer::HeaderButtonsContainer
