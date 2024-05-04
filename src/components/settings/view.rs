@@ -116,8 +116,8 @@ impl AtomSettings {
         .gap(5);
 
         let close_btn_toggler = toggler(
-            Some("Close button quits the app".into()),
-            self.quit_action_closes_app,
+            Some("Minimize to tray".into()),
+            self.minimize_to_tray,
             SettingsMessage::QuitActionToggle,
         )
         .spacing(10)
@@ -125,7 +125,7 @@ impl AtomSettings {
         .width(iced::Length::Shrink);
 
         let maximized_toggler = toggler(
-            Some("Start Maximized           ".into()),
+            Some("Start Maximized ".into()),
             self.maximized,
             SettingsMessage::MaximizedActionToggle,
         )
@@ -285,10 +285,10 @@ impl AtomSettings {
                                             "Font Size : {0:>2.0}",
                                             self.font_size.floor()
                                         )),
-                                        slider(12.0..=28.00, self.font_size, |font_size| {
+                                        slider(12.0..=28.0, self.font_size, |font_size| {
                                             SettingsMessage::TextSizeChanged(font_size)
                                         })
-                                        .step(0.01)
+                                        .step(1.0)
                                         .width(iced::Length::Fill),
                                     ]
                                     .width(Length::Fill)

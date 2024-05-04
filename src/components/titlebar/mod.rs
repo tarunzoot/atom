@@ -85,13 +85,11 @@ impl AtomTitleBar {
                                                     button(icon('\u{eee1}', CustomFont::IcoFont))
                                                         .padding(14)
                                                         .style(AtomStyleButton::HeaderButtons)
-                                                        .on_press(
-                                                            if settings.quit_action_closes_app {
-                                                                TitleBarMessage::AppExit
-                                                            } else {
-                                                                TitleBarMessage::AppHide
-                                                            },
-                                                        ),
+                                                        .on_press(if settings.minimize_to_tray {
+                                                            TitleBarMessage::AppExit
+                                                        } else {
+                                                            TitleBarMessage::AppHide
+                                                        }),
                                                 ),
                                         )
                                         .style(AtomStyleContainer::HeaderButtonsContainer),

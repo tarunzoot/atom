@@ -32,7 +32,7 @@ impl AtomSettings {
             SettingsMessage::TextSizeChanged(text_size) => self.font_size = text_size,
             SettingsMessage::ThreadsChanged(threads) => self.threads = threads,
             SettingsMessage::NotificationToggle(checked) => self.show_notifications = checked,
-            SettingsMessage::QuitActionToggle(checked) => self.quit_action_closes_app = checked,
+            SettingsMessage::QuitActionToggle(checked) => self.minimize_to_tray = checked,
             SettingsMessage::MaximizedActionToggle(checked) => self.maximized = checked,
             SettingsMessage::AutoStartDownloadToggle(checked) => self.auto_start_download = checked,
             SettingsMessage::ListBackgroundToggle(checked) => self.stretch_list_view = checked,

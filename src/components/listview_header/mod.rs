@@ -33,7 +33,7 @@ pub fn view(responsive: bool) -> Element<'static, Message, Theme, Renderer> {
             .spacing(7)
             .align_items(iced::Alignment::Center)
             .push(icon('\u{f022}', CustomFont::IcoFont).size(icon_size - 2))
-            .push(text("E . T . A").size(text_size).font(font)),
+            .push(text("E.T.A").size(text_size).font(font)),
     )
     .style(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
