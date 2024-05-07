@@ -174,10 +174,14 @@ impl AtomDownload {
         text_size: f32,
         length: Length,
     ) -> Element<DownloadMessage, Theme, Renderer> {
-        row![container(row![
-            icon('\u{e984}', CustomFont::IcoFont).size(text_size - 2.0),
-            text("Joining").size(text_size)
-        ])
+        row![container(
+            row![
+                icon('\u{e984}', CustomFont::IcoFont).size(text_size - 2.0),
+                text("Joining").size(text_size)
+            ]
+            .spacing(5)
+            .align_items(iced::Alignment::Center),
+        )
         .style(AtomStyleContainer::PillSuccess)
         .padding(Padding::from([3, 10])),]
         .width(length)
