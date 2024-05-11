@@ -76,6 +76,7 @@ impl<'a> Atom<'a> {
             .brotli(true)
             .gzip(true)
             .deflate(true)
+            .zstd(true)
             .referer(true)
             .build()
             .expect("Error: cannot create download client.");

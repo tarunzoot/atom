@@ -1,31 +1,28 @@
 var webRequests = [];
 
-// chrome.webRequest.onHeadersReceived.addListener((details) =>
-// {
-//     console.log('onHeadersReceived')
-//     console.log(details)
-// }, {
-//     urls: [
-//         '<all_urls>'
-//     ],
-//     types: [
-//         'main_frame',
-//         'sub_frame',
-//     ]
-// }, [
-//     'responseHeaders',
-//     'extraHeaders'
-// ])
+// chrome.webRequest.onHeadersReceived.addListener(
+//     (details) => {
+//         console.log('onHeadersReceived');
+//         console.log(details);
+//     },
+//     {
+//         urls: ['<all_urls>'],
+//         types: ['main_frame', 'sub_frame'],
+//     },
+//     ['responseHeaders', 'extraHeaders']
+// );
 
 chrome.webRequest.onResponseStarted.addListener(
     (details) => {
-        let index = webRequests.findIndex((i) => i.url == details.url);
+        let index = webRequests.findIndex((i) => i.url === details.url);
         if (index != -1) {
             const contentLengthIndex = details.responseHeaders.findIndex(
                 (f) => f.name.toLowerCase() == 'content-length'
             );
-            const acceptRangesIndex = details.responseHeaders.findIndex((f) => f.name.toLowerCase() == 'accept-ranges');
-            if (contentLengthIndex != -1 && acceptRangesIndex != -1) {
+            const acceptRangesIndex = details.responseHeaders.findIndex(
+                (f) => f.name.toLowerCase() === 'accept-ranges'
+            );
+            if (contentLengthIndex !== -1 && acceptRangesIndex !== -1) {
                 if (
                     details.responseHeaders[contentLengthIndex].value > 0 &&
                     /bytes/.test(details.responseHeaders[acceptRangesIndex].value)
@@ -45,7 +42,7 @@ chrome.webRequest.onResponseStarted.addListener(
 
 chrome.webRequest.onBeforeSendHeaders.addListener(
     (details) => {
-        let index = webRequests.findIndex((i) => i.url == details.url);
+        let index = webRequests.findIndex((i) => i.url === details.url);
         if (index != -1) {
             webRequests[index].requestHeaders = details.requestHeaders;
             chrome.storage.local.set({ httpRequests: webRequests });
@@ -134,11 +131,11 @@ function handleDownload(e) {
             referer: e.referrer,
         };
 
-        let index = httpRequests.httpRequests.findIndex((i) => i.url == e.finalUrl);
+        let index = httpRequests.httpRequests.findIndex((i) => i.url === e.finalUrl);
         if (index != -1) {
             let req = httpRequests.httpRequests[index];
             jsonObject.sequential = req.sequential;
-            if (req.method == 'POST') {
+            if (req.method === 'POST') {
                 jsonObject.method = 'POST';
                 jsonObject.body = new URLSearchParams(req.body.formData).toString();
             }

@@ -27,7 +27,7 @@ impl AtomDownloadForm {
             file_name: format!("{}/{}", settings.downloads_dir, download.file_name),
             size: download.size,
             headers: download.headers,
-            sequential: download.size == 0,
+            sequential: download.size == 0 || download.sequential,
             is_valid_url: true,
             ..Default::default()
         }

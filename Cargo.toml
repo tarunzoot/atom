@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-reqwest = {version = "0.12", features = ["brotli", "deflate", "gzip"]}
+reqwest = {version = "0.12", features = ["brotli", "deflate", "gzip", "zstd"]}
 ring = "0.17"
 directories = "5"
 urlencoding = "2"
