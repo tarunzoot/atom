@@ -112,15 +112,17 @@ function postData(jsonObject, id) {
 }
 
 function handleDownload(e) {
-    if (/^blob/.test(e.finalUrl || e.url)) return;
+    let url = e.finalUrl || e.url;
+    if (/^blob/.test(url)) return;
+    let referer = new URL(url).origin;
 
     let jsonObject = {
-        url: e.finalUrl || e.url,
+        url: url,
         size: e.fileSize > 0 ? e.fileSize : 0,
         file_name: e.filename.split('/').reverse().shift(),
         method: 'GET',
         headers: {
-            referer: e.referrer,
+            referer: referer,
         },
         body: '',
         sequential: true,
@@ -128,7 +130,7 @@ function handleDownload(e) {
 
     chrome.storage.local.get('httpRequests', (httpRequests) => {
         let headers = {
-            referer: e.referrer,
+            referer: referer,
         };
 
         let index = httpRequests.httpRequests.findIndex((i) => i.url === e.finalUrl);
