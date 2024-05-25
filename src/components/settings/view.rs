@@ -273,11 +273,18 @@ impl AtomSettings {
                                     .width(Length::Fill),
                                     col![
                                         text(format!("UI Scaling : {0:>1.2}", self.scaling)),
-                                        slider(0.70..=2.00, self.scaling, |scaling| {
-                                            SettingsMessage::ScalingChanged(scaling)
-                                        })
-                                        .step(0.01)
-                                        .width(iced::Length::Fill),
+                                        tooltip(
+                                            slider(0.70..=2.00, self.scaling, |scaling| {
+                                                SettingsMessage::ScalingChanged(scaling)
+                                            })
+                                            .step(0.01)
+                                            .width(iced::Length::Fill),
+                                            text("Resize window if not applied properly").size(12),
+                                            tooltip::Position::Top
+                                        )
+                                        .style(AtomStyleContainer::ToolTipContainer)
+                                        .padding(10)
+                                        .gap(5),
                                     ]
                                     .width(Length::Fill),
                                     col![
