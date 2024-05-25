@@ -43,10 +43,9 @@ impl AtomDownloadForm {
             }
             DownloadFormMessage::AddHeaderName(header_name) => self.header_name = header_name,
             DownloadFormMessage::AddHeaderValue(header_value) => self.header_value = header_value,
-            DownloadFormMessage::EditHeader(header_name) => {
-                if self.headers.contains_key(&header_name) {
-                    self.header_value = self.headers.get(&header_name).unwrap().to_string();
-                    self.header_name = header_name;
+            DownloadFormMessage::EditHeaderValue(header_name, header_value) => {
+                if let Some(hv) = self.headers.get_mut(&header_name) {
+                    *hv = header_value;
                 }
             }
             DownloadFormMessage::DeleteHeader(header_name) => {

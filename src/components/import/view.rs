@@ -24,11 +24,7 @@ impl AtomImport {
             col!()
                 .spacing(20)
                 .padding(Padding::from([0, 10, 10, 10]))
-                .push(
-                    container(text("Import Links"))
-                        .style(AtomStyleContainer::LogoContainer)
-                        .padding(Padding::from([10, 30, 10, 30])),
-                )
+                .push(GuiElements::panel_title("Import Links"))
                 .push(
                     col!().spacing(5).push(text("Select File")).push(
                         row!()

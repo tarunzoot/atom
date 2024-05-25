@@ -3,51 +3,53 @@ use crate::{
     elements::GuiElements,
     font::{icon, CustomFont},
     messages::DownloadFormMessage,
-    style::{container::AtomStyleContainer, input::AtomStyleInput, Theme},
+    style::{container::AtomStyleContainer, input::AtomStyleInput, AtomStyleText, Theme},
     utils::helpers::ATOM_INPUT_DEFAULT_PADDING,
 };
 use iced::{
     advanced::graphics::core::Element,
     widget::{
         column as col, container, row, scrollable, scrollable::Properties, text, text_input,
-        toggler, tooltip, tooltip::Position,
+        toggler, tooltip, tooltip::Position, vertical_space,
     },
     Length, Padding, Renderer,
 };
 
 impl AtomDownloadForm {
     fn headers_view(&self) -> Element<DownloadFormMessage, Theme, Renderer> {
+        let text_size = 12;
         self.headers
             .iter()
             .fold(
-                col!().align_items(iced::Alignment::Center),
+                col!().spacing(2).align_items(iced::Alignment::Center),
                 |column, header| {
                     column.push(
                         container(
-                            row!()
-                                .padding(Padding::from([5, 10]))
-                                .spacing(10)
-                                .align_items(iced::Alignment::Center)
-                                .push(
-                                    text(header.0.to_string())
-                                        .width(iced::Length::Fixed(300.0))
-                                        .size(14),
-                                )
-                                .push(text(header.1).width(iced::Length::Fill).size(14))
-                                .push(
-                                    GuiElements::round_button('\u{ec55}')
-                                        .on_press(DownloadFormMessage::EditHeader(
+                            row![
+                                icon('\u{ee57}', CustomFont::Symbols)
+                                    .style(AtomStyleText::Dimmed)
+                                    .size(text_size - 2),
+                                text(header.0.to_string())
+                                    .width(iced::Length::Fixed(300.0))
+                                    .size(text_size),
+                                text_input("header value here...", header.1)
+                                    .on_input(|value| {
+                                        DownloadFormMessage::EditHeaderValue(
                                             header.0.to_string(),
-                                        ))
-                                        .width(iced::Length::Shrink),
-                                )
-                                .push(
-                                    GuiElements::round_button('\u{ec53}')
-                                        .on_press(DownloadFormMessage::DeleteHeader(
-                                            header.0.to_string(),
-                                        ))
-                                        .width(iced::Length::Shrink),
-                                ),
+                                            value,
+                                        )
+                                    })
+                                    .style(AtomStyleInput::Dimmed)
+                                    .size(text_size),
+                                GuiElements::round_button('\u{ec53}')
+                                    .on_press(DownloadFormMessage::DeleteHeader(
+                                        header.0.to_string(),
+                                    ))
+                                    .width(iced::Length::Shrink)
+                            ]
+                            .padding(Padding::from([5, 10]))
+                            .spacing(10)
+                            .align_items(iced::Alignment::Center),
                         )
                         .style(AtomStyleContainer::ListItemContainer),
                     )
@@ -113,6 +115,19 @@ impl AtomDownloadForm {
                 );
         }
         toggles.into()
+    }
+
+    fn vertical_line(&self) -> Element<DownloadFormMessage, Theme, Renderer> {
+        col![container(
+            vertical_space()
+                .height(Length::Fixed(30.0))
+                .width(Length::Fixed(1.0)),
+        )
+        .style(AtomStyleContainer::ListItemContainer)
+        .width(Length::Fixed(2.0))]
+        .align_items(iced::Alignment::Center)
+        .width(Length::Shrink)
+        .into()
     }
 
     pub fn view(&self, downloads_count: usize) -> Element<DownloadFormMessage, Theme, Renderer> {
@@ -199,18 +214,14 @@ impl AtomDownloadForm {
                 .on_press(DownloadFormMessage::AddHeader)
                 .padding(Padding::from([7, 15])),
             )
-            .push(text(" or "))
+            .push(self.vertical_line())
             .push(import_headers_tooltip);
 
         container(
             col!()
                 .spacing(20)
                 .padding(Padding::from([0, 10, 10, 10]))
-                .push(
-                    container(text("Add New Download"))
-                        .style(AtomStyleContainer::LogoContainer)
-                        .padding(Padding::from([10, 30, 10, 30])),
-                )
+                .push(GuiElements::panel_title("Add New Download"))
                 .push(
                     scrollable(
                         col!()
@@ -233,7 +244,7 @@ impl AtomDownloadForm {
                                 .padding(0)
                                 .width(iced::Length::Fill)
                                 .max_height(200)
-                                .style(AtomStyleContainer::ListHeaderContainer),
+                                .style(AtomStyleContainer::Transparent),
                             )
                             .push(
                                 container(col!().push(toggles))

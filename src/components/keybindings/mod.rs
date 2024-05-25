@@ -1,4 +1,5 @@
 use crate::{
+    elements::GuiElements,
     font::{icon, CustomFont},
     messages::Message,
     style::{button::AtomStyleButton, container::AtomStyleContainer, Theme},
@@ -32,11 +33,7 @@ pub fn view() -> Element<'static, Message, Theme, Renderer> {
         .spacing(20)
         .padding(Padding::from([0, 10, 10, 10]))
         .width(iced::Length::Fill)
-        .push(
-            container(text("Keyboard Shortcuts"))
-                .style(AtomStyleContainer::LogoContainer)
-                .padding(Padding::from([10, 30, 10, 30])),
-        )
+        .push(GuiElements::panel_title("Keyboard Shortcuts"))
         .push(vertical_space().height(10));
 
     for shortcut in shortcuts {

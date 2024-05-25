@@ -97,4 +97,13 @@ impl GuiElements {
         .padding(Padding::from([6, 9]))
         .style(AtomStyleButton::RoundButton)
     }
+
+    pub fn panel_title<M>(panel_title: &str) -> impl Into<Element<M, Theme, Renderer>>
+    where
+        M: Clone + std::fmt::Debug + 'static,
+    {
+        container(text(panel_title))
+            .style(AtomStyleContainer::LogoContainer)
+            .padding(Padding::from([10, 30, 10, 30]))
+    }
 }

@@ -17,6 +17,7 @@ pub enum AtomStyleInput {
     Default,
     Search,
     Disabled,
+    Dimmed,
 }
 
 impl AtomStyleInput {
@@ -76,11 +77,19 @@ impl text_input::StyleSheet for Theme {
                             a: 0.1,
                             ..appearance.placeholder
                         },
+                        AtomStyleInput::Dimmed => Color {
+                            a: 0.05,
+                            ..appearance.placeholder
+                        },
                         _ => appearance.accent,
                     },
                     _ => match style {
                         AtomStyleInput::Search => Color {
                             a: 0.4,
+                            ..appearance.placeholder
+                        },
+                        AtomStyleInput::Dimmed => Color {
+                            a: 0.05,
                             ..appearance.placeholder
                         },
                         _ => appearance.accent,

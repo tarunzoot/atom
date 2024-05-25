@@ -202,11 +202,7 @@ impl AtomSettings {
         let settings_col = col!()
             .spacing(20)
             .padding(Padding::from([0, 10, 10, 10]))
-            .push(
-                container(text("Settings"))
-                    .style(AtomStyleContainer::LogoContainer)
-                    .padding(Padding::from([10, 30, 10, 30])),
-            )
+            .push(GuiElements::panel_title("Settings"))
             .push(scrollable(
                 col!()
                     .spacing(20)

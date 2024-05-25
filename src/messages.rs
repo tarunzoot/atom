@@ -36,7 +36,7 @@ pub enum DownloadFormMessage {
     DownloadSequentially(bool),
     AddHeaderName(String),
     AddHeaderValue(String),
-    EditHeader(String),
+    EditHeaderValue(String, String),
     DeleteHeader(String),
     AddHeader,
     FileSavePathChanged(Option<PathBuf>),
