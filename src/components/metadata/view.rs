@@ -150,6 +150,7 @@ impl AtomDownloadMetadata {
                             ""
                         },
                     )
+                    .size(14)
                     .on_input(|_| MetadataMessage::Ignore),
                 ),
             );
@@ -157,6 +158,7 @@ impl AtomDownloadMetadata {
         container(
             scrollable(
                 col!()
+                    .padding(1)
                     .spacing(20)
                     .push(
                         col!()
@@ -165,6 +167,7 @@ impl AtomDownloadMetadata {
                                 row!()
                                     .width(Length::Fill)
                                     .spacing(20)
+                                    .align_items(iced::Alignment::Center)
                                     .push(text("Resources").width(Length::Fill))
                                     .push(
                                         GuiElements::round_button('\u{eee1}')
@@ -184,7 +187,7 @@ impl AtomDownloadMetadata {
                     )
                     .push(
                         col!()
-                            .push(row!().spacing(10).push(text("URL").width(Length::Fill)))
+                            .push(text("URL").width(Length::Fill))
                             .push(
                                 text_input("", &self.url)
                                     .size(14)

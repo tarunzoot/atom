@@ -30,7 +30,7 @@ impl AtomDownload {
     }
 
     fn get_formatted_eta(&self) -> String {
-        let eta = if self.size == 0 || self.transfer_rate == 0.0 {
+        if self.size == 0 || self.transfer_rate == 0.0 {
             String::from("0.0 second(s)")
         } else {
             let size = if self.size > self.downloaded {
@@ -39,8 +39,7 @@ impl AtomDownload {
                 self.size
             } as f64;
             get_formatted_time((size / (self.transfer_rate * (1000.0 * 1000.0))) as u64)
-        };
-        eta
+        }
     }
 
     fn get_formatted_transfer_rate(&self) -> String {
@@ -81,29 +80,32 @@ impl AtomDownload {
         let downloaded = self.get_formatted_size(self.downloaded);
         let size = self.get_formatted_size(self.size);
 
-        col![row![
-            file_type_icon(self.file_name.split('.').last().unwrap()).size(text_size * 2.0),
-            col![
-                text(&self.file_name).size(text_size),
-                row![
-                    icon('\u{f15fc}', CustomFont::Symbols)
-                        .size(text_size - 4.0)
-                        .style(AtomStyleText::Dimmed),
-                    text(format!(
-                        "{0:<4.2} {1} of {2:>4.2} {3}",
-                        downloaded.0, downloaded.1, size.0, size.1
-                    ))
-                    .width(Length::Shrink)
-                    .size(text_size - 3.0)
-                    .style(AtomStyleText::Dimmed),
-                ]
-                .align_items(iced::Alignment::Center)
-                .spacing(5)
+        col![
+            row![
+                file_type_icon(self.file_name.split('.').last().unwrap())
+                    .size(text_size)
+                    .style(AtomStyleText::Accented),
+                text(&self.file_name).size(text_size)
             ]
+            .align_items(iced::Alignment::Center)
+            .spacing(5),
+            row![
+                icon('\u{f15fc}', CustomFont::Symbols)
+                    .size(text_size - 4.0)
+                    .style(AtomStyleText::Dimmed),
+                text(format!(
+                    "{0:<4.2} {1} of {2:>4.2} {3}",
+                    downloaded.0, downloaded.1, size.0, size.1
+                ))
+                .width(Length::Shrink)
+                .size(text_size - 2.0)
+                .style(AtomStyleText::Dimmed),
+            ]
+            .align_items(iced::Alignment::Center)
             .spacing(5)
         ]
         .align_items(iced::Alignment::Center)
-        .spacing(10)]
+        .spacing(10)
         .width(Length::FillPortion(5))
         .align_items(iced::Alignment::Start)
         .into()
@@ -314,6 +316,7 @@ impl AtomDownload {
         container(actions_row)
             .width(length)
             // .width(Length::Fixed(95.0))
+            .padding(0)
             .style(AtomStyleContainer::Transparent)
             .align_x(iced::alignment::Horizontal::Right)
             .into()
@@ -391,7 +394,7 @@ impl AtomDownload {
             .align_items(iced::Alignment::Center),
         ]
         .spacing(5)
-        .align_items(iced::Alignment::Start),]
+        .align_items(iced::Alignment::Start)]
         .width(Length::FillPortion(5))
         .align_items(iced::Alignment::Center)
         .spacing(10)
@@ -544,7 +547,7 @@ impl AtomDownload {
         text_size: f32,
         responsive: bool,
     ) -> Element<DownloadMessage, Theme, Renderer> {
-        let text_size = text_size - if responsive { 4.0 } else { 2.0 };
+        let text_size = text_size - if responsive { 2.0 } else { 0.0 };
 
         let main_row = match layout {
             crate::components::settings::ListLayout::ListExtended => {

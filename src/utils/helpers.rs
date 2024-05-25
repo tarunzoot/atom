@@ -213,10 +213,10 @@ pub fn open_file(file: &str) {
         .spawn()
         .ok();
     #[cfg(target_os = "macos")]
-    std::process::Command::new("open").arg(&file).spawn().ok();
+    std::process::Command::new("open").arg(file).spawn().ok();
     #[cfg(target_os = "linux")]
     std::process::Command::new("xdg-open")
-        .arg(&file)
+        .arg(file)
         .spawn()
         .ok();
 }

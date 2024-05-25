@@ -130,7 +130,7 @@ impl AtomDownload {
             .unwrap_or_default()
             .to_str()
             .unwrap_or_default()
-            .to_owned();
+            .to_string();
         self.file_path = full_path
             .parent()
             .unwrap_or_else(|| Path::new(&full_path))

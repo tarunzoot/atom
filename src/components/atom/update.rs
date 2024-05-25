@@ -245,6 +245,7 @@ impl<'a> Atom<'a> {
                     if !save_settings_toml(&self.settings) {
                         warn!("Warning: unable to save settings => {:#?}", self.settings);
                     }
+
                     self.theme = self.settings.theme.clone().into();
                     self.update_view(View::Downloads);
                 }

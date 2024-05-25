@@ -49,9 +49,13 @@ impl<'a> Atom<'a> {
             DownloadsListFilterMessage::All => self.downloads.iter().filter(all_filter),
         };
 
-        let icons_only = (self.metadata.enabled || !self.settings.sidebar_collapsed)
-            || self.settings.scaling >= 1.15;
-        let responsive = (self.dimensions.0 < 1025 || self.dimensions.1 < 577) && icons_only;
+        let responsive = if self.settings.scaling <= 1.0 {
+            self.dimensions.0 < 1281 && (self.metadata.enabled || !self.settings.sidebar_collapsed)
+        } else {
+            self.dimensions.0 < 1075
+                || (self.dimensions.0 < 1281
+                    && (self.metadata.enabled || !self.settings.sidebar_collapsed))
+        };
 
         let mut count = 0;
 
@@ -83,7 +87,7 @@ impl<'a> Atom<'a> {
                 &self.sidebar.active,
                 &self.downloads,
                 &self.settings.list_layout,
-                icons_only,
+                responsive,
             );
 
             let downloads_list_col = match self.settings.list_layout {

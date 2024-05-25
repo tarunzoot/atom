@@ -34,7 +34,7 @@ impl AtomImport {
                 );
             }
             ImportMessage::DownloadFolder(Some(folder)) => {
-                self.download_path = folder.to_str().unwrap_or_default().to_owned();
+                self.download_path = folder.to_str().unwrap_or_default().to_string();
             }
             _ => {}
         }
