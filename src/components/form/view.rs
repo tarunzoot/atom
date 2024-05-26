@@ -10,9 +10,9 @@ use iced::{
     advanced::graphics::core::Element,
     widget::{
         column as col, container, row, scrollable, scrollable::Properties, text, text_input,
-        toggler, tooltip, tooltip::Position, vertical_space,
+        text_input::Icon, toggler, tooltip, tooltip::Position, vertical_space,
     },
-    Length, Padding, Renderer,
+    Font, Length, Padding, Pixels, Renderer,
 };
 
 impl AtomDownloadForm {
@@ -30,8 +30,9 @@ impl AtomDownloadForm {
                                     .style(AtomStyleText::Dimmed)
                                     .size(text_size - 2),
                                 text(header.0.to_string())
-                                    .width(iced::Length::Fixed(300.0))
+                                    .width(iced::Length::Fill)
                                     .size(text_size),
+                                self.vertical_line(),
                                 text_input("header value here...", header.1)
                                     .on_input(|value| {
                                         DownloadFormMessage::EditHeaderValue(
@@ -39,8 +40,17 @@ impl AtomDownloadForm {
                                             value,
                                         )
                                     })
+                                    .icon(Icon {
+                                        font: Font::with_name("Symbols Nerd Font Mono"),
+                                        code_point: '\u{f040}',
+                                        size: Some(Pixels((text_size - 2) as f32)),
+                                        spacing: 5.0,
+                                        side: text_input::Side::Right
+                                    })
                                     .style(AtomStyleInput::Dimmed)
-                                    .size(text_size),
+                                    .size(text_size)
+                                    .width(Length::FillPortion(2)),
+                                self.vertical_line(),
                                 GuiElements::round_button('\u{ec53}')
                                     .on_press(DownloadFormMessage::DeleteHeader(
                                         header.0.to_string(),
@@ -151,7 +161,7 @@ impl AtomDownloadForm {
         if downloads_count > 0 {
             buttons_row = buttons_row.push(
                 GuiElements::primary_button(vec![
-                    icon('\u{eede}', CustomFont::IcoFont),
+                    icon('\u{eedd}', CustomFont::IcoFont),
                     text("cancel"),
                 ])
                 .on_press(DownloadFormMessage::ClosePane),

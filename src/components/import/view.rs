@@ -81,7 +81,7 @@ impl AtomImport {
                 .push(
                     row!().spacing(20).push(start_download_btn).push(
                         GuiElements::primary_button(vec![
-                            icon('\u{eede}', IcoFont),
+                            icon('\u{eedd}', IcoFont),
                             text("cancel"),
                         ])
                         .on_press(ImportMessage::ClosePane),

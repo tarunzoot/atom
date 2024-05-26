@@ -1,6 +1,6 @@
 use super::{Atom, View};
 use crate::{
-    components::{download::AtomDownload, form::AtomDownloadForm},
+    components::{download::AtomDownload, form::AtomDownloadForm, settings::AtomSettings},
     messages::{
         DownloadMessage, DownloadsListFilterMessage, Message, SideBarActiveButton, SideBarState,
         SidebarMessage, TitleBarMessage,
@@ -239,6 +239,15 @@ impl<'a> Atom<'a> {
                 crate::messages::SettingsMessage::ClosePane => {
                     self.phantom_settings = self.settings.clone();
                     let _ = self.update(Message::GotoHomePage);
+                }
+                crate::messages::SettingsMessage::ResetSettings(force) => {
+                    if force {
+                        let settings = AtomSettings::default();
+                        self.settings = settings.clone();
+                        self.phantom_settings = settings;
+                    } else {
+                        return self.phantom_settings.update(message);
+                    }
                 }
                 crate::messages::SettingsMessage::SaveSettings => {
                     self.settings = self.phantom_settings.clone();

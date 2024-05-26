@@ -1,7 +1,10 @@
 use super::{AtomSettings, ListLayout};
 use crate::{
     elements::GuiElements,
-    font::{icon, CustomFont::IcoFont},
+    font::{
+        icon,
+        CustomFont::{self, IcoFont},
+    },
     messages::SettingsMessage,
     style::{container::AtomStyleContainer, input::AtomStyleInput, Theme},
     utils::helpers::ATOM_INPUT_DEFAULT_PADDING,
@@ -75,20 +78,17 @@ impl AtomSettings {
                     ),
             );
 
-        let buttons_row = row!()
-            .spacing(20)
-            .push(
-                GuiElements::primary_button(vec![icon('\u{ef43}', IcoFont), text("save")])
-                    .on_press(SettingsMessage::SaveSettings),
-            )
-            .push(
-                GuiElements::primary_button(vec![icon('\u{efd0}', IcoFont), text("clear cache")])
-                    .on_press(SettingsMessage::ClearCacheClicked),
-            )
-            .push(
-                GuiElements::primary_button(vec![icon('\u{eede}', IcoFont), text("cancel")])
-                    .on_press(SettingsMessage::ClosePane),
-            );
+        let buttons_row = row![
+            GuiElements::primary_button(vec![icon('\u{ef43}', IcoFont), text("save")])
+                .on_press(SettingsMessage::SaveSettings),
+            GuiElements::primary_button(vec![icon('\u{ec80}', IcoFont), text("reset")])
+                .on_press(SettingsMessage::ResetSettings(false)),
+            GuiElements::primary_button(vec![icon('\u{ec53}', IcoFont), text("clear cache")])
+                .on_press(SettingsMessage::ClearCacheClicked(false)),
+            GuiElements::primary_button(vec![icon('\u{eedd}', IcoFont), text("cancel")])
+                .on_press(SettingsMessage::ClosePane),
+        ]
+        .spacing(20);
 
         let notification_toggler = toggler(
             Some("Show download notification".into()),
@@ -260,15 +260,25 @@ impl AtomSettings {
                             col!().spacing(5).push(
                                 row![
                                     col![
-                                        text(format!("Threads : {}", self.threads)),
+                                        row![
+                                            text("Threads").width(Length::Fill),
+                                            text(self.threads)
+                                        ]
+                                        .spacing(10),
                                         slider(2..=8, self.threads, |threads| {
                                             SettingsMessage::ThreadsChanged(threads)
                                         })
                                         .width(iced::Length::Fill)
                                     ]
+                                    .spacing(5)
                                     .width(Length::Fill),
                                     col![
-                                        text(format!("UI Scaling : {0:>1.2}", self.scaling)),
+                                        row![
+                                            text("UI Scaling").width(Length::Fill),
+                                            text(format!("{0:>1.2}", self.scaling))
+                                                .width(Length::Shrink)
+                                        ]
+                                        .spacing(10),
                                         tooltip(
                                             slider(0.70..=2.00, self.scaling, |scaling| {
                                                 SettingsMessage::ScalingChanged(scaling)
@@ -276,24 +286,27 @@ impl AtomSettings {
                                             .step(0.01)
                                             .width(iced::Length::Fill),
                                             text("Resize window if not applied properly").size(12),
-                                            tooltip::Position::Top
+                                            tooltip::Position::Bottom
                                         )
                                         .style(AtomStyleContainer::ToolTipContainer)
                                         .padding(10)
                                         .gap(5),
                                     ]
+                                    .spacing(5)
                                     .width(Length::Fill),
                                     col![
-                                        text(format!(
-                                            "Font Size : {0:>2.0}",
-                                            self.font_size.floor()
-                                        )),
+                                        row![
+                                            text("Font Size").width(Length::Fill),
+                                            text(self.font_size.floor()).width(Length::Shrink)
+                                        ]
+                                        .spacing(10),
                                         slider(12.0..=28.0, self.font_size, |font_size| {
                                             SettingsMessage::TextSizeChanged(font_size)
                                         })
                                         .step(1.0)
                                         .width(iced::Length::Fill),
                                     ]
+                                    .spacing(5)
                                     .width(Length::Fill)
                                 ]
                                 .align_items(iced::Alignment::Center)
@@ -308,9 +321,57 @@ impl AtomSettings {
                     .width(iced::Length::Fill),
             ));
 
-        container(settings_col)
+        let settings_container = container(settings_col)
             .style(AtomStyleContainer::ListContainer)
             .padding(Padding::from([0, 10, 10, 10]))
-            .into()
+            .into();
+
+        if self.show_confirm_dialog {
+            let action_btn = if self.reset_settings {
+                GuiElements::primary_button(vec![
+                    icon('\u{ec80}', CustomFont::IcoFont),
+                    text("reset"),
+                ])
+                .width(Length::Fixed(150.0))
+                .on_press(SettingsMessage::ResetSettings(true))
+            } else {
+                GuiElements::primary_button(vec![
+                    icon('\u{ec53}', CustomFont::IcoFont),
+                    text("delete"),
+                ])
+                .width(Length::Fixed(150.0))
+                .on_press(SettingsMessage::ClearCacheClicked(true))
+            };
+
+            let cancel_btn = GuiElements::primary_button(vec![
+                icon('\u{eedd}', CustomFont::IcoFont),
+                text("cancel"),
+            ])
+            .width(Length::Fixed(150.0))
+            .on_press(SettingsMessage::HideDialog);
+
+            GuiElements::modal(
+                settings_container,
+                col![
+                    text(if self.reset_settings {
+                        "The current settings will be restored to the inital state by this action."
+                    } else {
+                        "This will remove the cache directory, which contains partial downloads."
+                    })
+                    .size(14),
+                    text("Are you sure you want to continue?").size(14)
+                ]
+                .spacing(5)
+                .align_items(iced::Alignment::Center),
+                row!()
+                    .spacing(10)
+                    .align_items(iced::Alignment::Center)
+                    .push(action_btn)
+                    .push(cancel_btn),
+                SettingsMessage::HideDialog,
+            )
+        } else {
+            settings_container
+        }
     }
 }

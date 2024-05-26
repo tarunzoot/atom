@@ -61,7 +61,7 @@ pub enum DownloadsListFilterMessage {
 
 #[derive(Debug, Clone)]
 pub enum SettingsMessage {
-    ClearCacheClicked,
+    ClearCacheClicked(bool),
     ThreadsChanged(u8),
     BrowseDownloadsDirClicked,
     NotificationToggle(bool),
@@ -80,6 +80,8 @@ pub enum SettingsMessage {
     ClosePane,
     OpenConfigDir,
     SaveSettings,
+    ResetSettings(bool),
+    HideDialog,
 }
 
 #[derive(Debug, Clone)]

@@ -55,6 +55,10 @@ pub struct AtomSettings {
     pub maximized: bool,
     pub new_download_pos: String,
     pub font_size: f32,
+    #[serde(skip_deserializing, skip_serializing)]
+    pub show_confirm_dialog: bool,
+    #[serde(skip_deserializing, skip_serializing)]
+    pub reset_settings: bool,
 }
 
 impl Default for AtomSettings {
@@ -89,6 +93,8 @@ impl Default for AtomSettings {
             new_download_notification: true,
             stretch_list_view: false,
             font_size: 16.0,
+            show_confirm_dialog: false,
+            reset_settings: false,
         }
     }
 }

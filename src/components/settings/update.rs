@@ -5,9 +5,14 @@ use iced::Command;
 impl AtomSettings {
     pub fn update(&mut self, message: SettingsMessage) -> Command<Message> {
         match message {
-            SettingsMessage::ClearCacheClicked => {
-                std::fs::remove_dir_all(&self.cache_dir).ok();
-                std::fs::create_dir_all(&self.cache_dir).ok();
+            SettingsMessage::ClearCacheClicked(force) => {
+                if force {
+                    std::fs::remove_dir_all(&self.cache_dir).ok();
+                    std::fs::create_dir_all(&self.cache_dir).ok();
+                    self.show_confirm_dialog = false;
+                } else {
+                    self.show_confirm_dialog = true;
+                }
             }
             SettingsMessage::BrowseDownloadsDirClicked => {
                 return Command::perform(
@@ -40,12 +45,22 @@ impl AtomSettings {
                 self.new_download_notification = checked
             }
             SettingsMessage::ClosePane => {}
+            SettingsMessage::HideDialog => {
+                self.show_confirm_dialog = false;
+                self.reset_settings = false;
+            }
             SettingsMessage::OpenConfigDir => {
                 #[cfg(target_os = "windows")]
                 std::process::Command::new("explorer.exe")
                     .arg(&self.config_dir)
                     .spawn()
                     .ok();
+            }
+            SettingsMessage::ResetSettings(force) => {
+                if !force {
+                    self.show_confirm_dialog = true;
+                    self.reset_settings = true;
+                }
             }
             SettingsMessage::SaveSettings => {}
         }

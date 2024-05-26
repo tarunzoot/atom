@@ -228,7 +228,7 @@ impl<'a> AtomDownloadStates<'a> {
                     .padding(0)
                     .width(iced::Length::Fill)
                     .style(AtomStyleContainer::ListHeaderContainer),
-                &conf_string,
+                text(conf_string).size(24),
                 row!()
                     .spacing(10)
                     .align_items(iced::Alignment::Center)
@@ -242,7 +242,7 @@ impl<'a> AtomDownloadStates<'a> {
                     )
                     .push(
                         GuiElements::primary_button(vec![
-                            icon('\u{eede}', CustomFont::IcoFont),
+                            icon('\u{eedd}', CustomFont::IcoFont),
                             text("cancel"),
                         ])
                         .width(Length::Fixed(170.0))

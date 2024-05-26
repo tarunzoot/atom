@@ -13,7 +13,7 @@ pub struct GuiElements;
 impl GuiElements {
     pub fn modal<'a, T, U>(
         base: T,
-        confirmation_text: &str,
+        body: impl Into<Element<'a, U, Theme, Renderer>>,
         actions: impl Into<Element<'a, U, Theme, Renderer>>,
         on_blur: U,
     ) -> Element<'a, U, Theme, Renderer>
@@ -27,17 +27,10 @@ impl GuiElements {
                 col!()
                     .align_items(Alignment::Center)
                     .spacing(30)
+                    .push(GuiElements::panel_title("Confirmation Dialog"))
                     .push(
-                        container(text("Confirmation Dialog"))
-                            .style(AtomStyleContainer::LogoContainer)
-                            .padding(Padding::from([10, 30, 10, 30])),
-                    )
-                    .push(
-                        row!()
-                            .align_items(Alignment::Center)
-                            .spacing(5)
-                            .push(icon('\u{efca}', CustomFont::IcoFont).size(24))
-                            .push(text(confirmation_text).size(24)),
+                        row!().align_items(Alignment::Center).spacing(5).push(body),
+                        // .push(text(confirmation_text).size(24)),
                     )
                     .push(actions)
                     .padding(Padding::from([0, 20, 20, 20])),

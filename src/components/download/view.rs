@@ -608,7 +608,7 @@ impl AtomDownload {
 
             GuiElements::modal(
                 download_container,
-                "Are you sure?",
+                text("Are you sure?").size(24),
                 row!()
                     .spacing(10)
                     .align_items(iced::Alignment::Center)
