@@ -48,12 +48,19 @@ impl AtomStyleInput {
                 text: Color::BLACK,
                 disabled_border: color!(198, 202, 210, 1),
             },
-            Theme::RedLight => ColorPalette {
+            Theme::Hari => ColorPalette {
                 accent,
-                background: color!(255, 255, 255, 0.6),
+                // background: color!(255, 255, 255, 0.6),
+                background: Color {
+                    a: 0.8,
+                    ..color!(0x30394c)
+                },
                 hover_border: Color { a: 0.8, ..accent },
-                placeholder: color!(50, 50, 50, 0.6),
-                text: Color::BLACK,
+                placeholder: Color {
+                    a: 0.7,
+                    ..color!(0xF7F7F2)
+                },
+                text: color!(0xF7F7F2),
                 disabled_border: color!(198, 202, 210, 1),
             },
         }
@@ -89,7 +96,7 @@ impl text_input::StyleSheet for Theme {
                             ..appearance.placeholder
                         },
                         AtomStyleInput::Dimmed => Color {
-                            a: 0.05,
+                            a: 0.5,
                             ..appearance.placeholder
                         },
                         _ => appearance.accent,

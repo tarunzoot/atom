@@ -27,7 +27,7 @@ impl AtomStyleProgressBar {
                 background: color!(200, 200, 200),
                 bar: accent,
             },
-            Theme::RedLight => ColorPalette {
+            Theme::Hari => ColorPalette {
                 background: color!(200, 200, 200),
                 bar: accent,
             },

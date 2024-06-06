@@ -27,9 +27,9 @@ impl AtomStyleToggler {
                 background: accent,
                 foreground: color!(255, 255, 255, 0.8),
             },
-            Theme::RedLight => ColorPalette {
+            Theme::Hari => ColorPalette {
                 background: accent,
-                foreground: color!(255, 255, 255, 0.8),
+                foreground: color!(0x30394c),
             },
         }
     }

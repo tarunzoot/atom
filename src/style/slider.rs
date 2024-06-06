@@ -39,9 +39,9 @@ impl AtomStyleSlider {
                 handle: color!(30, 30, 30),
                 border: accent,
             },
-            Theme::RedLight => ColorPalette {
+            Theme::Hari => ColorPalette {
                 rails: (accent, accent),
-                handle: color!(30, 30, 30),
+                handle: color!(0x2a3345),
                 border: accent,
             },
         }

@@ -52,7 +52,7 @@ impl<'a> Atom<'a> {
         let responsive = if self.settings.scaling <= 1.0 {
             self.dimensions.0 < 1281 && (self.metadata.enabled || !self.settings.sidebar_collapsed)
         } else {
-            self.dimensions.0 < 1075
+            self.dimensions.0 < 1087
                 || (self.dimensions.0 < 1281
                     && (self.metadata.enabled || !self.settings.sidebar_collapsed))
         };

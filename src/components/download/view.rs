@@ -139,7 +139,7 @@ impl AtomDownload {
             .push(
                 container(
                     row![
-                        icon('\u{eedd}', CustomFont::IcoFont),
+                        icon('\u{eedd}', CustomFont::IcoFont).size(text_size),
                         text("Failed").size(text_size - 2.0)
                     ]
                     .spacing(5)
@@ -178,8 +178,8 @@ impl AtomDownload {
     ) -> Element<DownloadMessage, Theme, Renderer> {
         row![container(
             row![
-                icon('\u{e984}', CustomFont::IcoFont).size(text_size - 2.0),
-                text("Joining").size(text_size)
+                icon('\u{e984}', CustomFont::IcoFont).size(text_size),
+                text("Joining").size(text_size - 2.0)
             ]
             .spacing(5)
             .align_items(iced::Alignment::Center),

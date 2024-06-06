@@ -52,7 +52,7 @@ pub enum Theme {
     Default,
     Tangerine,
     Light,
-    RedLight,
+    Hari,
 }
 
 impl Theme {
@@ -61,7 +61,7 @@ impl Theme {
             "Default".to_owned(),
             "Tangerine".to_owned(),
             "Light".to_owned(),
-            "RedLight".to_owned(),
+            "Hari".to_owned(),
         ]
     }
 
@@ -70,7 +70,9 @@ impl Theme {
             Theme::Default => color!(215, 252, 112),
             Theme::Tangerine => color!(254, 161, 47, 1),
             Theme::Light => color!(23, 29, 39, 1),
-            Theme::RedLight => color!(236, 105, 102, 1),
+            Theme::Hari => color!(0xE4E6C3), // moss green
+                                             // Theme::hari => color!(0x6ef7ff),
+                                             // Theme::Hari => color!(0xfb295d),
         }
     }
 }
@@ -80,7 +82,7 @@ impl From<String> for Theme {
         match &value[..] {
             "Tangerine" => Self::Tangerine,
             "Light" => Self::Light,
-            "RedLight" => Self::RedLight,
+            "Hari" => Self::Hari,
             _ => Self::Default,
         }
     }
@@ -182,7 +184,7 @@ impl AtomStylePickList {
             Theme::Default => (theme.accent(), color!(250, 250, 250, 0.4)),
             Theme::Tangerine => (theme.accent(), color!(250, 250, 250, 0.4)),
             Theme::Light => (theme.accent(), color!(250, 250, 250, 0.4)),
-            Theme::RedLight => (theme.accent(), color!(250, 250, 250, 0.4)),
+            Theme::Hari => (theme.accent(), color!(0xF7F7F2)),
         }
     }
 }
@@ -196,7 +198,6 @@ impl pick_list::StyleSheet for Theme {
         pick_list::Appearance {
             text_color: match self {
                 Theme::Light => color_palette.0,
-                Theme::RedLight => Color::BLACK,
                 _ => Color::WHITE,
             },
             placeholder_color: color_palette.1,
@@ -235,7 +236,7 @@ impl menu::StyleSheet for Theme {
 
         menu::Appearance {
             text_color: match self {
-                Theme::Light | Theme::RedLight => color_palette,
+                Theme::Light | Theme::Hari => color_palette,
                 _ => Color::WHITE,
             },
             background: Background::Color(Color::TRANSPARENT),

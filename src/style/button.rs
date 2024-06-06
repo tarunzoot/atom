@@ -38,13 +38,14 @@ impl AtomStyleButton {
                 border: color!(150, 150, 150, 0.1),
                 text: Color::WHITE,
             },
-            Theme::RedLight => ColorPalette {
+            Theme::Hari => ColorPalette {
                 background: theme.accent(),
-                border: color!(150, 150, 150, 0.1),
-                text: Color {
-                    a: 0.85,
-                    ..Color::BLACK
+                border: Color {
+                    a: 0.0,
+                    ..theme.accent()
                 },
+                // text: color!(0xF7F7F2),
+                text: color!(0x2a3345),
             },
         }
     }
@@ -103,11 +104,11 @@ impl button::StyleSheet for Theme {
                 | AtomStyleButton::HeaderButtons
                 | AtomStyleButton::Neutral => match self {
                     Theme::Light => color_palette.background,
-                    Theme::RedLight => Color {
-                        a: 0.9,
-                        ..Color::BLACK
-                    },
                     _ => Color::WHITE,
+                },
+                AtomStyleButton::RoundButton => match self {
+                    Theme::Hari => color_palette.text,
+                    _ => color_palette.text,
                 },
                 _ => color_palette.text,
             },
@@ -115,7 +116,7 @@ impl button::StyleSheet for Theme {
             shadow: match style {
                 AtomStyleButton::ShortcutKeyButton => Shadow {
                     color: match self {
-                        Theme::Default | Theme::Tangerine => Color {
+                        Theme::Default | Theme::Tangerine | Theme::Hari => Color {
                             a: 0.2,
                             ..Color::BLACK
                         },
@@ -138,9 +139,14 @@ impl button::StyleSheet for Theme {
                 | AtomStyleButton::Neutral
                 | AtomStyleButton::SidebarButtonActive
                 | AtomStyleButton::SidebarButton
-                | AtomStyleButton::HeaderButtons => Some(Background::Color(
-                    style.color_offset(color_palette.border, 5.0),
-                )),
+                | AtomStyleButton::HeaderButtons => match self {
+                    Theme::Hari => Some(Background::Color(
+                        style.color_offset(color!(0x30394c), 25.0),
+                    )),
+                    _ => Some(Background::Color(
+                        style.color_offset(color_palette.border, 5.0),
+                    )),
+                },
                 _ => Some(Background::Color(color_palette.background)),
             },
             border: Border {
@@ -158,6 +164,18 @@ impl button::StyleSheet for Theme {
                 },
                 ..self.active(style).border
             },
+            text_color: match self {
+                Theme::Hari => match style {
+                    AtomStyleButton::HeaderButtons
+                    | AtomStyleButton::SidebarButton
+                    | AtomStyleButton::SidebarButtonActive
+                    | AtomStyleButton::Neutral => {
+                        color!(0xF7F7F2)
+                    }
+                    _ => color!(0x30394c),
+                },
+                _ => self.active(style).text_color,
+            },
             ..self.active(style)
         }
     }
@@ -171,11 +189,16 @@ impl button::StyleSheet for Theme {
                 | AtomStyleButton::Neutral
                 | AtomStyleButton::SidebarButtonActive
                 | AtomStyleButton::SidebarButton
-                | AtomStyleButton::HeaderButtons => Some(Background::Color(
-                    style.color_offset(color_palette.border, 5.0),
-                )),
+                | AtomStyleButton::HeaderButtons => match self {
+                    Theme::Hari => Some(Background::Color(
+                        style.color_offset(color_palette.text, 5.0),
+                    )),
+                    _ => Some(Background::Color(
+                        style.color_offset(color_palette.border, 5.0),
+                    )),
+                },
                 _ => match self {
-                    Theme::RedLight => Some(Background::Color(Color {
+                    Theme::Hari => Some(Background::Color(Color {
                         a: 0.2,
                         ..Color::BLACK
                     })),
@@ -185,6 +208,10 @@ impl button::StyleSheet for Theme {
             border: Border {
                 color: match style {
                     AtomStyleButton::PrimaryButton => color!(80, 80, 80, 0.4),
+                    AtomStyleButton::ShortcutKeyButton => match self {
+                        Theme::Hari => color!(80, 80, 80, 0.4),
+                        _ => self.active(style).border.color,
+                    },
                     _ => self.active(style).border.color,
                 },
                 ..self.active(style).border
@@ -197,7 +224,7 @@ impl button::StyleSheet for Theme {
                 | AtomStyleButton::Neutral => color_palette.background,
                 _ => match self {
                     Theme::Light => color_palette.background,
-                    Theme::RedLight => Color::BLACK,
+                    Theme::Hari => color!(0xF7F7F2),
                     _ => Color::WHITE,
                 },
             },

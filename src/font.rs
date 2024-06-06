@@ -77,13 +77,13 @@ pub enum CustomFont {
 
 pub fn icon(unicode: char, custom_font: CustomFont) -> Text<'static, Theme, Renderer> {
     match custom_font {
-        CustomFont::IcoFont => text(&unicode.to_string())
+        CustomFont::IcoFont => text(unicode)
             .font(ICOFONT)
             .horizontal_alignment(Horizontal::Center)
             .vertical_alignment(Vertical::Center)
             .size(16),
 
-        CustomFont::Symbols => text(&unicode.to_string())
+        CustomFont::Symbols => text(unicode)
             .font(SYMBOLS)
             .horizontal_alignment(Horizontal::Center)
             .vertical_alignment(Vertical::Center)

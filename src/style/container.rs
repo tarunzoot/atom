@@ -51,14 +51,12 @@ impl AtomStyleContainer {
                 border: color!(150, 150, 150, 0.2),
                 text: accent,
             },
-            Theme::RedLight => ColorPalette {
+            Theme::Hari => ColorPalette {
                 accent,
-                background: color!(250, 250, 250, 1),
-                border: color!(150, 150, 150, 0.2),
-                text: Color {
-                    a: 0.85,
-                    ..Color::BLACK
-                },
+                background: color!(0x30394c),
+                // background: color!(0x1c1a41),
+                border: color!(0x5a9384),
+                text: color!(0xF7F7F2),
             },
         }
     }
@@ -121,7 +119,7 @@ impl container::StyleSheet for Theme {
                         a: 0.01,
                         ..appearance.border
                     })),
-                    Theme::RedLight => Some(Background::Color(Color {
+                    Theme::Hari => Some(Background::Color(Color {
                         a: 0.01,
                         ..appearance.border
                     })),

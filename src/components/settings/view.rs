@@ -12,12 +12,25 @@ use crate::{
 use iced::{
     widget::{
         column as col, container, pick_list, row, scrollable, slider, text, text_input, toggler,
-        tooltip,
+        tooltip, vertical_space,
     },
     Element, Length, Padding, Renderer,
 };
 
 impl AtomSettings {
+    fn vertical_line(&self) -> Element<SettingsMessage, Theme, Renderer> {
+        col![container(
+            vertical_space()
+                .height(Length::Fixed(30.0))
+                .width(Length::Fixed(1.0)),
+        )
+        .style(AtomStyleContainer::ListItemContainer)
+        .width(Length::Fixed(1.0))]
+        .align_items(iced::Alignment::Center)
+        .width(Length::Shrink)
+        .into()
+    }
+
     pub fn view(&self, theme: &Theme) -> Element<SettingsMessage, Theme, Renderer> {
         let config_dir_col = col!()
             .spacing(5)
@@ -90,12 +103,15 @@ impl AtomSettings {
         ]
         .spacing(20);
 
+        let toggles_text_size = self.font_size - 1.0;
+
         let notification_toggler = toggler(
             Some("Show download notification".into()),
             self.show_notifications,
             SettingsMessage::NotificationToggle,
         )
         .spacing(10)
+        .text_size(toggles_text_size)
         .text_alignment(iced::alignment::Horizontal::Left)
         .width(iced::Length::Shrink);
 
@@ -106,6 +122,7 @@ impl AtomSettings {
                 SettingsMessage::AutoStartDownloadToggle,
             )
             .spacing(10)
+            .text_size(toggles_text_size)
             .text_alignment(iced::alignment::Horizontal::Left)
             .width(iced::Length::Shrink),
             text("Adding downloads from browser auto starts the download without showing new download form(disables auto open feature)").size(12),
@@ -121,6 +138,7 @@ impl AtomSettings {
             SettingsMessage::QuitActionToggle,
         )
         .spacing(10)
+        .text_size(toggles_text_size)
         .text_alignment(iced::alignment::Horizontal::Left)
         .width(iced::Length::Shrink);
 
@@ -130,6 +148,7 @@ impl AtomSettings {
             SettingsMessage::MaximizedActionToggle,
         )
         .spacing(10)
+        .text_size(toggles_text_size)
         .text_alignment(iced::alignment::Horizontal::Left)
         .width(iced::Length::Shrink);
 
@@ -139,7 +158,7 @@ impl AtomSettings {
                 self.stretch_list_view,
                 SettingsMessage::ListBackgroundToggle,
             )
-            .spacing(10)
+            .spacing(10).text_size(toggles_text_size)
             .text_alignment(iced::alignment::Horizontal::Left)
             .width(iced::Length::Shrink),
             text("Stretch the list view container to fill the available space(applies a background color)").size(12),
@@ -156,6 +175,7 @@ impl AtomSettings {
                 SettingsMessage::NewDownloadNotificationToggle,
             )
             .spacing(10)
+            .text_size(toggles_text_size)
             .text_alignment(iced::alignment::Horizontal::Left)
             .width(iced::Length::Shrink),
             text("A notification is shown when a new download is added").size(12),
@@ -272,6 +292,7 @@ impl AtomSettings {
                                     ]
                                     .spacing(5)
                                     .width(Length::Fill),
+                                    self.vertical_line(),
                                     col![
                                         row![
                                             text("UI Scaling").width(Length::Fill),
@@ -294,6 +315,7 @@ impl AtomSettings {
                                     ]
                                     .spacing(5)
                                     .width(Length::Fill),
+                                    self.vertical_line(),
                                     col![
                                         row![
                                             text("Font Size").width(Length::Fill),
