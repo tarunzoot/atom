@@ -325,6 +325,14 @@ impl<'a> Atom<'a> {
 
                 match download.build() {
                     Ok(atom_download) => {
+                        if self.settings.new_download_notification {
+                            show_notification(
+                                "Download Received From Browser",
+                                &atom_download.file_name,
+                                2000,
+                            );
+                        }
+
                         if self.settings.auto_start_download {
                             return Command::perform(async {}, |_| {
                                 Message::AddNewDownload(atom_download)
@@ -350,10 +358,6 @@ impl<'a> Atom<'a> {
             }
             Message::AddNewDownload(mut new_download) => {
                 new_download.threads = self.settings.threads;
-
-                if self.settings.new_download_notification {
-                    show_notification("Download added", &new_download.file_name, 2000);
-                }
 
                 if let Some(existing_download_id) =
                     self.downloads.iter().find_map(|(&index, download)| {

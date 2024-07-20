@@ -17,18 +17,12 @@ impl AtomDownload {
                 self.error = error;
                 self.downloading = false;
                 warn!("{:#?}", self.error);
-                if settings.show_notifications
-                    && notify_rust::Notification::new()
-                        .summary("A.T.O.M")
-                        .subtitle("Download Error")
-                        .auto_icon()
-                        .body(&format!("{} cannot be downloaded", self.file_name))
-                        .icon("atom")
-                        .timeout(notify_rust::Timeout::Milliseconds(6000))
-                        .show()
-                        .is_err()
-                {
-                    warn!("[ATOM] error notification failed!");
+                if settings.show_notifications {
+                    show_notification(
+                        "Download Error",
+                        &format!("{} cannot be downloaded", self.file_name),
+                        6000,
+                    );
                 }
             }
             DownloadMessage::DownloadDoneJoining => {
