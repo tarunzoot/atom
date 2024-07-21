@@ -32,12 +32,23 @@ pub fn view(responsive: bool) -> Element<'static, Message, Theme, Renderer> {
         row!()
             .spacing(7)
             .align_items(iced::Alignment::Center)
-            .push(icon('\u{f022}', CustomFont::IcoFont).size(icon_size - 2))
+            .push(icon('\u{e90b}', CustomFont::IcoFont).size(icon_size - 2))
+            .push(text("Size").size(text_size).font(font)),
+    )
+    .style(AtomStyleContainer::Transparent)
+    .align_x(iced::alignment::Horizontal::Left)
+    .width(iced::Length::FillPortion(2));
+
+    let eta_container = container(
+        row!()
+            .spacing(7)
+            .align_items(iced::Alignment::Center)
+            .push(icon('\u{f022}', CustomFont::IcoFont).size(icon_size))
             .push(text("E.T.A").size(text_size).font(font)),
     )
     .style(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    .width(iced::Length::FillPortion(1));
+    .width(iced::Length::FillPortion(2));
 
     let status_container = container(
         row!()
@@ -59,7 +70,7 @@ pub fn view(responsive: bool) -> Element<'static, Message, Theme, Renderer> {
     )
     .style(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    .width(iced::Length::Fill);
+    .width(iced::Length::FillPortion(2));
 
     let added_con = container(
         row!()
@@ -70,7 +81,7 @@ pub fn view(responsive: bool) -> Element<'static, Message, Theme, Renderer> {
     )
     .style(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    .width(iced::Length::Fill);
+    .width(iced::Length::FillPortion(2));
 
     let actions_con = container(
         row!()
@@ -93,7 +104,10 @@ pub fn view(responsive: bool) -> Element<'static, Message, Theme, Renderer> {
     if !responsive {
         main_row = main_row.push(speed_con);
     }
-    main_row = main_row.push(added_con).push(actions_con);
+    main_row = main_row
+        .push(eta_container)
+        .push(added_con)
+        .push(actions_con);
 
     let main_container = container(main_row)
         .width(iced::Length::Fill)

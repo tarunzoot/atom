@@ -60,7 +60,7 @@ pub fn get_file_type(file_type: &str) -> &str {
         "url" | "link" | "desktop" => "Shortcut",
         "pdf" | "docx" | "doc" | "odt" | "md" | "ppt" | "pptx" => "Document",
         "zip" | "gz" | "7z" | "rar" | "xz" | "tar.xz" | "iso" => "Archive",
-        "vmdk" | "vdi" => "Virtual Machine",
+        "vmdk" | "vdi" => "Virtual Disk",
         "deb" | "exe" | "msi" | "rpm" | "bin" | "appImage" | "dmg" => "Executable",
         "ai" | "psd" => "Graphic",
         "sql" | "csv" | "db" | "tsv" => "Database",
