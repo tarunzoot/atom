@@ -23,7 +23,7 @@ pub fn view() -> Element<'static, Message, Theme, Renderer> {
         ("show all downloads", "H", '\u{e944}'),
         ("open settings", ",", '\u{ec83}'),
         ("open keyboard shortcuts", "K", '\u{ea54}'),
-        ("search Downloads", "F", '\u{ed11}'),
+        ("search downloads", "F", '\u{ed11}'),
         ("quit app", "Q", '\u{eedd}'),
     ];
 
