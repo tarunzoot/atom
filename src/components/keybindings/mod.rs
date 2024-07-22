@@ -84,9 +84,19 @@ pub fn view() -> Element<'static, Message, Theme, Renderer> {
                                         ..Default::default()
                                     }),
                                     row![
-                                        button(icon('\u{eaa1}', CustomFont::IcoFont).size(12))
-                                            .style(AtomStyleButton::ShortcutKeyButton)
-                                            .padding(Padding::from([5, 10])),
+                                        button(
+                                            icon(
+                                                if cfg!(target_os = "macos") {
+                                                    '\u{f0633}'
+                                                } else {
+                                                    '\u{f0634}'
+                                                },
+                                                CustomFont::Symbols
+                                            )
+                                            .size(12)
+                                        )
+                                        .style(AtomStyleButton::ShortcutKeyButton)
+                                        .padding(Padding::from([5, 10])),
                                         button(text(shortcut.1).size(12))
                                             .style(AtomStyleButton::ShortcutKeyButton)
                                             .padding(Padding::from([5, 10]))
