@@ -155,6 +155,43 @@ impl AtomDownloadMetadata {
                 ),
             );
 
+        let mut download_info_col = col![].spacing(5);
+
+        download_info_col = if self.download_error.is_empty() {
+            download_info_col
+                .push(text("URL").width(Length::Fill))
+                .push(
+                    text_input("", &self.url)
+                        .size(14)
+                        .on_input(|_| MetadataMessage::Ignore),
+                )
+                .push(vertical_space().height(5))
+                .push(checksum_col)
+        } else {
+            download_info_col
+                .push(text("URL").width(Length::Fill))
+                .push(
+                    text_input("", &self.url)
+                        .size(14)
+                        .on_input(|_| MetadataMessage::Ignore),
+                )
+                .push(vertical_space().height(5))
+                .push(checksum_col)
+                .push(vertical_space().height(5))
+                .push(
+                    col![
+                        text("ERROR").width(Length::Fill),
+                        row![text_input("download error...", &self.download_error)
+                            .size(14)
+                            .on_input(|_| MetadataMessage::Ignore)]
+                        .spacing(5)
+                        .align_items(iced::Alignment::Center),
+                    ]
+                    .spacing(5)
+                    .align_items(iced::Alignment::Start),
+                )
+        };
+
         container(
             scrollable(
                 col!()
@@ -185,18 +222,7 @@ impl AtomDownloadMetadata {
                                 .size(12),
                             ),
                     )
-                    .push(
-                        col!()
-                            .push(text("URL").width(Length::Fill))
-                            .push(
-                                text_input("", &self.url)
-                                    .size(14)
-                                    .on_input(|_| MetadataMessage::Ignore),
-                            )
-                            .push(vertical_space().height(5))
-                            .push(checksum_col)
-                            .spacing(5),
-                    )
+                    .push(download_info_col)
                     .push(
                         container(preview_column)
                             .padding(10)

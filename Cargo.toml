@@ -17,7 +17,7 @@ serde_json = "1.0"
 chrono = "0.4"
 single-instance = "0.3"
 iced = {version="0.12", features=["tokio", "image", "advanced"]}
-tray-icon = "0.13"
+tray-icon = "0.14"
 image = "0.25"
 notify-rust = "4"
 tracing = "0.1"

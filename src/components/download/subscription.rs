@@ -247,7 +247,22 @@ async fn handle_sequential_downloading(
     mut downloaded: usize,
     index: usize,
 ) -> (Message, State) {
-    match response.chunk().await {
+    let chunk = response.chunk().await;
+
+    if !response.status().is_success() {
+        return (
+            Message::Download(
+                DownloadMessage::Error(format!(
+                    "The server responded with an {} status code",
+                    response.status()
+                )),
+                index,
+            ),
+            State::Wait,
+        );
+    }
+
+    match chunk {
         Ok(Some(chunk)) => {
             if file.write_all(&chunk[..]).is_err() {
                 return (
@@ -353,11 +368,23 @@ async fn handle_threaded_download_starting(
 
     for (response, file) in responses.into_iter().zip(open_chunk_files) {
         if let Ok(response) = response.await {
-            if response.status() == 206 {
+            tracing::debug!("response = {response:#?}");
+            if response.status().is_success() {
                 sub_downloads.push(SubDownloads {
                     response,
                     file: BufWriter::new(file),
                 });
+            } else {
+                return (
+                    Message::Download(
+                        DownloadMessage::Error(format!(
+                            "The server has returned an error status code for {}!",
+                            download.file_name
+                        )),
+                        index,
+                    ),
+                    State::Wait,
+                );
             }
         } else {
             return (

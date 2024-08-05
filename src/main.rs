@@ -13,13 +13,28 @@ mod font;
 mod messages;
 mod style;
 mod utils;
+use std::{env, fs::File, sync::Arc};
 
 #[tracing::instrument]
 fn main() -> iced::Result {
-    registry()
-        .with(tracing_subscriber::fmt::layer().pretty())
-        .with(EnvFilter::from_default_env())
-        .init();
+    let stdout_log = tracing_subscriber::fmt::layer().pretty();
+
+    if let Ok(log_file_path) = env::var("ATOM_LOG_FILE") {
+        let debug_log_file = match File::create(log_file_path) {
+            Ok(file) => file,
+            Err(error) => panic!("Error: {:?}", error),
+        };
+        let debug_log = tracing_subscriber::fmt::layer().with_writer(Arc::new(debug_log_file));
+        registry()
+            .with(stdout_log.and_then(debug_log))
+            .with(EnvFilter::from_default_env())
+            .init();
+    } else {
+        registry()
+            .with(stdout_log)
+            .with(EnvFilter::from_default_env())
+            .init();
+    }
 
     // run app
     App::run(Settings {

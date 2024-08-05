@@ -327,7 +327,7 @@ impl<'a> Atom<'a> {
                     Ok(atom_download) => {
                         if self.settings.new_download_notification {
                             show_notification(
-                                "Download Received From Browser",
+                                "New download received from the browser",
                                 &atom_download.file_name,
                                 2000,
                             );
