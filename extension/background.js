@@ -1,4 +1,12 @@
 var webRequests = [];
+var alt_down = false;
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if ('key' in message && 'state' in message) {
+        alt_down = message.state === 'down';
+    }
+    sendResponse('Received message in background!!');
+});
 
 // chrome.webRequest.onHeadersReceived.addListener(
 //     (details) => {
@@ -95,6 +103,8 @@ function toBinary(string) {
 }
 
 function postData(jsonObject, id) {
+    if (alt_down) return;
+
     let jsonString = JSON.stringify(jsonObject);
     console.log(jsonObject);
 
