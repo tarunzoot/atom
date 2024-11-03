@@ -234,7 +234,7 @@ impl AtomDownloadForm {
                             )
                             .push(
                                 container(
-                                    scrollable(if self.headers.len() > 0 {
+                                    scrollable(if !self.headers.is_empty() {
                                         headers
                                     } else {
                                         col![text("No additional headers").width(Shrink)]

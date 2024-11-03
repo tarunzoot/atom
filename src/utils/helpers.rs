@@ -25,7 +25,7 @@ use tray_icon::menu::MenuEvent;
 
 pub const ATOM_USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.72 Safari/537.36";
 pub const ATOM_INPUT_DEFAULT_PADDING: u16 = 6;
-pub const ATOM_SOCKET_ADDRESS: &'static str = "127.0.0.1:2866";
+pub const ATOM_SOCKET_ADDRESS: &str = "127.0.0.1:2866";
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TomlDownloads {
@@ -321,14 +321,13 @@ pub fn handle_web_request() -> Subscription<Message> {
         unfold(RequestStates::Start, move |state| async move {
             match state {
                 RequestStates::Start => {
-                    let message = TcpListener::bind(ATOM_SOCKET_ADDRESS).map_or_else(
+                    TcpListener::bind(ATOM_SOCKET_ADDRESS).map_or_else(
                         |e| {
                             warn!("Error: TcpListener::bind(failed) ({e:#?})");
                             Some((Message::StatusBar("TcpListener failed, capturing downloads from the browser will not work".to_string()), RequestStates::Start))
                         },
                         |listener| Some((Message::StatusBar("Capturing downloads from the browser enabled".to_string()), RequestStates::Listen(listener))),
-                    );
-                    return message;
+                    )
                 }
                 RequestStates::Listen(listener) => listener.accept().map_or_else(
                     |err| {
