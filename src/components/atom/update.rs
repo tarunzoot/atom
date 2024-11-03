@@ -5,41 +5,65 @@ use crate::{
         DownloadMessage, DownloadsListFilterMessage, Message, SideBarActiveButton, SideBarState,
         SidebarMessage, TitleBarMessage,
     },
-    utils::helpers::{get_epoch_ms, save_downloads_toml, save_settings_toml, show_notification},
+    utils::helpers::{
+        get_epoch_ms, save_downloads_toml, save_settings_toml, show_notification,
+        ATOM_SOCKET_ADDRESS,
+    },
 };
 use iced::{
     keyboard::{self, key::Named},
-    window::{self, Id},
-    Command, Event,
+    window, Event, Task as Command,
 };
 use std::path::PathBuf;
-use tracing::{error, warn};
+use tracing::{debug, error, warn};
 
 impl<'a> Atom<'a> {
     fn update_view(&mut self, view: View) {
         match view {
             View::NewDownloadForm => {
                 self.sidebar.active = SideBarActiveButton::AddDownload;
-                self.metadata.enabled = false;
             }
-            View::Settings => todo!(),
-            View::Shortcuts => todo!(),
+            View::Settings => {
+                self.sidebar.active = SideBarActiveButton::Settings;
+            }
+            View::Shortcuts => {
+                self.sidebar.active = SideBarActiveButton::Shortcuts;
+            }
             View::Downloads => {
                 self.sidebar.active = SideBarActiveButton::Overview;
                 self.filter_type = DownloadsListFilterMessage::All;
-                self.metadata.enabled = false;
             }
-            View::Import => todo!(),
+            View::Import => {
+                self.sidebar.active = SideBarActiveButton::Import;
+            }
         }
 
+        self.metadata.enabled = false;
+        self.status_bar_message = "Ready".to_string();
         self.view = view;
     }
 
-    pub fn update(&mut self, message: Message) -> iced::Command<Message> {
+    pub fn update(&mut self, message: Message) -> Command<Message> {
         match message {
             Message::Ignore => {}
+            Message::StatusBar(message) => self.status_bar_message = message,
             Message::EventsOccurred(ref event) => {
+                if let Event::Keyboard(keyboard::Event::KeyReleased {
+                    modifiers: _, key, ..
+                }) = event
+                {
+                    if keyboard::Key::Named(Named::Alt) == *key {
+                        self.alt_pressed = false;
+                        self.status_bar_message = "Ready".to_string();
+                    }
+                }
+
                 if let Event::Keyboard(keyboard::Event::KeyPressed { modifiers, key, .. }) = event {
+                    if keyboard::Key::Named(Named::Alt) == *key {
+                        self.alt_pressed = true;
+                        self.status_bar_message = "Alt + Drag window to move".to_string();
+                    }
+
                     if keyboard::Key::Named(Named::Tab) == *key {
                         if modifiers.shift() {
                             return iced::widget::focus_previous();
@@ -82,12 +106,12 @@ impl<'a> Atom<'a> {
                             _ => Message::Ignore,
                         };
 
-                        return Command::perform(async {}, |_| message);
+                        return Command::done(message);
                     }
                 }
 
-                if let Event::Window(Id::MAIN, window::Event::Resized { width, height }) = event {
-                    self.dimensions = (*width, *height);
+                if let Event::Window(window::Event::Resized(size)) = event {
+                    self.window_dimensions = (size.width as u32, size.height as u32);
                     // if *width <= 1025 || *height <= 600 {
                     //     self.phantom_settings.scaling = 0.80;
                     // } else {
@@ -98,43 +122,34 @@ impl<'a> Atom<'a> {
                 if let Event::Mouse(iced::mouse::Event::ButtonPressed(iced::mouse::Button::Left)) =
                     event
                 {
-                    return window::drag(Id::MAIN);
+                    if self.alt_pressed {
+                        return window::get_latest().and_then(window::drag);
+                    }
                 }
 
-                if let Event::Window(Id::MAIN, window::Event::CloseRequested) = event {
-                    if !save_settings_toml(&self.settings) {
-                        eprintln!("Error: saving settings failed!");
-                    }
-
-                    if !save_downloads_toml(
-                        self.downloads.clone().into_values().collect(),
-                        &PathBuf::from(&self.settings.config_dir).join("downloads.toml"),
-                    ) {
-                        eprintln!("Error: saving downloads failed!");
-                    }
-                    self.should_exit = true;
+                if let Event::Window(window::Event::CloseRequested) = event {
+                    return Command::done(Message::TitleBar(TitleBarMessage::AppExit));
                 }
             }
             Message::TitleBar(message) => match message {
                 TitleBarMessage::AppMaximize => {
-                    return window::toggle_maximize(Id::MAIN);
+                    return window::get_latest().and_then(window::toggle_maximize);
                 }
                 TitleBarMessage::AppMinimize => {
-                    return window::minimize(Id::MAIN, true);
+                    return window::get_latest().and_then(|id| window::minimize(id, true));
                 }
                 TitleBarMessage::AppHide => {
                     if !self.instance.as_ref().unwrap().is_single() {
-                        return Command::perform(async {}, |_| {
-                            Message::TitleBar(TitleBarMessage::AppExit)
-                        });
+                        return Command::done(Message::TitleBar(TitleBarMessage::AppExit));
                     }
-                    return window::change_mode(Id::MAIN, window::Mode::Hidden);
+                    return window::get_latest()
+                        .and_then(|id| window::change_mode(id, window::Mode::Hidden));
                 }
                 TitleBarMessage::AppShow => {
-                    return window::change_mode(Id::MAIN, window::Mode::Windowed);
+                    return window::get_latest()
+                        .and_then(|id| window::change_mode(id, window::Mode::Windowed));
                 }
                 TitleBarMessage::AppExit => {
-                    self.should_exit = true;
                     if !save_settings_toml(&self.settings) {
                         warn!("Error: saving settings failed!");
                     }
@@ -145,7 +160,18 @@ impl<'a> Atom<'a> {
                     ) {
                         warn!("Error: saving downloads failed!");
                     }
-                    return window::close(Id::MAIN);
+
+                    self.should_exit = true;
+                    std::net::TcpStream::connect(ATOM_SOCKET_ADDRESS).map_or_else(
+                        |e| {
+                            warn!("Error: TcpStream::connect(failed), error({e:#?})");
+                        },
+                        |_| {
+                            debug!("Info: TcpStream::connect(success)");
+                        },
+                    );
+
+                    return window::get_latest().and_then(window::close);
                 }
                 TitleBarMessage::SearchDownload(search_text) => {
                     self.titlebar.search_text = search_text.to_ascii_lowercase();
@@ -153,7 +179,7 @@ impl<'a> Atom<'a> {
             },
             Message::Import(message) => match message {
                 crate::messages::ImportMessage::ClosePane => {
-                    return Command::perform(async {}, |_| Message::GotoHomePage)
+                    return Command::done(Message::GotoHomePage)
                 }
                 crate::messages::ImportMessage::StartImportDownload => {
                     if let Ok(file_contents) = std::fs::read_to_string(&self.import.import_file) {
@@ -198,7 +224,7 @@ impl<'a> Atom<'a> {
 
                                 std::thread::sleep(std::time::Duration::from_millis(2));
                             });
-                        return Command::perform(async {}, |_| Message::SaveDownloads);
+                        return Command::done(Message::SaveDownloads);
                     }
                 }
                 _ => return self.import.update(message, &self.settings),
@@ -262,7 +288,7 @@ impl<'a> Atom<'a> {
             },
             Message::Download(state, index) => match state {
                 DownloadMessage::DownloadSelected => {
-                    return Command::perform(async {}, move |_| Message::ShowMetadata(index));
+                    return Command::done(Message::ShowMetadata(index));
                 }
                 DownloadMessage::RemoveDownload(force) => {
                     if force {
@@ -293,7 +319,7 @@ impl<'a> Atom<'a> {
                         if self.downloads.is_empty() {
                             self.update_view(View::Downloads);
                         }
-                        return Command::perform(async {}, |_| Message::SaveDownloads);
+                        return Command::done(Message::SaveDownloads);
                     } else if let Some(download) = self.downloads.get_mut(&index) {
                         download.update(state, &self.settings);
                     }
@@ -302,7 +328,7 @@ impl<'a> Atom<'a> {
                     if let Some(download) = self.downloads.get_mut(&index) {
                         download.update(state, &self.settings);
                     }
-                    return Command::perform(async {}, |_| Message::SaveDownloads);
+                    return Command::done(Message::SaveDownloads);
                 }
                 _ => {
                     if let Some(download) = self.downloads.get_mut(&index) {
@@ -311,6 +337,7 @@ impl<'a> Atom<'a> {
                 }
             },
             Message::NewDownloadReceivedFromBrowser(json) => {
+                self.status_bar_message = "Adding new download to the list".to_string();
                 let mut download = AtomDownload::new()
                     .headers(json.headers)
                     .url(json.url)
@@ -334,22 +361,18 @@ impl<'a> Atom<'a> {
                         }
 
                         if self.settings.auto_start_download {
-                            return Command::perform(async {}, |_| {
-                                Message::AddNewDownload(atom_download)
-                            });
+                            return Command::done(Message::AddNewDownload(atom_download));
                         } else {
                             self.download_form =
                                 AtomDownloadForm::new(atom_download, &self.settings);
                             self.update_view(View::NewDownloadForm);
                             return Command::batch(vec![
-                                Command::perform(async {}, |_| {
-                                    Message::TitleBar(TitleBarMessage::AppShow)
-                                }),
+                                Command::done(Message::TitleBar(TitleBarMessage::AppShow)),
                                 // window::request_user_attention(
                                 //     Id::MAIN,
                                 //     Some(UserAttention::Critical),
                                 // ),
-                                window::gain_focus(Id::MAIN),
+                                window::get_latest().and_then(window::gain_focus),
                             ]);
                         }
                     }
@@ -396,7 +419,8 @@ impl<'a> Atom<'a> {
                 }
 
                 let _ = self.update(Message::GotoHomePage);
-                return Command::perform(async {}, |_| Message::SaveDownloads);
+                self.status_bar_message = "Added new download to the list".to_string();
+                return Command::done(Message::SaveDownloads);
             }
             Message::SaveDownloads => {
                 if !save_downloads_toml(
@@ -407,7 +431,8 @@ impl<'a> Atom<'a> {
                 }
             }
             Message::GotoHomePage => {
-                self.filters.show_confirmation_dialog = false;
+                self.status_bar_message = "Main View".to_string();
+                self.download_state_filter_bar.show_confirmation_dialog = false;
                 self.view = View::Downloads;
                 self.filter_type = DownloadsListFilterMessage::All;
                 self.metadata.enabled = false;
@@ -422,13 +447,11 @@ impl<'a> Atom<'a> {
                 match message {
                     crate::messages::DownloadFormMessage::AddNewDownload => {
                         if let Ok(download) = self.download_form.make_download() {
-                            return Command::perform(async {}, |_| {
-                                Message::AddNewDownload(download)
-                            });
+                            return Command::done(Message::AddNewDownload(download));
                         }
                     }
                     crate::messages::DownloadFormMessage::ClosePane => {
-                        return Command::perform(async {}, |_| Message::GotoHomePage)
+                        return Command::done(Message::GotoHomePage)
                     }
                     _ => return self.download_form.update(message, &self.settings),
                 }
@@ -448,9 +471,7 @@ impl<'a> Atom<'a> {
                     self.settings.sidebar_collapsed = true;
                 }
                 SidebarMessage::Import => {
-                    self.sidebar.active = SideBarActiveButton::Import;
-                    self.view = View::Import;
-                    self.metadata.enabled = false;
+                    self.update_view(View::Import);
                 }
                 SidebarMessage::ResumeAll => {
                     self.downloads.iter_mut().for_each(|(&_, download)| {
@@ -462,7 +483,7 @@ impl<'a> Atom<'a> {
                     self.metadata.enabled = false;
                 }
                 SidebarMessage::DeleteConfirm => {
-                    self.filters.show_confirmation_dialog = true;
+                    self.download_state_filter_bar.show_confirmation_dialog = true;
                 }
                 SidebarMessage::DeleteAll => {
                     match self.sidebar.active {
@@ -498,7 +519,7 @@ impl<'a> Atom<'a> {
                         self.metadata.enabled = false;
                     }
 
-                    self.filters.show_confirmation_dialog = false;
+                    self.download_state_filter_bar.show_confirmation_dialog = false;
                 }
                 SidebarMessage::PauseAll => {
                     self.downloads.iter_mut().for_each(|(&_, download)| {
@@ -508,16 +529,12 @@ impl<'a> Atom<'a> {
                     self.sidebar.active = SideBarActiveButton::Overview;
                 }
                 SidebarMessage::Settings => {
-                    self.view = View::Settings;
                     self.filter_type = DownloadsListFilterMessage::All;
-                    self.metadata.enabled = false;
-                    self.sidebar.active = SideBarActiveButton::Settings;
+                    self.update_view(View::Settings);
                 }
                 SidebarMessage::Shortcuts => {
-                    self.view = View::Shortcuts;
                     self.filter_type = DownloadsListFilterMessage::All;
-                    self.metadata.enabled = false;
-                    self.sidebar.active = SideBarActiveButton::Shortcuts;
+                    self.update_view(View::Shortcuts);
                 }
                 SidebarMessage::GotoHomePage => {
                     let _ = self.update(Message::GotoHomePage);
@@ -536,20 +553,18 @@ impl<'a> Atom<'a> {
                         Message::Sidebar(SidebarMessage::Import)
                     }
                     crate::messages::TrayMessage::Exit => {
-                        return Command::perform(async {}, |_| {
-                            Message::TitleBar(TitleBarMessage::AppExit)
-                        })
+                        return Command::done(Message::TitleBar(TitleBarMessage::AppExit))
                     }
                 };
                 return Command::batch(vec![
-                    Command::perform(async {}, |_| Message::TitleBar(TitleBarMessage::AppShow)),
-                    Command::perform(async {}, |_| message),
+                    Command::done(Message::TitleBar(TitleBarMessage::AppShow)),
+                    Command::done(message),
                 ]);
             }
             Message::TrayEvent(id) => {
                 if let Some(message) = self.tray_event.get(&id) {
                     let message = message.to_owned();
-                    return Command::perform(async {}, |_| message);
+                    return Command::done(message);
                 }
                 warn!("Warning: unknown tray event id => {id:#?}");
             }

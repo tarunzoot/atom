@@ -180,6 +180,7 @@ pub enum TitleBarMessage {
 #[derive(Debug, Clone)]
 pub enum Message {
     EventsOccurred(iced::Event),
+    StatusBar(String),
     TitleBar(TitleBarMessage),
     Sidebar(SidebarMessage),
     DownloadForm(DownloadFormMessage),

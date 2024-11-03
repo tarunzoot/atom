@@ -1,6 +1,6 @@
-use super::Theme;
+use super::AtomTheme;
 use crate::color;
-use iced::{border::Radius, widget::progress_bar, Background, Color};
+use iced::{widget::progress_bar, Background, Border, Color};
 
 struct ColorPalette {
     background: Color,
@@ -8,26 +8,29 @@ struct ColorPalette {
 }
 
 #[derive(Debug, Clone, Copy, Default)]
-pub struct AtomStyleProgressBar;
+pub enum AtomStyleProgressBar {
+    #[default]
+    Default,
+}
 
 impl AtomStyleProgressBar {
-    fn color_palette(&self, theme: &Theme) -> ColorPalette {
+    fn color_palette(&self, theme: &AtomTheme) -> ColorPalette {
         let accent = theme.accent();
 
         match theme {
-            Theme::Default => ColorPalette {
+            AtomTheme::Default => ColorPalette {
                 background: color!(100, 100, 100),
                 bar: accent,
             },
-            Theme::Tangerine => ColorPalette {
+            AtomTheme::Tangerine => ColorPalette {
                 background: color!(100, 100, 100),
                 bar: accent,
             },
-            Theme::Light => ColorPalette {
+            AtomTheme::Light => ColorPalette {
                 background: color!(200, 200, 200),
                 bar: accent,
             },
-            Theme::Hari => ColorPalette {
+            AtomTheme::Hari => ColorPalette {
                 background: color!(200, 200, 200),
                 bar: accent,
             },
@@ -35,16 +38,23 @@ impl AtomStyleProgressBar {
     }
 }
 
-impl progress_bar::StyleSheet for Theme {
-    type Style = AtomStyleProgressBar;
+impl progress_bar::Catalog for AtomTheme {
+    type Class<'a> = AtomStyleProgressBar;
 
-    fn appearance(&self, style: &Self::Style) -> progress_bar::Appearance {
-        let color_palette = style.color_palette(self);
+    fn default<'a>() -> Self::Class<'a> {
+        AtomStyleProgressBar::Default
+    }
 
-        progress_bar::Appearance {
+    fn style(&self, class: &Self::Class<'_>) -> progress_bar::Style {
+        let color_palette = class.color_palette(self);
+
+        progress_bar::Style {
             background: Background::Color(color_palette.background),
             bar: Background::Color(color_palette.bar),
-            border_radius: Radius::from(5.0),
+            border: Border {
+                radius: 5.0.into(),
+                ..Default::default()
+            },
         }
     }
 }

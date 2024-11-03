@@ -3,7 +3,7 @@ use crate::{
     messages::{DownloadMessage, DownloadProperties, Message},
     utils::helpers::{get_content_length, hashmap2headermap, split_file_name, ATOM_USER_AGENT},
 };
-use iced::Subscription;
+use iced::{futures::stream::unfold, Subscription};
 use reqwest::{
     header::{RANGE, USER_AGENT},
     Client, Method, Response,
@@ -63,54 +63,59 @@ impl AtomDownload {
     }
 
     fn unfold_subscription(&self, state: State, index: usize) -> Subscription<Message> {
-        iced::subscription::unfold(index, state, move |state| async move {
-            match state {
-                State::Wait => iced::futures::future::pending().await,
-                State::SequentialFinished => (
-                    Message::Download(DownloadMessage::Finished, index),
-                    State::Wait,
-                ),
-                State::ThreadedFinished(destination_file, files) => {
-                    handle_threaded_download_finish(&destination_file, &files, index)
-                }
-                State::ThreadedDownloading(
-                    download,
-                    sub_downloads,
-                    destination_file,
-                    chunk_files,
-                    downloaded,
-                ) => {
-                    handle_threaded_downloading(
+        Subscription::run_with_id(
+            index,
+            unfold(state, move |state| async move {
+                match state {
+                    State::Wait => iced::futures::future::pending().await,
+                    State::SequentialFinished => Some((
+                        Message::Download(DownloadMessage::Finished, index),
+                        State::Wait,
+                    )),
+                    State::ThreadedFinished(destination_file, files) => Some(
+                        handle_threaded_download_finish(&destination_file, &files, index),
+                    ),
+                    State::ThreadedDownloading(
                         download,
                         sub_downloads,
                         destination_file,
                         chunk_files,
                         downloaded,
-                        index,
-                    )
-                    .await
+                    ) => Some(
+                        handle_threaded_downloading(
+                            download,
+                            sub_downloads,
+                            destination_file,
+                            chunk_files,
+                            downloaded,
+                            index,
+                        )
+                        .await,
+                    ),
+                    State::ThreadedStarting(client, download, destination_file, chunk_files) => {
+                        Some(
+                            handle_threaded_download_starting(
+                                download,
+                                destination_file,
+                                chunk_files,
+                                client,
+                                index,
+                            )
+                            .await,
+                        )
+                    }
+                    State::SequentialDownloading(response, file, downloaded) => {
+                        Some(handle_sequential_downloading(response, file, downloaded, index).await)
+                    }
+                    State::Starting(client, download, cache_dir) => {
+                        Some(handle_download_starting(download, client, cache_dir, index).await)
+                    }
+                    State::FileJoining(bw, chunk_files, index) => {
+                        Some(handle_joining_progress(bw, chunk_files, index).await)
+                    }
                 }
-                State::ThreadedStarting(client, download, destination_file, chunk_files) => {
-                    handle_threaded_download_starting(
-                        download,
-                        destination_file,
-                        chunk_files,
-                        client,
-                        index,
-                    )
-                    .await
-                }
-                State::SequentialDownloading(response, file, downloaded) => {
-                    handle_sequential_downloading(response, file, downloaded, index).await
-                }
-                State::Starting(client, download, cache_dir) => {
-                    handle_download_starting(download, client, cache_dir, index).await
-                }
-                State::FileJoining(bw, chunk_files, index) => {
-                    handle_joining_progress(bw, chunk_files, index).await
-                }
-            }
-        })
+            }),
+        )
     }
 }
 

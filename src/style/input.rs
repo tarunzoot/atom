@@ -1,4 +1,4 @@
-use super::Theme;
+use super::AtomTheme;
 use crate::color;
 use iced::{border::Radius, widget::text_input, Background, Border, Color};
 
@@ -21,10 +21,10 @@ pub enum AtomStyleInput {
 }
 
 impl AtomStyleInput {
-    fn appearance(&self, theme: &Theme) -> ColorPalette {
+    fn appearance(&self, theme: &AtomTheme) -> ColorPalette {
         let accent = theme.accent();
         match theme {
-            Theme::Default => ColorPalette {
+            AtomTheme::Default => ColorPalette {
                 accent,
                 background: Color::TRANSPARENT,
                 hover_border: Color { a: 0.8, ..accent },
@@ -32,7 +32,7 @@ impl AtomStyleInput {
                 text: Color::WHITE,
                 disabled_border: color!(100, 100, 100, 0.3),
             },
-            Theme::Tangerine => ColorPalette {
+            AtomTheme::Tangerine => ColorPalette {
                 accent,
                 background: color!(49, 59, 69, 0.5),
                 hover_border: Color { a: 0.8, ..accent },
@@ -40,7 +40,7 @@ impl AtomStyleInput {
                 text: Color::WHITE,
                 disabled_border: Color::TRANSPARENT,
             },
-            Theme::Light => ColorPalette {
+            AtomTheme::Light => ColorPalette {
                 accent,
                 background: color!(255, 255, 255, 0.6),
                 hover_border: Color { a: 0.8, ..accent },
@@ -48,7 +48,7 @@ impl AtomStyleInput {
                 text: Color::BLACK,
                 disabled_border: color!(198, 202, 210, 1),
             },
-            Theme::Hari => ColorPalette {
+            AtomTheme::Hari => ColorPalette {
                 accent,
                 // background: color!(255, 255, 255, 0.6),
                 background: Color {
@@ -67,105 +67,97 @@ impl AtomStyleInput {
     }
 }
 
-impl text_input::StyleSheet for Theme {
-    type Style = AtomStyleInput;
+impl text_input::Catalog for AtomTheme {
+    type Class<'a> = AtomStyleInput;
 
-    fn active(&self, style: &Self::Style) -> text_input::Appearance {
-        let appearance = style.appearance(self);
+    fn default<'a>() -> Self::Class<'a> {
+        AtomStyleInput::Default
+    }
 
-        text_input::Appearance {
-            background: Background::Color(appearance.background),
-            icon_color: appearance.accent,
-            border: Border {
-                color: match self {
-                    Theme::Tangerine => Color::TRANSPARENT,
-                    Theme::Default => match style {
-                        AtomStyleInput::Search => Color {
-                            a: 0.1,
-                            ..appearance.placeholder
+    fn style(&self, class: &Self::Class<'_>, status: text_input::Status) -> text_input::Style {
+        match status {
+            text_input::Status::Active => {
+                let appearance = class.appearance(self);
+
+                text_input::Style {
+                    background: Background::Color(appearance.background),
+                    icon: appearance.accent,
+                    border: Border {
+                        color: match self {
+                            AtomTheme::Tangerine => Color::TRANSPARENT,
+                            AtomTheme::Default => match class {
+                                AtomStyleInput::Search => Color {
+                                    a: 0.1,
+                                    ..appearance.placeholder
+                                },
+                                AtomStyleInput::Dimmed => Color {
+                                    a: 0.05,
+                                    ..appearance.placeholder
+                                },
+                                _ => appearance.accent,
+                            },
+                            _ => match class {
+                                AtomStyleInput::Search => Color {
+                                    a: 0.4,
+                                    ..appearance.placeholder
+                                },
+                                AtomStyleInput::Dimmed => Color {
+                                    a: 0.5,
+                                    ..appearance.placeholder
+                                },
+                                _ => appearance.accent,
+                            },
                         },
-                        AtomStyleInput::Dimmed => Color {
-                            a: 0.05,
-                            ..appearance.placeholder
+                        width: 1.0,
+                        radius: match class {
+                            AtomStyleInput::Search => Radius::from(20.0),
+                            _ => Radius::from(5.0),
                         },
-                        _ => appearance.accent,
                     },
-                    _ => match style {
-                        AtomStyleInput::Search => Color {
-                            a: 0.4,
-                            ..appearance.placeholder
-                        },
-                        AtomStyleInput::Dimmed => Color {
-                            a: 0.5,
-                            ..appearance.placeholder
-                        },
-                        _ => appearance.accent,
+                    value: appearance.text,
+                    placeholder: appearance.placeholder,
+                    selection: appearance.accent,
+                }
+            }
+            text_input::Status::Hovered => {
+                let appearance = class.appearance(self);
+                text_input::Style {
+                    background: Background::Color(appearance.background),
+                    border: Border {
+                        color: appearance.hover_border,
+                        ..self.style(class, text_input::Status::Active).border
                     },
-                },
-                width: 1.0,
-                radius: match style {
-                    AtomStyleInput::Search => Radius::from(20.0),
-                    _ => Radius::from(5.0),
-                },
-            },
-        }
-    }
+                    icon: appearance.accent,
+                    placeholder: appearance.placeholder,
+                    value: appearance.text,
+                    selection: appearance.accent,
+                }
+            }
+            text_input::Status::Focused => {
+                let appearance = class.appearance(self);
 
-    fn disabled_color(&self, style: &Self::Style) -> Color {
-        let appearance = style.appearance(self);
-        appearance.placeholder
-    }
-
-    fn disabled(&self, style: &Self::Style) -> text_input::Appearance {
-        let appearance = style.appearance(self);
-
-        text_input::Appearance {
-            border: Border {
-                color: appearance.disabled_border,
-                ..self.active(style).border
-            },
-            icon_color: appearance.accent,
-            background: Background::Color(appearance.background),
-        }
-    }
-
-    fn focused(&self, style: &Self::Style) -> text_input::Appearance {
-        let appearance = style.appearance(self);
-
-        text_input::Appearance {
-            border: Border {
-                color: appearance.accent,
-                ..self.active(style).border
-            },
-            ..self.active(style)
-        }
-    }
-
-    fn placeholder_color(&self, style: &Self::Style) -> Color {
-        let appearance = style.appearance(self);
-        appearance.placeholder
-    }
-
-    fn value_color(&self, style: &Self::Style) -> Color {
-        let appearance = style.appearance(self);
-        appearance.text
-    }
-
-    fn selection_color(&self, style: &Self::Style) -> Color {
-        let appearance = style.appearance(self);
-        appearance.accent
-    }
-
-    fn hovered(&self, style: &Self::Style) -> text_input::Appearance {
-        let appearance = style.appearance(self);
-
-        text_input::Appearance {
-            background: Background::Color(appearance.background),
-            border: Border {
-                color: appearance.hover_border,
-                ..self.active(style).border
-            },
-            icon_color: appearance.accent,
+                text_input::Style {
+                    border: Border {
+                        color: appearance.accent,
+                        ..self.style(class, text_input::Status::Active).border
+                    },
+                    ..self.style(class, text_input::Status::Active)
+                }
+            }
+            text_input::Status::Disabled => {
+                let appearance = class.appearance(self);
+                text_input::Style {
+                    border: Border {
+                        color: appearance.disabled_border,
+                        ..self.style(class, text_input::Status::Active).border
+                    },
+                    icon: appearance.accent,
+                    background: Background::Color(appearance.background),
+                    placeholder: appearance.placeholder,
+                    value: appearance.placeholder,
+                    selection: appearance.accent,
+                }
+            }
         }
     }
 }

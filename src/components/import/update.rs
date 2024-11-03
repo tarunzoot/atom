@@ -4,7 +4,7 @@ use crate::{
     // styles::style::{AtomInputDisabled, AtomToggler},
     messages::{ImportMessage, Message},
 };
-use iced::Command;
+use iced::Task as Command;
 use rfd::FileDialog;
 
 impl AtomImport {

@@ -1,6 +1,6 @@
 use super::AtomSettings;
 use crate::messages::{Message, SettingsMessage};
-use iced::Command;
+use iced::Task as Command;
 
 impl AtomSettings {
     pub fn update(&mut self, message: SettingsMessage) -> Command<Message> {

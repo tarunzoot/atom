@@ -3,34 +3,36 @@ use crate::{
     elements::GuiElements,
     font::{file_type_icon, icon, CustomFont},
     messages::MetadataMessage,
-    style::{container::AtomStyleContainer, AtomStyleText, Theme},
+    style::{container::AtomStyleContainer, AtomStyleText, AtomTheme},
     utils::helpers::{get_file_type, get_formatted_time, get_relative_file_size},
 };
 use iced::{
     widget::{
-        column as col, container, image, row, scrollable, scrollable::Properties, text, text_input,
+        column as col, container, image, row, scrollable, scrollable::Scrollbar, text, text_input,
         vertical_space,
     },
-    Element, Length, Padding, Renderer,
+    Alignment, Element,
+    Length::{Fill, FillPortion, Fixed},
+    Padding,
 };
 use std::{path::Path, time::Duration};
 
 impl AtomDownloadMetadata {
-    pub fn view(&self) -> Element<'static, MetadataMessage, Theme, Renderer> {
+    pub fn view(&self) -> Element<MetadataMessage, AtomTheme> {
         let file_path = Path::new(&self.file_path);
         let mut open_btn = GuiElements::primary_button(vec![
             icon('\u{ef13}', CustomFont::IcoFont).size(12),
             text("open").size(14),
         ])
         .padding(7)
-        .width(Length::Fill);
+        .width(Fill);
 
         let mut delete_btn = GuiElements::primary_button(vec![
             icon('\u{ec53}', CustomFont::IcoFont).size(12),
             text("delete").size(14),
         ])
         .padding(7)
-        .width(Length::Fill);
+        .width(Fill);
 
         if file_path.exists() {
             open_btn = open_btn.on_press(MetadataMessage::PreviewFile);
@@ -38,41 +40,40 @@ impl AtomDownloadMetadata {
         }
 
         let mut preview_column = col!()
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .align_items(iced::Alignment::Center)
+            .width(Fill)
+            .height(Fill)
+            .align_x(Alignment::Center)
             .spacing(10)
             .push(
-                row!()
-                    .width(Length::Fill)
-                    .align_items(iced::Alignment::Center)
-                    .push(
-                        file_type_icon(&self.extension)
-                            .size(20)
-                            .horizontal_alignment(iced::alignment::Horizontal::Left)
-                            .width(Length::Fill),
-                    ),
+                row!().width(Fill).align_y(Alignment::Center).push(
+                    file_type_icon(&self.extension)
+                        .size(20)
+                        .align_x(iced::alignment::Horizontal::Left)
+                        .width(Fill),
+                ),
             );
         preview_column = match (&self.extension[..], file_path.exists()) {
-            ("jpg" | "jpeg" | "png" | "gif", true) => preview_column.push(
-                image(&self.file_path)
-                    .height(Length::Fill)
-                    .content_fit(iced::ContentFit::Cover),
-            ),
+            ("jpg" | "jpeg" | "png" | "gif" | "JPG" | "JPEG" | "PNG" | "GIF", true) => {
+                preview_column.push(
+                    image(&self.file_path)
+                        .height(Fill)
+                        .content_fit(iced::ContentFit::Cover),
+                )
+            }
             _ => preview_column.push(
                 container(text("No preview available.").size(14))
-                    .width(Length::Fill)
-                    .height(Length::Fill)
-                    .center_x()
-                    .center_y()
-                    .style(AtomStyleContainer::Transparent),
+                    .width(Fill)
+                    .height(Fill)
+                    .center_x(Fill)
+                    .center_y(Fill)
+                    .class(AtomStyleContainer::Transparent),
             ),
         };
         preview_column = preview_column.push(
             col!()
-                .width(Length::Fill)
-                .align_items(iced::Alignment::End)
-                .push(text(&self.extension.to_uppercase()).size(14)),
+                .width(Fill)
+                .align_x(Alignment::End)
+                .push(text(self.extension.to_uppercase()).size(14)),
         );
 
         let (time_created, time_accessed, time_modified) =
@@ -130,16 +131,16 @@ impl AtomDownloadMetadata {
 
         let checksum_col = col!()
             .spacing(5)
-            .align_items(iced::Alignment::Start)
+            .align_x(Alignment::Start)
             .push(
                 row!()
                     .spacing(10)
-                    .align_items(iced::Alignment::Center)
-                    .push(text("SHA256").width(Length::Fill))
+                    .align_y(Alignment::Center)
+                    .push(text("SHA256").width(Fill))
                     .push(checksum_btn),
             )
             .push(
-                row!().spacing(5).align_items(iced::Alignment::Center).push(
+                row!().spacing(5).align_y(Alignment::Center).push(
                     text_input(
                         "sha256 hash...",
                         if self.is_calculating_checksum {
@@ -159,7 +160,7 @@ impl AtomDownloadMetadata {
 
         download_info_col = if self.download_error.is_empty() {
             download_info_col
-                .push(text("URL").width(Length::Fill))
+                .push(text("URL").width(Fill))
                 .push(
                     text_input("", &self.url)
                         .size(14)
@@ -169,7 +170,7 @@ impl AtomDownloadMetadata {
                 .push(checksum_col)
         } else {
             download_info_col
-                .push(text("URL").width(Length::Fill))
+                .push(text("URL").width(Fill))
                 .push(
                     text_input("", &self.url)
                         .size(14)
@@ -180,15 +181,15 @@ impl AtomDownloadMetadata {
                 .push(vertical_space().height(5))
                 .push(
                     col![
-                        text("ERROR").width(Length::Fill),
+                        text("ERROR").width(Fill),
                         row![text_input("download error...", &self.download_error)
                             .size(14)
                             .on_input(|_| MetadataMessage::Ignore)]
                         .spacing(5)
-                        .align_items(iced::Alignment::Center),
+                        .align_y(Alignment::Center),
                     ]
                     .spacing(5)
-                    .align_items(iced::Alignment::Start),
+                    .align_x(Alignment::Start),
                 )
         };
 
@@ -202,10 +203,10 @@ impl AtomDownloadMetadata {
                             .spacing(5)
                             .push(
                                 row!()
-                                    .width(Length::Fill)
+                                    .width(Fill)
                                     .spacing(20)
-                                    .align_items(iced::Alignment::Center)
-                                    .push(text("Resources").width(Length::Fill))
+                                    .align_y(Alignment::Center)
+                                    .push(text("Resources").width(Fill))
                                     .push(
                                         GuiElements::round_button('\u{eee1}')
                                             .padding(Padding::from([2, 4]))
@@ -218,7 +219,7 @@ impl AtomDownloadMetadata {
                                     get_file_type(&self.extension),
                                     get_relative_file_size(self.size)
                                 ))
-                                .style(AtomStyleText::Dimmed)
+                                .class(AtomStyleText::Dimmed)
                                 .size(12),
                             ),
                     )
@@ -226,67 +227,67 @@ impl AtomDownloadMetadata {
                     .push(
                         container(preview_column)
                             .padding(10)
-                            .style(AtomStyleContainer::PreviewContainer)
+                            .class(AtomStyleContainer::PreviewContainer)
                             .height(250),
                     )
                     .push(
                         col!()
                             .spacing(5)
-                            .width(Length::Fill)
+                            .width(Fill)
                             .push(text("Information"))
                             .push(
                                 row!()
-                                    .width(Length::Fill)
-                                    .align_items(iced::Alignment::Center)
+                                    .width(Fill)
+                                    .align_y(Alignment::Center)
                                     .push(
                                         text("Created")
-                                            .style(AtomStyleText::Dimmed)
+                                            .class(AtomStyleText::Dimmed)
                                             .size(12)
-                                            .width(Length::FillPortion(1)),
+                                            .width(FillPortion(1)),
                                     )
                                     .push(text(time_created).size(10)),
                             )
                             .push(
                                 row!()
-                                    .width(Length::Fill)
-                                    .align_items(iced::Alignment::Center)
+                                    .width(Fill)
+                                    .align_y(Alignment::Center)
                                     .push(
                                         text("Modified")
-                                            .style(AtomStyleText::Dimmed)
+                                            .class(AtomStyleText::Dimmed)
                                             .size(12)
-                                            .width(Length::FillPortion(1)),
+                                            .width(FillPortion(1)),
                                     )
                                     .push(text(time_modified).size(10)),
                             )
                             .push(
                                 row!()
-                                    .width(Length::Fill)
-                                    .align_items(iced::Alignment::Center)
+                                    .width(Fill)
+                                    .align_y(Alignment::Center)
                                     .push(
                                         text("Last Opened")
-                                            .style(AtomStyleText::Dimmed)
+                                            .class(AtomStyleText::Dimmed)
                                             .size(12)
-                                            .width(Length::FillPortion(1)),
+                                            .width(FillPortion(1)),
                                     )
                                     .push(text(time_accessed).size(10)),
                             ),
                     )
                     .push(
                         row!()
-                            .width(Length::Fill)
+                            .width(Fill)
                             .spacing(5)
                             .push(open_btn)
                             .push(delete_btn),
                     ),
             )
             .direction(scrollable::Direction::Vertical(
-                Properties::new().margin(0).scroller_width(0).width(0),
+                Scrollbar::new().margin(0).scroller_width(0).width(0),
             )),
         )
         .padding(15)
-        .style(AtomStyleContainer::ListContainer)
-        .width(Length::Fixed(210.0))
-        .height(Length::Fill)
+        .class(AtomStyleContainer::ListContainer)
+        .width(Fixed(210.0))
+        .height(Fill)
         .into()
     }
 }

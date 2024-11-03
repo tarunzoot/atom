@@ -3,7 +3,7 @@ use crate::{
     components::settings::AtomSettings,
     messages::{DownloadFormMessage, Message},
 };
-use iced::Command;
+use iced::Task as Command;
 
 impl AtomDownloadForm {
     pub fn update(

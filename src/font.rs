@@ -1,13 +1,8 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use crate::style::Theme;
-use iced::{
-    alignment::Horizontal,
-    alignment::Vertical,
-    widget::{text, Text},
-    Renderer,
-};
+use crate::style::AtomTheme;
+use iced::widget::{text, Text};
 
 pub const MONOSPACED_FONT_BYTES: &[u8] =
     // include_bytes!("../resources/fonts/Google-Sans-Mono-Regular.ttf");
@@ -19,7 +14,7 @@ pub const SYMBOLS_BYTES: &[u8] =
 pub const ICOFONT: iced::Font = iced::Font::with_name("IcoFont");
 pub const SYMBOLS: iced::Font = iced::Font::with_name("Symbols Nerd Font Mono");
 
-pub fn file_type_icon(file_type: &str) -> Text<'static, Theme, Renderer> {
+pub fn file_type_icon<'a>(file_type: &str) -> Text<'a, AtomTheme> {
     let file_icon = match &file_type.to_lowercase()[..] {
         "jpg" | "jpeg" | "png" | "tiff" | "gif" | "webp" | "bmp" => '\u{eb1a}',
         "js" | "json" | "html" | "css" | "jsx" | "gulp" | "php" | "sass" | "scss" | "py"
@@ -43,10 +38,10 @@ pub fn file_type_icon(file_type: &str) -> Text<'static, Theme, Renderer> {
         "md" | "doc" | "docx" | "ppt" | "pptx" => '\u{eb0e}',
         _ => '\u{eb12}',
     };
-    icon(file_icon, CustomFont::IcoFont)
+    icon(file_icon, CustomFont::IcoFont).center()
 }
 
-pub fn get_file_type(file_type: &str) -> &str {
+pub fn get_file_type(file_type: &str) -> &'static str {
     match &file_type.to_lowercase()[..] {
         "jpg" | "jpeg" | "png" | "tiff" | "gif" | "webp" | "bmp" => "Image",
         "js" | "json" | "html" | "css" | "jsx" | "gulp" | "php" | "sass" | "scss" | "py"
@@ -75,18 +70,10 @@ pub enum CustomFont {
     IcoFont,
 }
 
-pub fn icon(unicode: char, custom_font: CustomFont) -> Text<'static, Theme, Renderer> {
+pub fn icon<'a>(unicode: char, custom_font: CustomFont) -> Text<'a, AtomTheme> {
     match custom_font {
-        CustomFont::IcoFont => text(unicode)
-            .font(ICOFONT)
-            .horizontal_alignment(Horizontal::Center)
-            .vertical_alignment(Vertical::Center)
-            .size(16),
+        CustomFont::IcoFont => text(unicode).font(ICOFONT).center().size(16),
 
-        CustomFont::Symbols => text(unicode)
-            .font(SYMBOLS)
-            .horizontal_alignment(Horizontal::Center)
-            .vertical_alignment(Vertical::Center)
-            .size(30),
+        CustomFont::Symbols => text(unicode).font(SYMBOLS).center().size(30),
     }
 }

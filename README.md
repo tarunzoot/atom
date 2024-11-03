@@ -47,8 +47,12 @@ cargo r --release
 
 ## Browser Extension Installation
 
--   **For Chrome/Edge/Brave**: [Link](https://support.google.com/chrome/a/answer/2714278?hl=en) (Check step 2)
+-   **For Chrome/Edge/Brave**: [Link](https://support.google.com/chrome/a/answer/2714278?hl=en) (Follow from step 2)
 -   **For Firefox**: [Link](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Your_first_WebExtension#installing)
+
+## Moving Window
+
+You can move the window by pressing **Alt** and dragging with the mouse.
 
 ## Limitations
 

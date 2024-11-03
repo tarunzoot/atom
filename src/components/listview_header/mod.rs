@@ -1,14 +1,15 @@
 use crate::{
     font::{icon, CustomFont},
     messages::Message,
-    style::{container::AtomStyleContainer, Theme},
+    style::{container::AtomStyleContainer, AtomTheme},
 };
 use iced::{
     widget::{container, row, text},
-    Element, Font, Renderer,
+    Alignment, Element, Font,
+    Length::{Fill, FillPortion, Fixed},
 };
 
-pub fn view(responsive: bool) -> Element<'static, Message, Theme, Renderer> {
+pub fn view<'a>(responsive: bool) -> Element<'a, Message, AtomTheme> {
     let icon_size = 14;
     let text_size = 14;
     let font = Font {
@@ -20,99 +21,98 @@ pub fn view(responsive: bool) -> Element<'static, Message, Theme, Renderer> {
     let file_name_container = container(
         row!()
             .spacing(7)
-            .align_items(iced::Alignment::Center)
+            .align_y(Alignment::Center)
             .push(icon('\u{eb08}', CustomFont::IcoFont).size(icon_size))
             .push(text("File Name").size(text_size).font(font)),
     )
-    .style(AtomStyleContainer::Transparent)
+    .class(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    .width(iced::Length::FillPortion(5));
+    .width(FillPortion(5));
 
     let file_size_container = container(
         row!()
             .spacing(7)
-            .align_items(iced::Alignment::Center)
+            .align_y(Alignment::Center)
             .push(icon('\u{e90b}', CustomFont::IcoFont).size(icon_size - 2))
             .push(text("Size").size(text_size).font(font)),
     )
-    .style(AtomStyleContainer::Transparent)
+    .class(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    .width(iced::Length::FillPortion(2));
+    .width(FillPortion(3));
 
     let eta_container = container(
         row!()
             .spacing(7)
-            .align_items(iced::Alignment::Center)
+            .align_y(Alignment::Center)
             .push(icon('\u{f022}', CustomFont::IcoFont).size(icon_size))
             .push(text("E.T.A").size(text_size).font(font)),
     )
-    .style(AtomStyleContainer::Transparent)
+    .class(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    .width(iced::Length::FillPortion(2));
+    .width(FillPortion(2));
 
     let status_container = container(
         row!()
             .spacing(7)
-            .align_items(iced::Alignment::Center)
+            .align_y(Alignment::Center)
             .push(icon('\u{eed7}', CustomFont::IcoFont).size(icon_size))
             .push(text("Status").size(text_size).font(font)),
     )
-    .style(AtomStyleContainer::Transparent)
+    .class(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    .width(iced::Length::FillPortion(2));
+    .width(FillPortion(2));
 
     let speed_con = container(
         row!()
             .spacing(7)
-            .align_items(iced::Alignment::Center)
+            .align_y(Alignment::Center)
             .push(icon('\u{eff3}', CustomFont::IcoFont).size(icon_size))
             .push(text("Speed").size(text_size).font(font)),
     )
-    .style(AtomStyleContainer::Transparent)
+    .class(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    .width(iced::Length::FillPortion(2));
+    .width(FillPortion(2));
 
     let added_con = container(
         row!()
             .spacing(7)
-            .align_items(iced::Alignment::Center)
+            .align_y(iced::Alignment::Center)
             .push(icon('\u{ec45}', CustomFont::IcoFont).size(icon_size))
             .push(text("Added").size(text_size).font(font)),
     )
-    .style(AtomStyleContainer::Transparent)
+    .class(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    .width(iced::Length::FillPortion(2));
+    .width(FillPortion(2));
 
     let actions_con = container(
         row!()
             .spacing(7)
-            .align_items(iced::Alignment::Center)
+            .align_y(iced::Alignment::Center)
             .push(icon('\u{eecb}', CustomFont::IcoFont).size(icon_size))
             .push(text("Actions").size(text_size).font(font)),
     )
-    .style(AtomStyleContainer::Transparent)
+    .class(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    .width(iced::Length::Fixed(75.0));
+    .width(Fixed(75.0));
 
     let mut main_row = row!()
         .padding(10)
         .spacing(15)
-        .align_items(iced::Alignment::Center)
+        .align_y(Alignment::Center)
         .push(file_name_container)
         .push(file_size_container)
-        .push(status_container);
+        .push(status_container)
+        .push(speed_con)
+        .push(eta_container);
+
     if !responsive {
-        main_row = main_row.push(speed_con);
+        main_row = main_row.push(added_con);
     }
-    main_row = main_row
-        .push(eta_container)
-        .push(added_con)
-        .push(actions_con);
+    main_row = main_row.push(actions_con);
 
     let main_container = container(main_row)
-        .width(iced::Length::Fill)
-        .style(AtomStyleContainer::ListHeaderContainer)
-        .into();
+        .width(Fill)
+        .class(AtomStyleContainer::ListHeaderContainer);
 
-    main_container
+    main_container.into()
 }

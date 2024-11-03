@@ -6,7 +6,8 @@ use crate::{
     messages::{DownloadProperties, Message},
     utils::json_from_browser::JSONFromBrowser,
 };
-use iced::subscription;
+use iced::futures::stream::unfold;
+use iced::Subscription;
 use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue, ACCEPT_RANGES, CONTENT_LENGTH, USER_AGENT},
     Client, Method,
@@ -15,7 +16,7 @@ use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeMap, HashMap},
     io::{prelude::*, BufReader, Write},
-    net::{TcpListener, TcpStream},
+    net::TcpListener,
     path::{Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
 };
@@ -24,6 +25,7 @@ use tray_icon::menu::MenuEvent;
 
 pub const ATOM_USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.72 Safari/537.36";
 pub const ATOM_INPUT_DEFAULT_PADDING: u16 = 6;
+pub const ATOM_SOCKET_ADDRESS: &'static str = "127.0.0.1:2866";
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TomlDownloads {
@@ -241,18 +243,12 @@ pub fn show_notification(subtitle: &str, body: &str, timeout: u32) {
     }
 }
 
-/**
- *
- */
 pub fn split_file_name(file_name: &str, split_count: u8) -> Vec<String> {
     (1..=split_count)
         .map(|index| format!("{}.atom.{}", file_name, index))
         .collect()
 }
 
-/**
- *
- */
 pub fn save_settings_toml(settings: &AtomSettings) -> bool {
     let toml_settings = TomlSettings {
         settings: settings.to_owned(),
@@ -272,9 +268,6 @@ pub fn save_settings_toml(settings: &AtomSettings) -> bool {
     true
 }
 
-/**
- *
- */
 pub fn save_downloads_toml(downloads: Vec<AtomDownload>, toml_path: &PathBuf) -> bool {
     let toml_downloads = TomlDownloads { downloads };
 
@@ -286,9 +279,6 @@ pub fn save_downloads_toml(downloads: Vec<AtomDownload>, toml_path: &PathBuf) ->
     true
 }
 
-/**
- *
- */
 pub fn parse_settings_toml(settings_path: &PathBuf) -> AtomSettings {
     std::fs::read_to_string(settings_path).map_or_else(
         |_| AtomSettings::default(),
@@ -301,9 +291,6 @@ pub fn parse_settings_toml(settings_path: &PathBuf) -> AtomSettings {
     )
 }
 
-/**
- *
- */
 pub fn parse_downloads_toml(downloads_file_path: &PathBuf) -> BTreeMap<usize, AtomDownload> {
     let mut downloads: BTreeMap<usize, AtomDownload> = BTreeMap::new();
 
@@ -322,74 +309,72 @@ pub fn parse_downloads_toml(downloads_file_path: &PathBuf) -> BTreeMap<usize, At
     downloads
 }
 
-pub fn handle_web_request(is_exiting: bool) -> iced::subscription::Subscription<Message> {
+pub fn handle_web_request() -> Subscription<Message> {
+    #[derive(Debug)]
     enum RequestStates {
         Start,
-        Wait,
+        Listen(TcpListener),
     }
 
-    if is_exiting {
-        TcpStream::connect("127.0.0.1:2866").ok();
-        return subscription::Subscription::none();
-    }
-
-    subscription::unfold(10000000, RequestStates::Start, |state| async move {
-        let start_message = (Message::Ignore, RequestStates::Start);
-
-        match state {
-            RequestStates::Start => {
-                let listener = TcpListener::bind("127.0.0.1:2866");
-                listener.map_or_else(
+    Subscription::run_with_id(
+        10000000,
+        unfold(RequestStates::Start, move |state| async move {
+            match state {
+                RequestStates::Start => {
+                    let message = TcpListener::bind(ATOM_SOCKET_ADDRESS).map_or_else(
+                        |e| {
+                            warn!("Error: TcpListener::bind(failed) ({e:#?})");
+                            Some((Message::StatusBar("TcpListener failed, capturing downloads from the browser will not work".to_string()), RequestStates::Start))
+                        },
+                        |listener| Some((Message::StatusBar("Capturing downloads from the browser enabled".to_string()), RequestStates::Listen(listener))),
+                    );
+                    return message;
+                }
+                RequestStates::Listen(listener) => listener.accept().map_or_else(
                     |err| {
+                        std::net::TcpStream::connect(ATOM_SOCKET_ADDRESS).ok();
                         warn!("TCP Error: {:#?}", err);
-                        (Message::Ignore, RequestStates::Wait)
+                        Some((Message::StatusBar("TcpListener failed, capturing downloads from the browser will not work".to_string()), RequestStates::Start))
                     },
-                    |listener| {
-                        listener.accept().map_or_else(
-                            |err| {
-                                warn!("TCP Error: {:#?}", err);
-                                (Message::Ignore, RequestStates::Start)
-                            },
-                            |(stream, _)| {
-                                let mut stream = stream;
-                                let buf_reader = BufReader::new(&mut stream);
-                                let http_request: Vec<_> = buf_reader
-                                    .lines()
-                                    .map(|result| result.unwrap())
-                                    .take_while(|line| !line.ends_with("<END>"))
-                                    .collect();
+                    |(stream, _)| {
+                        let start_message = Some((Message::Ignore, RequestStates::Start));
 
-                                let response = "HTTP/1.1 200 OK\r\n\r\n";
-                                stream.write_all(response.as_bytes()).ok();
+                        let mut stream = stream;
+                        let buf_reader = BufReader::new(&mut stream);
+                        let http_request: Vec<_> = buf_reader
+                            .lines()
+                            .map(|result| result.unwrap())
+                            .take_while(|line| !line.ends_with("<END>"))
+                            .collect();
 
-                                if http_request.is_empty() {
-                                    return start_message;
-                                }
+                        let response = "HTTP/1.1 200 OK\r\n\r\n";
+                        stream.write_all(response.as_bytes()).ok();
 
-                                let json = http_request.last().unwrap();
-                                let json = serde_json::from_str::<JSONFromBrowser>(json);
-                                if json.is_err() {
-                                    warn!("TCP JSON error : {:?}", json);
-                                    return start_message;
-                                }
+                        if http_request.is_empty() {
+                            return start_message;
+                        }
 
-                                let json = json.unwrap();
-                                if json.file_name.is_empty() || json.url.is_empty() {
-                                    return start_message;
-                                }
+                        let json = http_request.last().unwrap();
+                        let json = serde_json::from_str::<JSONFromBrowser>(json);
+                        if json.is_err() {
+                            warn!("TCP JSON error : {:?}", json);
+                            return start_message;
+                        }
 
-                                (
-                                    Message::NewDownloadReceivedFromBrowser(json),
-                                    RequestStates::Start,
-                                )
-                            },
-                        )
+                        let json = json.unwrap();
+                        if json.file_name.is_empty() || json.url.is_empty() {
+                            return start_message;
+                        }
+
+                        Some((
+                            Message::NewDownloadReceivedFromBrowser(json),
+                            RequestStates::Listen(listener),
+                        ))
                     },
-                )
+                ),
             }
-            RequestStates::Wait => iced::futures::future::pending().await,
-        }
-    })
+        }),
+    )
 }
 
 pub fn load_tray_icon(image_data: &[u8]) -> tray_icon::Icon {
@@ -404,12 +389,16 @@ pub fn load_tray_icon(image_data: &[u8]) -> tray_icon::Icon {
     tray_icon::Icon::from_rgba(icon_rgba, icon_width, icon_height).expect("Failed to open icon")
 }
 
-pub fn listen_for_tray_events() -> iced::subscription::Subscription<Message> {
-    subscription::unfold(1001, "", move |_| async move {
-        if let Ok(event) = MenuEvent::receiver().recv_timeout(std::time::Duration::from_secs(1)) {
-            (Message::TrayEvent(event.id), "")
-        } else {
-            (Message::Ignore, "")
-        }
-    })
+pub fn listen_for_tray_events() -> Subscription<Message> {
+    Subscription::run_with_id(
+        1001,
+        unfold("", move |_| async move {
+            if let Ok(event) = MenuEvent::receiver().try_recv() {
+                Some((Message::TrayEvent(event.id), ""))
+            } else {
+                // None
+                Some((Message::Ignore, ""))
+            }
+        }),
+    )
 }

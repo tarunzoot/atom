@@ -11,7 +11,7 @@ use iced::{
     overlay::menu,
     widget::{
         pick_list,
-        scrollable::{self, Scrollbar, Scroller},
+        scrollable::{self, Rail, Scroller},
         text,
     },
     Background, Border, Color,
@@ -46,8 +46,13 @@ macro_rules! color {
     }};
 }
 
+struct OverlayPalette {
+    background: Color,
+    _text: Color,
+}
+
 #[derive(Debug, Clone, Copy, Default)]
-pub enum Theme {
+pub enum AtomTheme {
     #[default]
     Default,
     Tangerine,
@@ -55,7 +60,7 @@ pub enum Theme {
     Hari,
 }
 
-impl Theme {
+impl AtomTheme {
     pub fn variants(&self) -> Vec<String> {
         vec![
             "Default".to_owned(),
@@ -67,17 +72,38 @@ impl Theme {
 
     pub fn accent(&self) -> Color {
         match self {
-            Theme::Default => color!(215, 252, 112),
-            Theme::Tangerine => color!(254, 161, 47, 1),
-            Theme::Light => color!(23, 29, 39, 1),
-            Theme::Hari => color!(0xE4E6C3), // moss green
-                                             // Theme::hari => color!(0x6ef7ff),
-                                             // Theme::Hari => color!(0xfb295d),
+            AtomTheme::Default => color!(215, 252, 112),
+            AtomTheme::Tangerine => color!(254, 161, 47, 1),
+            AtomTheme::Light => color!(23, 29, 39, 1),
+            AtomTheme::Hari => color!(0xE4E6C3), // moss green
+                                                 // Theme::hari => color!(0x6ef7ff),
+                                                 // Theme::Hari => color!(0xfb295d),
+        }
+    }
+
+    fn palette(&self) -> OverlayPalette {
+        match self {
+            AtomTheme::Default => OverlayPalette {
+                background: color!(10, 10, 10, 1),
+                _text: Color::WHITE,
+            },
+            AtomTheme::Tangerine => OverlayPalette {
+                background: color!(20, 24, 27, 1),
+                _text: color!(192, 200, 201, 1),
+            },
+            AtomTheme::Light => OverlayPalette {
+                background: color!(250, 250, 250, 1),
+                _text: color!(23, 29, 39, 1),
+            },
+            AtomTheme::Hari => OverlayPalette {
+                background: color!(0x30394c),
+                _text: color!(0xF7F7F2),
+            },
         }
     }
 }
 
-impl From<String> for Theme {
+impl From<String> for AtomTheme {
     fn from(value: String) -> Self {
         match &value[..] {
             "Tangerine" => Self::Tangerine,
@@ -88,16 +114,14 @@ impl From<String> for Theme {
     }
 }
 
-impl application::StyleSheet for Theme {
-    type Style = Theme;
-
-    fn appearance(&self, _: &Self::Style) -> application::Appearance {
+impl application::DefaultStyle for AtomTheme {
+    fn default_style(&self) -> application::Appearance {
         match self {
-            Theme::Default => application::Appearance {
+            AtomTheme::Default => application::Appearance {
                 background_color: Color::TRANSPARENT,
                 text_color: Color::WHITE,
             },
-            Theme::Tangerine => application::Appearance {
+            AtomTheme::Tangerine => application::Appearance {
                 background_color: color!(0x262e34),
                 text_color: color!(0xffffff),
             },
@@ -117,34 +141,68 @@ pub enum AtomStyleText {
     Accented,
 }
 
-impl text::StyleSheet for Theme {
-    type Style = AtomStyleText;
+impl text::Catalog for AtomTheme {
+    type Class<'a> = AtomStyleText;
 
-    fn appearance(&self, style: Self::Style) -> text::Appearance {
-        match style {
-            AtomStyleText::Default => text::Appearance {
+    fn default<'a>() -> Self::Class<'a> {
+        AtomStyleText::Default
+    }
+
+    fn style(&self, item: &Self::Class<'_>) -> text::Style {
+        match item {
+            AtomStyleText::Default => text::Style {
                 ..Default::default()
             },
-            AtomStyleText::Dimmed => text::Appearance {
+            AtomStyleText::Dimmed => text::Style {
                 color: Some(Color::from_rgb(180.0 / 255.0, 180.0 / 255.0, 180.0 / 255.0)),
             },
-            AtomStyleText::Accented => text::Appearance {
-                color: Some(Theme::accent(self)),
+            AtomStyleText::Accented => text::Style {
+                color: Some(AtomTheme::accent(self)),
             },
         }
     }
 }
 
-#[derive(Debug, Clone, Copy, Default)]
-pub struct AtomStyleScrollbar;
+#[derive(Default, Debug, Clone, Copy)]
+pub enum AtomStyleScrollbar {
+    #[default]
+    Default,
+}
 
-impl scrollable::StyleSheet for Theme {
-    type Style = AtomStyleScrollbar;
+impl scrollable::Catalog for AtomTheme {
+    type Class<'a> = AtomStyleScrollbar;
 
-    fn active(&self, _style: &Self::Style) -> scrollable::Appearance {
-        scrollable::Appearance {
+    fn default<'a>() -> Self::Class<'a> {
+        AtomStyleScrollbar::Default
+    }
+
+    fn style(&self, _class: &Self::Class<'_>, _status: scrollable::Status) -> scrollable::Style {
+        let accent = self.accent();
+
+        scrollable::Style {
             container: Default::default(),
-            scrollbar: Scrollbar {
+            gap: Default::default(),
+            vertical_rail: Rail {
+                background: None,
+                border: Border {
+                    radius: Radius::from(5.0),
+                    width: 2.0,
+                    // border_color: ATOM_BUTTON_BACKGROUND,
+                    // background: Some(Background::Color(ATOM_BUTTON_BACKGROUND)),
+                    // color: accent,
+                    color: Color::TRANSPARENT,
+                },
+                scroller: Scroller {
+                    color: accent.scale_alpha(0.0),
+                    border: Border {
+                        radius: Radius::from(5.0),
+                        width: 3.0,
+                        color: accent.scale_alpha(0.0),
+                    },
+                },
+            },
+            horizontal_rail: Rail {
+                background: None,
                 border: Border {
                     radius: Radius::from(5.0),
                     width: 2.0,
@@ -152,7 +210,6 @@ impl scrollable::StyleSheet for Theme {
                     // background: Some(Background::Color(ATOM_BUTTON_BACKGROUND)),
                     color: Color::TRANSPARENT,
                 },
-                background: None,
                 scroller: Scroller {
                     color: color!(50, 50, 50, 0),
                     border: Border {
@@ -162,109 +219,129 @@ impl scrollable::StyleSheet for Theme {
                     },
                 },
             },
-            gap: Default::default(),
         }
-    }
-
-    fn hovered(
-        &self,
-        style: &Self::Style,
-        _is_mouse_over_scrollbar: bool,
-    ) -> scrollable::Appearance {
-        self.active(style)
     }
 }
 
 #[derive(Debug, Clone, Copy, Default)]
-pub struct AtomStylePickList;
+pub enum AtomStylePickList {
+    #[default]
+    Default,
+}
 
 impl AtomStylePickList {
-    fn color_palette(theme: &Theme) -> (Color, Color) {
+    fn color_palette(theme: &AtomTheme) -> (Color, Color) {
         match theme {
-            Theme::Default => (theme.accent(), color!(250, 250, 250, 0.4)),
-            Theme::Tangerine => (theme.accent(), color!(250, 250, 250, 0.4)),
-            Theme::Light => (theme.accent(), color!(250, 250, 250, 0.4)),
-            Theme::Hari => (theme.accent(), color!(0xF7F7F2)),
+            AtomTheme::Default => (theme.accent(), color!(250, 250, 250, 0.4)),
+            AtomTheme::Tangerine => (theme.accent(), color!(250, 250, 250, 0.4)),
+            AtomTheme::Light => (theme.accent(), color!(250, 250, 250, 0.4)),
+            AtomTheme::Hari => (theme.accent(), color!(0xF7F7F2)),
         }
     }
 }
 
-impl pick_list::StyleSheet for Theme {
-    type Style = Theme;
+impl pick_list::Catalog for AtomTheme {
+    type Class<'a> = AtomStylePickList;
 
-    fn active(&self, _: &<Self as pick_list::StyleSheet>::Style) -> pick_list::Appearance {
+    fn default<'a>() -> <Self as pick_list::Catalog>::Class<'a> {
+        AtomStylePickList::Default
+    }
+
+    fn style(
+        &self,
+        _class: &<Self as pick_list::Catalog>::Class<'_>,
+        status: pick_list::Status,
+    ) -> pick_list::Style {
         let color_palette = AtomStylePickList::color_palette(self);
 
-        pick_list::Appearance {
-            text_color: match self {
-                Theme::Light => color_palette.0,
-                _ => Color::WHITE,
-            },
-            placeholder_color: color_palette.1,
-            background: Background::Color(Color::TRANSPARENT),
-            border: Border {
-                radius: Radius::from(5.0),
-                width: 1.0,
-                color: color_palette.0,
-            },
-            handle_color: color_palette.0,
-        }
-    }
-
-    fn hovered(&self, style: &<Self as pick_list::StyleSheet>::Style) -> pick_list::Appearance {
-        pick_list::Appearance {
-            border: Border {
-                color: Color {
-                    a: 0.8,
-                    ..self.active(style).border.color
+        match status {
+            pick_list::Status::Active => pick_list::Style {
+                text_color: match self {
+                    AtomTheme::Light => color_palette.0,
+                    _ => Color::WHITE,
                 },
-                ..self.active(style).border
+                placeholder_color: color_palette.1,
+                background: Background::Color(Color::TRANSPARENT),
+                border: Border {
+                    radius: 5.0.into(),
+                    width: 1.0,
+                    color: color_palette.0,
+                },
+                handle_color: color_palette.0,
             },
-            ..self.active(style)
+            pick_list::Status::Hovered => {
+                let active_style = self.style(_class, pick_list::Status::Active);
+                pick_list::Style {
+                    border: Border {
+                        color: Color {
+                            a: 0.8,
+                            ..active_style.border.color
+                        },
+                        ..active_style.border
+                    },
+                    ..active_style
+                }
+            }
+            pick_list::Status::Opened => self.style(_class, pick_list::Status::Active),
         }
     }
 }
 
 #[derive(Debug, Clone, Copy, Default)]
-pub struct AtomStyleOverlayMenu;
+pub enum AtomStyleOverlayMenu {
+    #[default]
+    Default,
+}
 
-impl menu::StyleSheet for Theme {
-    type Style = Theme;
+impl menu::Catalog for AtomTheme {
+    type Class<'a> = AtomStyleOverlayMenu;
 
-    fn appearance(&self, _: &Self::Style) -> menu::Appearance {
-        let color_palette = self.accent();
+    fn default<'a>() -> <Self as menu::Catalog>::Class<'a> {
+        AtomStyleOverlayMenu::Default
+    }
 
-        menu::Appearance {
+    fn style(&self, _class: &<Self as menu::Catalog>::Class<'_>) -> menu::Style {
+        let accent = self.accent();
+        let palette = self.palette();
+
+        menu::Style {
             text_color: match self {
-                Theme::Light | Theme::Hari => color_palette,
+                AtomTheme::Light | AtomTheme::Hari => accent,
                 _ => Color::WHITE,
             },
-            background: Background::Color(Color::TRANSPARENT),
+            background: palette.background.into(),
             border: Border {
                 width: 1.0,
-                radius: Radius::from(2.0),
-                color: color_palette,
+                radius: 5.0.into(),
+                color: accent,
             },
             selected_text_color: match self {
-                Theme::Light => Color::WHITE,
+                AtomTheme::Light => Color::WHITE,
                 _ => Color::BLACK,
             },
-            selected_background: Background::Color(color_palette),
+            selected_background: Background::Color(accent),
         }
     }
 }
 
 #[derive(Debug, Clone, Copy, Default)]
-pub struct AtomStyleRule;
+pub enum AtomStyleRule {
+    #[default]
+    Default,
+}
 
-impl iced::widget::rule::StyleSheet for Theme {
-    type Style = AtomStyleRule;
+impl iced::widget::rule::Catalog for AtomTheme {
+    type Class<'a> = AtomStyleRule;
 
-    fn appearance(&self, _: &Self::Style) -> iced::widget::rule::Appearance {
-        iced::widget::rule::Appearance {
+    fn default<'a>() -> Self::Class<'a> {
+        AtomStyleRule::Default
+    }
+
+    fn style(&self, _class: &Self::Class<'_>) -> iced::widget::rule::Style {
+        iced::widget::rule::Style {
             color: self.accent(),
             width: 5,
-            radius: Radius::from(5.0),
+            radius: 5.0.into(),
             fill_mode: iced::widget::rule::FillMode::Full,
         }
     }

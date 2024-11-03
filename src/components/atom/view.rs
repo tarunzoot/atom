@@ -3,19 +3,23 @@ use crate::{
     components::{download::AtomDownload, keybindings, listview_header},
     font::icon,
     messages::{DownloadsListFilterMessage, Message},
-    style::{container::AtomStyleContainer, Theme},
+    style::{container::AtomStyleContainer, AtomTheme},
 };
 use iced::{
+    alignment::Vertical::Top,
     widget::{
-        column as col, container, row, scrollable, scrollable::Properties, text, vertical_space,
+        column as col, container, horizontal_space, row, scrollable, scrollable::Scrollbar, text,
+        vertical_space,
     },
-    Alignment, Element, Length, Padding, Renderer,
+    Alignment, Element,
+    Length::{Fill, FillPortion, Fixed, Shrink},
+    Padding,
 };
 
 type DownloadTuple<'a> = (&'a usize, &'a AtomDownload);
 
 impl<'a> Atom<'a> {
-    fn filter_downloads_view(&self) -> Element<Message, Theme, Renderer> {
+    fn filter_downloads_view(&self) -> Element<Message, AtomTheme> {
         let deleted_filter: Box<dyn Fn(&DownloadTuple) -> bool> =
             Box::new(|f: &(&usize, &AtomDownload)| f.1.deleted);
         let all_filter: Box<dyn Fn(&DownloadTuple) -> bool> =
@@ -50,10 +54,11 @@ impl<'a> Atom<'a> {
         };
 
         let responsive = if self.settings.scaling <= 1.0 {
-            self.dimensions.0 < 1281 && (self.metadata.enabled || !self.settings.sidebar_collapsed)
+            self.window_dimensions.0 < 1281
+                && (self.metadata.enabled || !self.settings.sidebar_collapsed)
         } else {
-            self.dimensions.0 < 1087
-                || (self.dimensions.0 < 1281
+            self.window_dimensions.0 < 1087
+                || (self.window_dimensions.0 < 1281
                     && (self.metadata.enabled || !self.settings.sidebar_collapsed))
         };
 
@@ -72,7 +77,7 @@ impl<'a> Atom<'a> {
                         .map(|message| Message::Download(message, *index)),
                 )
             });
-        downloads = downloads.padding(if count > 0 { 1 } else { 0 });
+        downloads = downloads.padding(0);
 
         let filtered_content = scrollable(downloads);
 
@@ -83,7 +88,7 @@ impl<'a> Atom<'a> {
                 .view(self.downloads.len())
                 .map(Message::DownloadForm)
         } else {
-            let filters_view = self.filters.view(
+            let download_state_filters_bar = self.download_state_filter_bar.view(
                 &self.sidebar.active,
                 &self.downloads,
                 &self.settings.list_layout,
@@ -91,24 +96,32 @@ impl<'a> Atom<'a> {
             );
 
             let downloads_list_col = match self.settings.list_layout {
-                crate::components::settings::ListLayout::ListExtended => {
-                    col!().spacing(10).push(filters_view).push(
+                crate::components::settings::ListLayout::ListExtended => col!()
+                    .spacing(10)
+                    .align_x(Alignment::Center)
+                    .push(download_state_filters_bar)
+                    .push(
                         container(
                             filtered_content
                                 .height(if self.settings.stretch_list_view {
-                                    Length::Fill
+                                    Fill
                                 } else {
-                                    Length::Shrink
+                                    Shrink
                                 })
                                 .direction(scrollable::Direction::Vertical(
-                                    Properties::new().margin(0).scroller_width(0).width(0),
+                                    Scrollbar::new().margin(0).scroller_width(0).width(0),
                                 )),
                         )
-                        .width(Length::Fill)
-                        .padding(0)
-                        .style(AtomStyleContainer::ListHeaderContainer),
-                    )
-                }
+                        .center(Fill)
+                        .height(Shrink)
+                        .width(Fill)
+                        .padding(if self.settings.stretch_list_view || count > 0 {
+                            1
+                        } else {
+                            0
+                        })
+                        .class(AtomStyleContainer::ListHeaderContainer),
+                    ),
                 crate::components::settings::ListLayout::List => col!()
                     .spacing(10)
                     // .push(self.filters.view(&self.sidebar.active, &self.downloads))
@@ -116,71 +129,75 @@ impl<'a> Atom<'a> {
                         container(
                             col!()
                                 .spacing(0)
-                                .push(filters_view)
+                                .push(download_state_filters_bar)
                                 .push(
-                                    container(vertical_space().height(Length::Fixed(1.0)))
-                                        .height(Length::Fixed(1.0))
-                                        .width(Length::Fill),
+                                    container(vertical_space().height(Fixed(1.0)))
+                                        .height(Fixed(1.0))
+                                        .width(Fill),
                                 )
                                 .push(
                                     col!().push(listview_header::view(responsive)).push(
                                         container(text(" ").size(10))
-                                            .height(iced::Length::Fixed(1.0))
-                                            .width(iced::Length::Fill)
-                                            .style(AtomStyleContainer::LogoContainer),
+                                            .height(Fixed(1.0))
+                                            .width(Fill)
+                                            .class(AtomStyleContainer::LogoContainer),
                                     ),
                                 )
                                 .push(
                                     filtered_content
                                         .height(if self.settings.stretch_list_view {
-                                            Length::Fill
+                                            Fill
                                         } else {
-                                            Length::Shrink
+                                            Shrink
                                         })
                                         .direction(scrollable::Direction::Vertical(
-                                            Properties::new().margin(0).scroller_width(0).width(0),
+                                            Scrollbar::new().margin(0).scroller_width(0).width(0),
                                         )),
                                 ),
                         )
-                        .height(Length::Shrink)
-                        .style(AtomStyleContainer::ListHeaderContainer),
-                        // .style(AtomStyleContainer::Transparent),
+                        .padding(0)
+                        .center(Fill)
+                        .height(Shrink)
+                        .class(AtomStyleContainer::ListHeaderContainer),
+                        // .class(AtomStyleContainer::Transparent),
                     ),
             };
 
             container(downloads_list_col)
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .align_y(iced::alignment::Vertical::Top)
-                .style(AtomStyleContainer::Transparent)
+                .width(Fill)
+                .height(Fill)
+                .align_y(Top)
+                .class(AtomStyleContainer::Transparent)
                 .into()
         }
     }
 
-    pub fn view(&self) -> iced::Element<'_, Message, Theme, Renderer> {
+    pub fn view(&self) -> Element<Message, AtomTheme> {
+        let status_bar_text_icon_size = 10;
+
         if !self.instance.as_ref().unwrap().is_single() {
             let main_row = col!()
-                .width(Length::Fill)
-                .height(Length::Fill)
+                .width(Fill)
+                .height(Fill)
                 .padding(0)
-                .align_items(iced::Alignment::Center)
+                .align_x(Alignment::Center)
                 .push(self.titlebar.view(&self.settings).map(Message::TitleBar))
                 .push(
                     container(
                         row!()
-                            .align_items(iced::Alignment::Center)
+                            .align_y(Alignment::Center)
                             .spacing(10)
                             .push(icon('\u{ef4e}', crate::font::CustomFont::IcoFont))
                             .push(text("Another instance of application is already running!")),
                     )
                     .padding(20)
-                    .center_x()
-                    .center_y()
-                    .width(iced::Length::Fill)
-                    .height(iced::Length::Fill),
+                    .center_x(Fill)
+                    .center_y(Fill)
+                    .width(Fill)
+                    .height(Fill),
                 );
 
-            return container(main_row).width(Length::Fill).into();
+            return container(main_row).width(Fill).into();
         }
 
         let view = match self.view {
@@ -198,60 +215,64 @@ impl<'a> Atom<'a> {
         };
 
         let mut items_row = row!()
-            .width(Length::Fill)
+            .width(Fill)
             .push(
-                col!()
-                    .width(iced::Length::Shrink)
-                    .align_items(Alignment::Center)
-                    .push(
-                        container(self.sidebar.view().map(Message::Sidebar))
-                            .padding(Padding::from([20, 15]))
-                            .height(iced::Length::Fill)
-                            .width(Length::Shrink),
-                    ),
+                col!().width(Shrink).align_x(Alignment::Center).push(
+                    container(self.sidebar.view().map(Message::Sidebar))
+                        .padding(Padding::from([20, 15]))
+                        .height(Fill)
+                        .width(Shrink),
+                ),
             )
             .push(
                 container(
-                    container(
-                        col!()
-                            .push(view)
-                            .height(Length::Fill)
-                            .width(Length::FillPortion(1)),
-                    )
-                    .width(Length::Shrink)
-                    .height(Length::Shrink),
+                    container(col!().push(view).height(Fill).width(FillPortion(1)))
+                        .width(Shrink)
+                        .height(Shrink),
                 )
-                .padding(Padding::from([
-                    20,
-                    if self.metadata.enabled { 0 } else { 15 },
-                    20,
-                    0,
-                ]))
-                .width(Length::Fill)
-                .height(Length::Shrink),
+                .padding(
+                    Padding::new(20.0)
+                        .right(if self.metadata.enabled { 0 } else { 15 })
+                        .left(0),
+                )
+                .width(Fill)
+                .height(Shrink),
             );
 
         if self.metadata.enabled {
             items_row = items_row.push(
                 container(self.metadata.view().map(Message::Metadata))
                     .padding(Padding::from([20, 15]))
-                    .height(iced::Length::Fill)
-                    .width(Length::Shrink),
+                    .height(Fill)
+                    .width(Shrink),
             );
         }
 
-        let main_row = col!()
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .padding(0)
-            .align_items(iced::Alignment::Center)
-            .push(self.titlebar.view(&self.settings).map(Message::TitleBar))
-            .push(items_row);
+        let main_row = col![
+            self.titlebar.view(&self.settings).map(Message::TitleBar),
+            items_row,
+            container(
+                row![
+                    icon('\u{ebf5}', crate::font::CustomFont::Symbols)
+                        .size(status_bar_text_icon_size),
+                    text(&self.status_bar_message).size(status_bar_text_icon_size),
+                    horizontal_space().width(Fill),
+                ]
+                .align_y(Alignment::Center)
+                .spacing(10)
+            )
+            .class(AtomStyleContainer::HeaderContainer)
+            .padding(Padding::new(5.0).left(15).right(15))
+        ]
+        .width(Fill)
+        .height(Fill)
+        .padding(0)
+        .align_x(Alignment::Center);
 
         container(main_row)
             .padding(1)
-            .style(AtomStyleContainer::HeaderContainer)
-            .width(Length::Fill)
+            .class(AtomStyleContainer::HeaderContainer)
+            .width(Fill)
             .into()
     }
 }

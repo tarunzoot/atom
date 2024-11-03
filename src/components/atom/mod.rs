@@ -3,12 +3,12 @@ mod view;
 use crate::{
     components::download::AtomDownload,
     components::{
-        download_state::AtomDownloadStates, form::AtomDownloadForm, import::AtomImport,
+        download_state::AtomDownloadStatesFilterBar, form::AtomDownloadForm, import::AtomImport,
         metadata::AtomDownloadMetadata, settings::AtomSettings, sidebar::AtomSidebar,
         titlebar::AtomTitleBar,
     },
     messages::{DownloadsListFilterMessage, Message, SideBarActiveButton, SideBarState},
-    style::Theme,
+    style::AtomTheme,
     utils::helpers::{
         get_conf_directory, load_tray_icon, parse_downloads_toml, parse_settings_toml,
         save_settings_toml,
@@ -36,13 +36,26 @@ pub enum View {
     Import,
 }
 
+impl From<View> for String {
+    fn from(value: View) -> Self {
+        match value {
+            View::NewDownloadForm => "New Download Add Form View",
+            View::Settings => "Settings View",
+            View::Shortcuts => "Shortcuts View",
+            View::Downloads => "Downloads List View",
+            View::Import => "Import Links View",
+        }
+        .to_string()
+    }
+}
+
 #[derive(Default)]
 pub struct Atom<'a> {
     pub client: Client,
     pub view: View,
     pub sidebar: AtomSidebar<'a>,
     pub titlebar: AtomTitleBar,
-    pub filters: AtomDownloadStates<'a>,
+    pub download_state_filter_bar: AtomDownloadStatesFilterBar<'a>,
     pub download_form: AtomDownloadForm,
     pub downloads: BTreeMap<usize, AtomDownload>,
     pub settings: AtomSettings,
@@ -50,12 +63,14 @@ pub struct Atom<'a> {
     pub metadata: AtomDownloadMetadata,
     pub filter_type: DownloadsListFilterMessage,
     pub import: AtomImport,
-    pub should_exit: bool,
     pub instance: Option<SingleInstance>,
     pub tray: Option<TrayIcon>,
     pub tray_event: HashMap<MenuId, Message>,
-    pub theme: Theme,
-    pub dimensions: (u32, u32), // width x height
+    pub theme: AtomTheme,
+    pub should_exit: bool,
+    pub window_dimensions: (u32, u32), // width x height
+    pub status_bar_message: String,
+    pub alt_pressed: bool,
 }
 
 impl<'a> Atom<'a> {
@@ -132,6 +147,8 @@ impl<'a> Atom<'a> {
             instance: Some(app_instance),
             tray: tray_icon,
             tray_event: tray_messages,
+            status_bar_message: String::from("App loaded"),
+            alt_pressed: false,
             ..Default::default()
         }
     }

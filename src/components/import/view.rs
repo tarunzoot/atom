@@ -3,16 +3,18 @@ use crate::{
     elements::GuiElements,
     font::{icon, CustomFont::IcoFont},
     messages::ImportMessage,
-    style::{container::AtomStyleContainer, input::AtomStyleInput, Theme},
+    style::{container::AtomStyleContainer, input::AtomStyleInput, AtomTheme},
     utils::helpers::ATOM_INPUT_DEFAULT_PADDING,
 };
 use iced::{
     widget::{column as col, container, row, text, text_input, toggler},
-    Element, Padding, Renderer,
+    Alignment, Element,
+    Length::{Fill, Shrink},
+    Padding,
 };
 
 impl AtomImport {
-    pub fn view(&self) -> Element<ImportMessage, Theme, Renderer> {
+    pub fn view(&self) -> Element<ImportMessage, AtomTheme> {
         let mut start_download_btn =
             GuiElements::primary_button(vec![icon('\u{eee5}', IcoFont), text("start download")]);
 
@@ -23,17 +25,17 @@ impl AtomImport {
         container(
             col!()
                 .spacing(20)
-                .padding(Padding::from([0, 10, 10, 10]))
+                .padding(Padding::new(10.0).top(0))
                 .push(GuiElements::panel_title("Import Links"))
                 .push(
                     col!().spacing(5).push(text("Select File")).push(
                         row!()
                             .spacing(10)
-                            .align_items(iced::Alignment::Center)
+                            .align_y(Alignment::Center)
                             .push(
                                 text_input("selected file will appear here", &self.import_file)
                                     .on_input(|_| ImportMessage::Ignore)
-                                    .width(iced::Length::Fill)
+                                    .width(Fill)
                                     .padding(ATOM_INPUT_DEFAULT_PADDING),
                             )
                             .push(
@@ -49,12 +51,12 @@ impl AtomImport {
                     col!().spacing(5).push(text("Select Download Folder")).push(
                         row!()
                             .spacing(10)
-                            .align_items(iced::Alignment::Center)
+                            .align_y(Alignment::Center)
                             .push(
                                 text_input("selected folder will appear here", &self.download_path)
                                     // .on_input(|_| Message::Null)
-                                    .style(AtomStyleInput::Disabled)
-                                    .width(iced::Length::Fill)
+                                    .class(AtomStyleInput::Disabled)
+                                    .width(Fill)
                                     .padding(ATOM_INPUT_DEFAULT_PADDING),
                             )
                             .push(
@@ -67,16 +69,20 @@ impl AtomImport {
                     ),
                 )
                 .push(
-                    col!().push(
-                        toggler(
-                            Some("Download Sequentially".to_string()),
-                            self.is_sequential,
-                            ImportMessage::DownloadTypeToggled,
-                        )
-                        .spacing(10)
-                        .text_alignment(iced::alignment::Horizontal::Left)
-                        .width(iced::Length::Shrink),
-                    ),
+                    container(
+                        col!().push(
+                            toggler(self.is_sequential)
+                                .label("Download Sequentially")
+                                .on_toggle(ImportMessage::DownloadTypeToggled)
+                                .spacing(10)
+                                .text_alignment(iced::alignment::Horizontal::Left)
+                                .width(Shrink),
+                        ),
+                    )
+                    .padding(15)
+                    .width(Fill)
+                    .max_height(200)
+                    .class(AtomStyleContainer::ListContainer),
                 )
                 .push(
                     row!().spacing(20).push(start_download_btn).push(
@@ -89,8 +95,8 @@ impl AtomImport {
                 )
                 .width(iced::Length::Fill),
         )
-        .padding(Padding::from([0, 10, 10, 10]))
-        .style(AtomStyleContainer::ListContainer)
+        .padding(Padding::new(10.0).top(0))
+        .class(AtomStyleContainer::ListContainer)
         .into()
     }
 }

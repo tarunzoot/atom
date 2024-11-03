@@ -1,4 +1,4 @@
-use super::Theme;
+use super::AtomTheme;
 use crate::color;
 use iced::{border::Radius, widget::container, Background, Border, Color, Shadow};
 
@@ -30,28 +30,28 @@ pub enum AtomStyleContainer {
 }
 
 impl AtomStyleContainer {
-    fn appearance(&self, theme: &Theme) -> ColorPalette {
+    fn appearance(&self, theme: &AtomTheme) -> ColorPalette {
         let accent = theme.accent();
         match theme {
-            Theme::Default => ColorPalette {
+            AtomTheme::Default => ColorPalette {
                 accent,
                 background: color!(10, 10, 10, 1),
                 border: color!(100, 100, 100, 1.0),
                 text: Color::WHITE,
             },
-            Theme::Tangerine => ColorPalette {
+            AtomTheme::Tangerine => ColorPalette {
                 accent,
                 background: color!(20, 24, 27, 1),
                 border: color!(44, 52, 61, 1),
                 text: color!(192, 200, 201, 1),
             },
-            Theme::Light => ColorPalette {
+            AtomTheme::Light => ColorPalette {
                 accent,
                 background: color!(250, 250, 250, 1),
                 border: color!(150, 150, 150, 0.2),
                 text: accent,
             },
-            Theme::Hari => ColorPalette {
+            AtomTheme::Hari => ColorPalette {
                 accent,
                 background: color!(0x30394c),
                 // background: color!(0x1c1a41),
@@ -84,52 +84,56 @@ impl AtomStyleContainer {
     }
 }
 
-impl container::StyleSheet for Theme {
-    type Style = AtomStyleContainer;
+impl container::Catalog for AtomTheme {
+    type Class<'a> = AtomStyleContainer;
 
-    fn appearance(&self, style: &Self::Style) -> container::Appearance {
-        let appearance = style.appearance(self);
+    fn default<'a>() -> Self::Class<'a> {
+        AtomStyleContainer::MainContainer
+    }
 
-        container::Appearance {
-            text_color: match style {
+    fn style(&self, class: &Self::Class<'_>) -> container::Style {
+        let appearance = class.appearance(self);
+
+        container::Style {
+            text_color: match class {
                 AtomStyleContainer::LogoContainer => match self {
-                    Theme::Light => Some(color!(255, 255, 255, 1)),
+                    AtomTheme::Light => Some(color!(255, 255, 255, 1)),
                     _ => Some(color!(0, 0, 0, 1)),
                 },
                 AtomStyleContainer::MenuBarActiveContainer => Some(color!(215, 252, 112)),
                 AtomStyleContainer::MenuBarInActiveContainer
                 | AtomStyleContainer::ButtonContainer => None,
                 AtomStyleContainer::PillError => Some(appearance.text),
-                AtomStyleContainer::PillSuccess => Some(style.color_offset(appearance.text, 180.0)),
+                AtomStyleContainer::PillSuccess => Some(class.color_offset(appearance.text, 180.0)),
                 _ => Some(appearance.text),
             },
             shadow: Shadow::default(),
-            background: match style {
+            background: match class {
                 AtomStyleContainer::LogoContainer | AtomStyleContainer::MenuBarActiveContainer => {
                     Some(Background::Color(appearance.accent))
                 }
                 AtomStyleContainer::ListContainer => match self {
-                    Theme::Default => Some(Background::Color(
-                        style.color_offset(appearance.background, 5.0),
+                    AtomTheme::Default => Some(Background::Color(
+                        class.color_offset(appearance.background, 5.0),
                     )),
-                    Theme::Tangerine => Some(Background::Color(
-                        style.color_offset(appearance.background, 10.0),
+                    AtomTheme::Tangerine => Some(Background::Color(
+                        class.color_offset(appearance.background, 10.0),
                     )),
-                    Theme::Light => Some(Background::Color(Color {
+                    AtomTheme::Light => Some(Background::Color(Color {
                         a: 0.01,
                         ..appearance.border
                     })),
-                    Theme::Hari => Some(Background::Color(Color {
+                    AtomTheme::Hari => Some(Background::Color(Color {
                         a: 0.01,
                         ..appearance.border
                     })),
                 },
                 AtomStyleContainer::HeaderContainer => match self {
-                    Theme::Light => Some(Background::Color(
-                        style.color_offset(appearance.background, 10.0),
+                    AtomTheme::Light => Some(Background::Color(
+                        class.color_offset(appearance.background, 10.0),
                     )),
                     _ => Some(Background::Color(
-                        style.color_offset(appearance.background, 10.0),
+                        class.color_offset(appearance.background, 10.0),
                     )),
                 },
                 AtomStyleContainer::PillSuccess => Some(Background::Color(appearance.accent)),
@@ -139,21 +143,21 @@ impl container::StyleSheet for Theme {
                 | AtomStyleContainer::MenuBarInActiveContainer
                 | AtomStyleContainer::HeaderButtonsContainer => None,
                 AtomStyleContainer::ListItemContainer => Some(Background::Color(
-                    style.color_offset(appearance.background, 15.0),
+                    class.color_offset(appearance.background, 15.0),
                 )),
                 AtomStyleContainer::PreviewContainer => Some(Background::Color(
-                    style.color_offset(appearance.background, 20.0),
+                    class.color_offset(appearance.background, 20.0),
                 )),
                 AtomStyleContainer::ListHeaderContainer => Some(Background::Color(
-                    style.color_offset(appearance.background, 30.0),
+                    class.color_offset(appearance.background, 30.0),
                 )),
                 AtomStyleContainer::ToolTipContainer => Some(Background::Color(
-                    style.color_offset(appearance.background, 20.0),
+                    class.color_offset(appearance.background, 20.0),
                 )),
                 _ => Some(Background::Color(appearance.background)),
             },
             border: Border {
-                radius: match style {
+                radius: match class {
                     AtomStyleContainer::MenuBarActiveContainer
                     | AtomStyleContainer::ListContainer
                     | AtomStyleContainer::ToolTipContainer => Radius::from(10.0),
@@ -165,28 +169,28 @@ impl container::StyleSheet for Theme {
                     }
                     _ => Radius::from(0.0),
                 },
-                width: match style {
+                width: match class {
                     AtomStyleContainer::ListContainer => 2.0,
                     AtomStyleContainer::ListItemContainer => 1.0,
                     AtomStyleContainer::ToolTipContainer => 0.5,
                     AtomStyleContainer::MenuBarActiveContainer => 0.1,
                     _ => 0.0,
                 },
-                color: match style {
+                color: match class {
                     AtomStyleContainer::MainContainer
                     | AtomStyleContainer::LogoContainer
                     | AtomStyleContainer::PreviewContainer => appearance.border,
                     AtomStyleContainer::ListItemContainer => {
-                        style.color_offset(appearance.background, 30.0)
+                        class.color_offset(appearance.background, 30.0)
                     }
                     AtomStyleContainer::ListHeaderContainer => appearance.accent,
                     AtomStyleContainer::ToolTipContainer
                     | AtomStyleContainer::HeaderButtonsContainer
                     | AtomStyleContainer::MenuBarActiveContainer
                     | AtomStyleContainer::MenuBarInActiveContainer => {
-                        style.color_offset(appearance.background, 40.0)
+                        class.color_offset(appearance.background, 40.0)
                     }
-                    _ => style.color_offset(appearance.background, 20.0),
+                    _ => class.color_offset(appearance.background, 20.0),
                 },
             },
         }

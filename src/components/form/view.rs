@@ -1,37 +1,36 @@
 use super::AtomDownloadForm;
 use crate::{
     elements::GuiElements,
-    font::{icon, CustomFont},
+    font::{icon, CustomFont, ICOFONT, SYMBOLS},
     messages::DownloadFormMessage,
-    style::{container::AtomStyleContainer, input::AtomStyleInput, AtomStyleText, Theme},
+    style::{container::AtomStyleContainer, input::AtomStyleInput, AtomStyleText, AtomTheme},
     utils::helpers::ATOM_INPUT_DEFAULT_PADDING,
 };
 use iced::{
-    advanced::graphics::core::Element,
     widget::{
-        column as col, container, row, scrollable, scrollable::Properties, text, text_input,
-        text_input::Icon, toggler, tooltip, tooltip::Position, vertical_space,
+        column as col, container, row, scrollable, scrollable::Scrollbar, text, text_input,
+        toggler, tooltip, tooltip::Position, vertical_space,
     },
-    Font, Length, Padding, Pixels, Renderer,
+    Alignment, Element,
+    Length::{Fill, FillPortion, Fixed, Shrink},
+    Padding,
 };
 
 impl AtomDownloadForm {
-    fn headers_view(&self) -> Element<DownloadFormMessage, Theme, Renderer> {
+    fn headers_view(&self) -> Element<DownloadFormMessage, AtomTheme> {
         let text_size = 12;
         self.headers
             .iter()
             .fold(
-                col!().spacing(2).align_items(iced::Alignment::Center),
+                col!().spacing(2).align_x(iced::Alignment::Center),
                 |column, header| {
                     column.push(
                         container(
                             row![
                                 icon('\u{ee57}', CustomFont::Symbols)
-                                    .style(AtomStyleText::Dimmed)
+                                    .class(AtomStyleText::Dimmed)
                                     .size(text_size - 2),
-                                text(header.0.to_string())
-                                    .width(iced::Length::Fill)
-                                    .size(text_size),
+                                text(header.0.to_string()).width(Fill).size(text_size),
                                 self.vertical_line(),
                                 text_input("header value here...", header.1)
                                     .on_input(|value| {
@@ -40,107 +39,97 @@ impl AtomDownloadForm {
                                             value,
                                         )
                                     })
-                                    .icon(Icon {
-                                        font: Font::with_name("Symbols Nerd Font Mono"),
-                                        code_point: '\u{f040}',
-                                        size: Some(Pixels((text_size - 2) as f32)),
-                                        spacing: 5.0,
-                                        side: text_input::Side::Right
-                                    })
-                                    .style(AtomStyleInput::Dimmed)
+                                    .icon(GuiElements::text_input_icon(
+                                        '\u{f040}',
+                                        SYMBOLS,
+                                        text_size - 2
+                                    ))
+                                    .class(AtomStyleInput::Dimmed)
                                     .size(text_size)
-                                    .width(Length::FillPortion(2)),
+                                    .width(FillPortion(2)),
                                 self.vertical_line(),
                                 GuiElements::round_button('\u{ec53}')
                                     .on_press(DownloadFormMessage::DeleteHeader(
                                         header.0.to_string(),
                                     ))
-                                    .width(iced::Length::Shrink)
+                                    .width(Shrink)
                             ]
                             .padding(Padding::from([5, 10]))
                             .spacing(10)
-                            .align_items(iced::Alignment::Center),
+                            .align_y(Alignment::Center),
                         )
-                        .style(AtomStyleContainer::ListItemContainer),
+                        .class(AtomStyleContainer::ListItemContainer),
                     )
                 },
             )
             .into()
     }
 
-    fn toggles_view(&self) -> Element<DownloadFormMessage, Theme, Renderer> {
-        let mut toggles = row!().spacing(20).width(iced::Length::Fill).push(
+    fn toggles_view(&self) -> Element<DownloadFormMessage, AtomTheme> {
+        let mut toggles = row!().spacing(20).width(Fill).push(
             col!()
                 .push(
-                    toggler(
-                        Some("Download Sequentially".to_string()),
-                        self.sequential,
-                        DownloadFormMessage::DownloadSequentially,
-                    )
-                    .spacing(10)
-                    .text_alignment(iced::alignment::Horizontal::Left)
-                    .width(iced::Length::Fill),
+                    toggler(self.sequential)
+                        .label("Download Sequentially".to_string())
+                        .on_toggle(DownloadFormMessage::DownloadSequentially)
+                        .spacing(10)
+                        .text_alignment(iced::alignment::Horizontal::Left)
+                        .width(Fill),
                 )
-                .width(Length::Fill)
-                .align_items(iced::Alignment::Start),
+                .width(Fill)
+                .align_x(iced::Alignment::Start),
         );
         if self.is_valid_url {
             toggles = toggles
                 .push(
                     col!()
                         .push(
-                            toggler(
-                                Some("Open file after download".to_string()),
-                                self.auto_open,
-                                DownloadFormMessage::AutoOpen,
-                            )
-                            .spacing(10)
-                            .text_alignment(iced::alignment::Horizontal::Left)
-                            .width(iced::Length::Shrink),
+                            toggler(self.auto_open)
+                                .label("Open file after download".to_string())
+                                .on_toggle(DownloadFormMessage::AutoOpen)
+                                .spacing(10)
+                                .text_alignment(iced::alignment::Horizontal::Left)
+                                .width(Shrink),
                         )
-                        .width(Length::Fill)
-                        .align_items(iced::Alignment::Center),
+                        .width(Fill)
+                        .align_x(Alignment::Center),
                 )
                 .push(
                     col!()
                         .push(
                             tooltip(
-                                toggler(
-                                    Some("Add Referer Header".to_string()),
-                                    self.auto_referer,
-                                    DownloadFormMessage::AutoReferer,
-                                )
-                                .spacing(10)
-                                .text_alignment(iced::alignment::Horizontal::Left)
-                                .width(iced::Length::Shrink),
+                                toggler(self.auto_referer)
+                                    .label("Add Referer Header".to_string())
+                                    .on_toggle(DownloadFormMessage::AutoReferer)
+                                    .spacing(10)
+                                    .text_alignment(iced::alignment::Horizontal::Left)
+                                    .width(Shrink),
                                 text("Automatically adds referer header to the request").size(12),
                                 Position::Top,
                             )
                             .gap(10)
                             .padding(10)
-                            .style(AtomStyleContainer::ToolTipContainer),
+                            .class(AtomStyleContainer::ToolTipContainer),
                         )
-                        .width(Length::Fill)
-                        .align_items(iced::Alignment::End),
+                        .width(Fill)
+                        .align_x(Alignment::End),
                 );
         }
         toggles.into()
     }
 
-    fn vertical_line(&self) -> Element<DownloadFormMessage, Theme, Renderer> {
-        col![container(
-            vertical_space()
-                .height(Length::Fixed(30.0))
-                .width(Length::Fixed(1.0)),
-        )
-        .style(AtomStyleContainer::ListItemContainer)
-        .width(Length::Fixed(2.0))]
-        .align_items(iced::Alignment::Center)
-        .width(Length::Shrink)
+    fn vertical_line(&self) -> Element<DownloadFormMessage, AtomTheme> {
+        col![
+            container(vertical_space().height(Fixed(30.0)).width(Fixed(1.0)),)
+                .class(AtomStyleContainer::ListItemContainer)
+                .width(Fixed(2.0))
+        ]
+        .align_x(iced::Alignment::Center)
+        .width(Shrink)
         .into()
     }
 
-    pub fn view(&self, downloads_count: usize) -> Element<DownloadFormMessage, Theme, Renderer> {
+    pub fn view(&self, downloads_count: usize) -> Element<DownloadFormMessage, AtomTheme> {
         let mut download_btn = GuiElements::primary_button(vec![
             icon('\u{eee5}', CustomFont::IcoFont),
             text("download"),
@@ -153,10 +142,7 @@ impl AtomDownloadForm {
         let headers = self.headers_view();
         let toggles = self.toggles_view();
 
-        let mut buttons_row = row!()
-            .spacing(20)
-            .width(iced::Length::Fill)
-            .push(download_btn);
+        let mut buttons_row = row!().spacing(20).width(Fill).push(download_btn);
 
         if downloads_count > 0 {
             buttons_row = buttons_row.push(
@@ -170,6 +156,7 @@ impl AtomDownloadForm {
 
         let url_input = col!().spacing(5).push(text("URL")).push(
             text_input("e.g: https://www.example.org/file.mp4", &self.url)
+                .icon(GuiElements::text_input_icon('\u{ef71}', ICOFONT, 12))
                 .on_input(DownloadFormMessage::UrlChange)
                 .padding(ATOM_INPUT_DEFAULT_PADDING),
         );
@@ -177,17 +164,17 @@ impl AtomDownloadForm {
         let file_path_input = col!().spacing(5).push(text("File Path")).push(
             row![
                 text_input("e.g: file.mp4", &self.file_name)
-                    .style(AtomStyleInput::Disabled)
+                    .class(AtomStyleInput::Disabled)
                     .padding(ATOM_INPUT_DEFAULT_PADDING),
                 GuiElements::primary_button(vec![
                     icon('\u{ef43}', CustomFont::IcoFont),
                     text("save as")
-                ],)
+                ])
                 .on_press(DownloadFormMessage::BrowseSaveAsFolder)
                 .padding(Padding::from([7, 15]))
             ]
             .spacing(10)
-            .align_items(iced::Alignment::Center),
+            .align_y(Alignment::Center),
         );
 
         let import_headers_tooltip = tooltip(
@@ -201,10 +188,10 @@ impl AtomDownloadForm {
         )
         .gap(10)
         .padding(10)
-        .style(AtomStyleContainer::ToolTipContainer);
+        .class(AtomStyleContainer::ToolTipContainer);
 
         let headers_list = row!()
-            .align_items(iced::Alignment::Center)
+            .align_y(Alignment::Center)
             .spacing(10)
             .push(
                 text_input("header name here...", &self.header_name)
@@ -230,51 +217,61 @@ impl AtomDownloadForm {
         container(
             col!()
                 .spacing(20)
-                .padding(Padding::from([0, 10, 10, 10]))
+                .padding(Padding::new(10.0).top(0))
                 .push(GuiElements::panel_title("Add New Download"))
                 .push(
                     scrollable(
                         col!()
-                            .height(Length::Shrink)
+                            .height(Shrink)
                             .spacing(20)
                             .push(url_input)
                             .push(file_path_input)
                             .push(
                                 col!()
                                     .spacing(5)
-                                    .push(text("Additional Headers").width(Length::Fill))
+                                    .push(text("Additional Headers").width(Fill))
                                     .push(headers_list),
                             )
                             .push(
-                                container(scrollable(headers).direction(
-                                    scrollable::Direction::Vertical(
-                                        Properties::new().margin(0).width(0).scroller_width(0),
+                                container(
+                                    scrollable(if self.headers.len() > 0 {
+                                        headers
+                                    } else {
+                                        col![text("No additional headers").width(Shrink)]
+                                            .align_x(Alignment::Center)
+                                            .width(Fill)
+                                            .into()
+                                    })
+                                    .direction(
+                                        scrollable::Direction::Vertical(
+                                            Scrollbar::new().margin(0).width(0).scroller_width(0),
+                                        ),
                                     ),
-                                ))
-                                .padding(0)
-                                .width(iced::Length::Fill)
+                                )
+                                .padding(15)
+                                .width(Fill)
                                 .max_height(200)
-                                .style(AtomStyleContainer::Transparent),
+                                .class(AtomStyleContainer::ListContainer),
                             )
                             .push(
                                 container(col!().push(toggles))
-                                    .width(Length::Fill)
+                                    .width(Fill)
                                     .padding(20)
-                                    .style(AtomStyleContainer::ListContainer),
+                                    .class(AtomStyleContainer::ListContainer),
                             )
                             .push(buttons_row)
-                            .height(iced::Length::Shrink)
-                            .width(iced::Length::Fill),
+                            .height(Shrink)
+                            .width(Fill),
                     )
-                    .height(Length::Shrink)
+                    .height(Shrink)
                     .direction(scrollable::Direction::Vertical(
-                        Properties::new().margin(0).scroller_width(0).width(0),
+                        Scrollbar::new().margin(0).scroller_width(0).width(0),
                     )),
                 ),
         )
-        .padding(Padding::from([0, 10, 10, 10]))
-        .height(Length::Shrink)
-        .style(AtomStyleContainer::ListContainer)
+        .padding(Padding::new(10.0).top(0))
+        .height(Shrink)
+        .class(AtomStyleContainer::ListContainer)
         .into()
     }
 }

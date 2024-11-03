@@ -2,11 +2,15 @@ use crate::{
     components::settings::AtomSettings,
     font::{icon, CustomFont},
     messages::TitleBarMessage,
-    style::{button::AtomStyleButton, container::AtomStyleContainer, input::AtomStyleInput, Theme},
+    style::{
+        button::AtomStyleButton, container::AtomStyleContainer, input::AtomStyleInput, AtomTheme,
+    },
 };
 use iced::{
     widget::{button, column as col, container, row, text, text_input},
-    Element, Font, Length, Padding, Renderer,
+    Alignment, Element, Font,
+    Length::{Fill, Fixed},
+    Padding, Renderer,
 };
 
 #[derive(Debug, Default)]
@@ -15,24 +19,24 @@ pub struct AtomTitleBar {
 }
 
 impl AtomTitleBar {
-    pub fn view(&self, settings: &AtomSettings) -> Element<TitleBarMessage, Theme, Renderer> {
+    pub fn view(&self, settings: &AtomSettings) -> Element<TitleBarMessage, AtomTheme, Renderer> {
         container(
             row!()
                 .spacing(20)
-                .height(iced::Length::Fill)
+                .height(Fill)
                 .push(
                     row!()
                         .spacing(20)
-                        .align_items(iced::Alignment::Center)
+                        .align_y(Alignment::Center)
                         .push(
                             container(text(" "))
                                 .padding(Padding::from([5, 0]))
-                                .width(Length::Fixed(3.0))
-                                .style(AtomStyleContainer::MenuBarActiveContainer),
+                                .width(Fixed(3.0))
+                                .class(AtomStyleContainer::MenuBarActiveContainer),
                         )
                         .push(
                             row!()
-                                .align_items(iced::Alignment::Center)
+                                .align_y(Alignment::Center)
                                 .spacing(10)
                                 .push(icon('\u{ead8}', CustomFont::IcoFont).size(20))
                                 .push(
@@ -58,13 +62,13 @@ impl AtomTitleBar {
                                             text_input("search downloads...", &self.search_text)
                                                 .id(iced::widget::text_input::Id::new("search"))
                                                 .on_input(TitleBarMessage::SearchDownload)
-                                                .padding(Padding::from([8, 20, 8, 20]))
-                                                .style(AtomStyleInput::Search),
+                                                .padding(Padding::new(20.0).top(8).bottom(8))
+                                                .class(AtomStyleInput::Search),
                                         )
-                                        .style(AtomStyleContainer::HeaderContainer)
-                                        .center_x()
-                                        .center_y()
-                                        .width(iced::Length::Fill),
+                                        .class(AtomStyleContainer::HeaderContainer)
+                                        .center_x(Fill)
+                                        .center_y(Fill)
+                                        .width(Fill),
                                     )
                                     .push(
                                         container(
@@ -72,19 +76,19 @@ impl AtomTitleBar {
                                                 .push(
                                                     button(icon('\u{ef9a}', CustomFont::IcoFont))
                                                         .padding(14)
-                                                        .style(AtomStyleButton::HeaderButtons)
+                                                        .class(AtomStyleButton::HeaderButtons)
                                                         .on_press(TitleBarMessage::AppMinimize),
                                                 )
                                                 .push(
                                                     button(icon('\u{ef52}', CustomFont::IcoFont))
                                                         .padding(14)
-                                                        .style(AtomStyleButton::HeaderButtons)
+                                                        .class(AtomStyleButton::HeaderButtons)
                                                         .on_press(TitleBarMessage::AppMaximize),
                                                 )
                                                 .push(
                                                     button(icon('\u{eee1}', CustomFont::IcoFont))
                                                         .padding(14)
-                                                        .style(AtomStyleButton::HeaderButtons)
+                                                        .class(AtomStyleButton::HeaderButtons)
                                                         .on_press(if !settings.minimize_to_tray {
                                                             TitleBarMessage::AppExit
                                                         } else {
@@ -92,27 +96,27 @@ impl AtomTitleBar {
                                                         }),
                                                 ),
                                         )
-                                        .style(AtomStyleContainer::HeaderButtonsContainer),
+                                        .class(AtomStyleContainer::HeaderButtonsContainer),
                                     )
-                                    .align_items(iced::Alignment::Center),
+                                    .align_y(Alignment::Center),
                             )
-                            .width(iced::Length::Fill)
-                            .align_items(iced::Alignment::Center),
+                            .width(Fill)
+                            .align_x(Alignment::Center),
                     )
-                    .center_x()
-                    .center_y()
-                    .style(AtomStyleContainer::HeaderContainer)
-                    .width(iced::Length::Fill),
+                    .center_x(Fill)
+                    .center_y(Fill)
+                    .class(AtomStyleContainer::HeaderContainer)
+                    .width(Fill),
                 )
-                .align_items(iced::Alignment::Center)
-                .width(iced::Length::Fill),
+                .align_y(iced::Alignment::Center)
+                .width(Fill),
         )
-        .style(AtomStyleContainer::HeaderContainer)
-        .center_y()
-        .center_x()
+        .class(AtomStyleContainer::HeaderContainer)
+        .center_y(Fill)
+        .center_x(Fill)
         // .padding(Padding::from([5, 15, 5, 15]))
-        .width(iced::Length::Fill)
-        .height(iced::Length::Fixed(50.0))
+        .width(Fill)
+        .height(Fixed(50.0))
         .into()
     }
 }

@@ -2,14 +2,15 @@ use crate::{
     components::atom::Atom,
     font::{ICOFONT_BYTES, LEXEND_BYTES, MONOSPACED_FONT_BYTES, SYMBOLS_BYTES},
     messages::Message,
-    style::Theme,
+    style::AtomTheme,
     utils::helpers::{handle_web_request, listen_for_tray_events},
 };
 use iced::{
-    event, executor,
+    event,
     widget::{container, text},
-    window::Id,
-    Application, Command, Length, Subscription,
+    window,
+    Length::Fill,
+    Subscription, Task as Command,
 };
 
 pub enum App<'a> {
@@ -17,13 +18,8 @@ pub enum App<'a> {
     Loaded(Atom<'a>),
 }
 
-impl<'a> Application for App<'a> {
-    type Message = Message;
-    type Flags = ();
-    type Executor = executor::Default;
-    type Theme = Theme;
-
-    fn new(_flags: Self::Flags) -> (Self, iced::Command<Message>) {
+impl<'a> App<'a> {
+    pub fn new() -> (Self, Command<Message>) {
         (
             App::Loading,
             Command::batch(vec![
@@ -31,30 +27,30 @@ impl<'a> Application for App<'a> {
                 iced::font::load(MONOSPACED_FONT_BYTES).map(Message::FontLoaded),
                 iced::font::load(ICOFONT_BYTES).map(Message::FontLoaded),
                 iced::font::load(SYMBOLS_BYTES).map(Message::FontLoaded),
-                Command::perform(async {}, |_| Message::LoadingComplete),
+                Command::done(Message::LoadingComplete),
             ]),
         )
     }
 
-    fn title(&self) -> String {
+    pub fn title(&self) -> String {
         "A.T.O.M".to_string()
     }
 
-    fn theme(&self) -> Self::Theme {
+    pub fn theme(&self) -> AtomTheme {
         match self {
-            App::Loading => Theme::Default,
+            App::Loading => AtomTheme::Default,
             App::Loaded(atom) => atom.theme,
         }
     }
 
-    fn scale_factor(&self) -> f64 {
+    pub fn scale_factor(&self) -> f64 {
         match self {
             App::Loading => 1.0,
             App::Loaded(atom) => atom.settings.scaling,
         }
     }
 
-    fn subscription(&self) -> iced::Subscription<Self::Message> {
+    pub fn subscription(&self) -> iced::Subscription<Message> {
         match self {
             App::Loading => Subscription::none(),
             App::Loaded(atom) => {
@@ -68,24 +64,29 @@ impl<'a> Application for App<'a> {
 
                 subscriptions.push(event::listen().map(Message::EventsOccurred));
                 subscriptions.push(atom.metadata.subscription().map(Message::Metadata));
-                // subscriptions.push(iced::window::frames().map(|_| Message::Tick));
-                subscriptions.push(handle_web_request(atom.should_exit));
+
+                if !atom.should_exit {
+                    subscriptions.push(handle_web_request());
+                }
+
                 if atom.tray.is_some() && !atom.should_exit {
                     subscriptions.push(listen_for_tray_events());
                 }
+
+                // subscriptions.push(iced::window::frames().map(|_| Message::Tick));
                 Subscription::batch(subscriptions)
             }
         }
     }
 
-    fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
+    pub fn update(&mut self, message: Message) -> Command<Message> {
         match self {
             App::Loading => {
                 let mut command = Command::none();
                 if let Message::LoadingComplete = message {
                     let atom = Atom::new();
                     if atom.settings.maximized {
-                        command = iced::window::toggle_maximize(Id::MAIN);
+                        command = window::get_latest().and_then(iced::window::toggle_maximize)
                     }
                     *self = App::Loaded(atom);
                 }
@@ -96,17 +97,17 @@ impl<'a> Application for App<'a> {
         }
     }
 
-    fn view(&self) -> iced::Element<'_, Self::Message, Theme> {
+    pub fn view(&self) -> iced::Element<'_, Message, AtomTheme> {
         match self {
             App::Loading => container(
                 text("loading...")
                     .size(50)
-                    .horizontal_alignment(iced::alignment::Horizontal::Center),
+                    .align_x(iced::alignment::Horizontal::Center),
             )
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .center_x()
-            .center_y()
+            .width(Fill)
+            .height(Fill)
+            .center_x(Fill)
+            .center_y(Fill)
             .into(),
             App::Loaded(atom) => atom.view(),
         }

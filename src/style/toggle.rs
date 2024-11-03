@@ -1,4 +1,4 @@
-use super::Theme;
+use super::AtomTheme;
 use crate::color;
 use iced::{widget::toggler, Color};
 
@@ -8,26 +8,29 @@ struct ColorPalette {
 }
 
 #[derive(Debug, Clone, Copy, Default)]
-pub struct AtomStyleToggler;
+pub enum AtomStyleToggler {
+    #[default]
+    Default,
+}
 
 impl AtomStyleToggler {
-    fn color_palette(&self, theme: &Theme) -> ColorPalette {
+    fn color_palette(&self, theme: &AtomTheme) -> ColorPalette {
         let accent = theme.accent();
 
         match theme {
-            Theme::Default => ColorPalette {
+            AtomTheme::Default => ColorPalette {
                 background: accent,
                 foreground: color!(0, 0, 0, 1),
             },
-            Theme::Tangerine => ColorPalette {
+            AtomTheme::Tangerine => ColorPalette {
                 background: accent,
                 foreground: color!(0, 0, 0, 1),
             },
-            Theme::Light => ColorPalette {
+            AtomTheme::Light => ColorPalette {
                 background: accent,
                 foreground: color!(255, 255, 255, 0.8),
             },
-            Theme::Hari => ColorPalette {
+            AtomTheme::Hari => ColorPalette {
                 background: accent,
                 foreground: color!(0x30394c),
             },
@@ -35,52 +38,65 @@ impl AtomStyleToggler {
     }
 }
 
-impl toggler::StyleSheet for Theme {
-    type Style = AtomStyleToggler;
+impl toggler::Catalog for AtomTheme {
+    type Class<'a> = AtomStyleToggler;
 
-    fn active(&self, style: &Self::Style, is_active: bool) -> toggler::Appearance {
-        let color_palette = style.color_palette(self);
-
-        if is_active {
-            toggler::Appearance {
-                background: color_palette.background,
-                background_border_color: color_palette.background,
-                foreground: color_palette.foreground,
-                foreground_border_color: Color::TRANSPARENT,
-                background_border_width: 2.0,
-                foreground_border_width: 2.0,
-            }
-        } else {
-            toggler::Appearance {
-                background: Color::TRANSPARENT,
-                background_border_color: color_palette.background,
-                foreground: color_palette.background,
-                foreground_border_color: Color::TRANSPARENT,
-                background_border_width: 2.0,
-                foreground_border_width: 2.0,
-            }
-        }
+    fn default<'a>() -> Self::Class<'a> {
+        AtomStyleToggler::Default
     }
 
-    fn hovered(&self, style: &Self::Style, is_active: bool) -> toggler::Appearance {
-        let color_palette = style.color_palette(self);
+    fn style(&self, class: &Self::Class<'_>, status: toggler::Status) -> toggler::Style {
+        let color_palette = class.color_palette(self);
 
-        if is_active {
-            toggler::Appearance {
-                background: color_palette.background,
-                background_border_color: color_palette.background,
-                foreground: color_palette.foreground,
-                foreground_border_color: color_palette.foreground,
-                ..self.active(style, true)
+        match status {
+            toggler::Status::Active { is_toggled } => {
+                if is_toggled {
+                    toggler::Style {
+                        background: color_palette.background,
+                        background_border_color: color_palette.background,
+                        foreground: color_palette.foreground,
+                        foreground_border_color: Color::TRANSPARENT,
+                        background_border_width: 2.0,
+                        foreground_border_width: 2.0,
+                    }
+                } else {
+                    toggler::Style {
+                        background: Color::TRANSPARENT,
+                        background_border_color: color_palette.background,
+                        foreground: color_palette.background,
+                        foreground_border_color: Color::TRANSPARENT,
+                        background_border_width: 2.0,
+                        foreground_border_width: 2.0,
+                    }
+                }
             }
-        } else {
-            toggler::Appearance {
-                background: Color::TRANSPARENT,
-                background_border_color: color_palette.background,
-                foreground: color_palette.background,
-                foreground_border_color: color_palette.background,
-                ..self.active(style, false)
+            toggler::Status::Hovered { is_toggled } => {
+                if is_toggled {
+                    toggler::Style {
+                        background: color_palette.background,
+                        background_border_color: color_palette.background,
+                        foreground: color_palette.foreground,
+                        foreground_border_color: color_palette.foreground,
+                        ..self.style(class, toggler::Status::Active { is_toggled: true })
+                    }
+                } else {
+                    toggler::Style {
+                        background: Color::TRANSPARENT,
+                        background_border_color: color_palette.background,
+                        foreground: color_palette.background,
+                        foreground_border_color: color_palette.background,
+                        ..self.style(class, toggler::Status::Active { is_toggled: false })
+                    }
+                }
             }
+            toggler::Status::Disabled => toggler::Style {
+                background: color_palette.background.scale_alpha(0.2),
+                background_border_color: color_palette.background.scale_alpha(0.2),
+                foreground: color_palette.foreground.scale_alpha(0.2),
+                foreground_border_color: Color::TRANSPARENT,
+                background_border_width: 2.0,
+                foreground_border_width: 2.0,
+            },
         }
     }
 }

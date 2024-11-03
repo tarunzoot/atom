@@ -10,14 +10,14 @@ reqwest = {version = "0.12", features = ["brotli", "deflate", "gzip", "zstd"]}
 ring = "0.17"
 directories = "5"
 urlencoding = "2"
-rfd = "0.14"
+rfd = "0.15"
 toml = "0.8"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 chrono = "0.4"
 single-instance = "0.3"
-iced = {version="0.12", features=["tokio", "image", "advanced"]}
-tray-icon = "0.14"
+iced = {version="0.13", features=["tokio", "image", "advanced"]}
+tray-icon = "0.19"
 image = "0.25"
 notify-rust = "4"
 tracing = "0.1"

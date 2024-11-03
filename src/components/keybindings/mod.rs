@@ -2,18 +2,19 @@ use crate::{
     elements::GuiElements,
     font::{icon, CustomFont},
     messages::Message,
-    style::{button::AtomStyleButton, container::AtomStyleContainer, AtomStyleText, Theme},
+    style::{button::AtomStyleButton, container::AtomStyleContainer, AtomStyleText, AtomTheme},
 };
 use iced::{
-    widget::{button, horizontal_space, scrollable, vertical_space},
-    Length,
-};
-use iced::{
-    widget::{column as col, container, row, text},
-    Element, Padding, Renderer,
+    widget::{
+        button, column as col, container, horizontal_space, row, scrollable, scrollable::Scrollbar,
+        text, vertical_space,
+    },
+    Alignment, Element,
+    Length::{Fill, FillPortion, Fixed, Shrink},
+    Padding,
 };
 
-pub fn view() -> Element<'static, Message, Theme, Renderer> {
+pub fn view<'a>() -> Element<'a, Message, AtomTheme> {
     let shortcuts = vec![
         ("add new download", "N", '\u{efc0}'),
         ("open imports view", "I", '\u{ec84}'),
@@ -29,21 +30,21 @@ pub fn view() -> Element<'static, Message, Theme, Renderer> {
 
     let main_col = col![GuiElements::panel_title("Keyboard Shortcuts").into()]
         .spacing(10)
-        .padding(Padding::from([0, 10, 10, 10]))
+        .padding(Padding::new(10.0).top(0))
         .width(iced::Length::Fill)
         .push(vertical_space().height(10));
 
     let text_size = 12;
     let chunk_len = 3;
-    let mut shortcuts_col = col![].spacing(20).align_items(iced::Alignment::Center);
+    let mut shortcuts_col = col![].spacing(20).align_x(Alignment::Center);
     shortcuts_col = shortcuts_col.push(shortcuts.chunks(chunk_len).fold(
-        col![].spacing(20).align_items(iced::Alignment::Center),
+        col![].spacing(20).align_x(Alignment::Center),
         |column, chunk| {
             let mut row = chunk.iter().fold(
                 row![]
                     .spacing(20)
-                    .align_items(iced::Alignment::Center)
-                    .width(Length::Shrink),
+                    .align_y(iced::Alignment::Center)
+                    .width(Shrink),
                 |row, shortcut| {
                     row.push(
                         container(
@@ -56,27 +57,23 @@ pub fn view() -> Element<'static, Message, Theme, Renderer> {
                                     }),
                                     row![
                                         icon('\u{ee57}', CustomFont::Symbols)
-                                            .style(AtomStyleText::Dimmed)
+                                            .class(AtomStyleText::Dimmed)
                                             .size(text_size - 2),
-                                        text(shortcut.0.to_string())
-                                            .size(text_size)
-                                            .width(iced::Length::Fill),
+                                        text(shortcut.0.to_string()).size(text_size).width(Fill),
                                     ]
                                     .spacing(5)
-                                    .align_items(iced::Alignment::Center)
+                                    .align_y(Alignment::Center)
                                 ]
                                 .spacing(20)
-                                .align_items(iced::Alignment::Start)
-                                .width(Length::FillPortion(3)),
+                                .align_x(Alignment::Start)
+                                .width(FillPortion(3)),
                                 col![container(
-                                    vertical_space()
-                                        .height(Length::Fixed(30.0))
-                                        .width(Length::Fixed(1.0)),
+                                    vertical_space().height(Fixed(30.0)).width(Fixed(1.0)),
                                 )
-                                .style(AtomStyleContainer::ListItemContainer)
-                                .width(Length::Fixed(1.0))]
-                                .align_items(iced::Alignment::Center)
-                                .width(Length::Shrink),
+                                .class(AtomStyleContainer::ListItemContainer)
+                                .width(Fixed(1.0))]
+                                .align_x(iced::Alignment::Center)
+                                .width(Shrink),
                                 col![
                                     text("Keybinding").font(iced::Font {
                                         family: iced::font::Family::Name("Lexend Deca"),
@@ -95,24 +92,24 @@ pub fn view() -> Element<'static, Message, Theme, Renderer> {
                                             )
                                             .size(12)
                                         )
-                                        .style(AtomStyleButton::ShortcutKeyButton)
+                                        .class(AtomStyleButton::ShortcutKeyButton)
                                         .padding(Padding::from([5, 10])),
                                         button(text(shortcut.1).size(12))
-                                            .style(AtomStyleButton::ShortcutKeyButton)
+                                            .class(AtomStyleButton::ShortcutKeyButton)
                                             .padding(Padding::from([5, 10]))
                                     ]
                                     .spacing(5)
-                                    .align_items(iced::Alignment::Center)
+                                    .align_y(Alignment::Center)
                                 ]
                                 .spacing(20)
-                                .align_items(iced::Alignment::End)
-                                .width(Length::FillPortion(3))
+                                .align_x(Alignment::End)
+                                .width(FillPortion(3))
                             ]
                             .spacing(5)
-                            .align_items(iced::Alignment::Center),
+                            .align_y(Alignment::Center),
                         )
                         .padding(20)
-                        .style(AtomStyleContainer::ListItemContainer),
+                        .class(AtomStyleContainer::ListItemContainer),
                     )
                 },
             );
@@ -121,17 +118,21 @@ pub fn view() -> Element<'static, Message, Theme, Renderer> {
 
             if chunk_size < chunk_len {
                 for _ in 0..(chunk_len - chunk_size) {
-                    row = row.push(horizontal_space().width(Length::Fill));
+                    row = row.push(horizontal_space().width(Fill));
                 }
             }
             column.push(row)
         },
     ));
 
-    container(main_col.push(scrollable(shortcuts_col)))
-        .style(AtomStyleContainer::ListContainer)
-        .padding(Padding::from([0, 10, 10, 10]))
-        .height(Length::Fill)
-        .width(Length::Fill)
-        .into()
+    container(main_col.push(
+        scrollable(shortcuts_col).direction(scrollable::Direction::Vertical(
+            Scrollbar::new().margin(0).width(0).scroller_width(0),
+        )),
+    ))
+    .class(AtomStyleContainer::ListContainer)
+    .padding(Padding::new(10.0).top(0))
+    .height(Fill)
+    .width(Fill)
+    .into()
 }

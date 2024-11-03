@@ -1,10 +1,9 @@
-use super::Theme;
+use super::AtomTheme;
 use crate::color;
 
 use iced::{
-    border::Radius,
     widget::slider::{self, Handle, Rail},
-    Color,
+    Background, Border, Color,
 };
 
 struct ColorPalette {
@@ -20,26 +19,26 @@ pub enum AtomStyleSlider {
 }
 
 impl AtomStyleSlider {
-    fn color_palette(&self, theme: &Theme) -> ColorPalette {
+    fn color_palette(&self, theme: &AtomTheme) -> ColorPalette {
         let accent = theme.accent();
 
         match theme {
-            Theme::Default => ColorPalette {
+            AtomTheme::Default => ColorPalette {
                 rails: (accent, accent),
                 handle: color!(30, 30, 30),
                 border: accent,
             },
-            Theme::Tangerine => ColorPalette {
+            AtomTheme::Tangerine => ColorPalette {
                 rails: (accent, accent),
                 handle: color!(30, 30, 30),
                 border: accent,
             },
-            Theme::Light => ColorPalette {
+            AtomTheme::Light => ColorPalette {
                 rails: (accent, accent),
                 handle: color!(30, 30, 30),
                 border: accent,
             },
-            Theme::Hari => ColorPalette {
+            AtomTheme::Hari => ColorPalette {
                 rails: (accent, accent),
                 handle: color!(0x2a3345),
                 border: accent,
@@ -48,56 +47,66 @@ impl AtomStyleSlider {
     }
 }
 
-impl slider::StyleSheet for Theme {
-    type Style = AtomStyleSlider;
+impl slider::Catalog for AtomTheme {
+    type Class<'a> = AtomStyleSlider;
 
-    fn active(&self, style: &Self::Style) -> slider::Appearance {
-        let color_palette = style.color_palette(self);
-
-        slider::Appearance {
-            rail: Rail {
-                colors: color_palette.rails,
-                width: 5.0,
-                border_radius: Radius::default(),
-            },
-            handle: Handle {
-                shape: slider::HandleShape::Circle { radius: 10.0 },
-                color: color_palette.handle,
-                border_width: 2.0,
-                border_color: color_palette.border,
-            },
-        }
+    fn default<'a>() -> Self::Class<'a> {
+        AtomStyleSlider::Default
     }
 
-    fn hovered(&self, style: &Self::Style) -> slider::Appearance {
-        slider::Appearance {
-            rail: Rail {
-                colors: (
-                    Color {
-                        a: 0.8,
-                        ..self.active(style).rail.colors.0
+    fn style(&self, class: &Self::Class<'_>, status: slider::Status) -> slider::Style {
+        match status {
+            slider::Status::Active => {
+                let color_palette = class.color_palette(self);
+
+                slider::Style {
+                    rail: Rail {
+                        backgrounds: (
+                            Background::Color(color_palette.rails.0),
+                            Background::Color(color_palette.rails.1),
+                        ),
+                        width: 5.0,
+                        border: Border::default(),
                     },
-                    Color {
-                        a: 0.8,
-                        ..self.active(style).rail.colors.0
+                    handle: Handle {
+                        shape: slider::HandleShape::Circle { radius: 10.0 },
+                        background: Background::Color(color_palette.handle),
+                        border_width: 2.0,
+                        border_color: color_palette.border,
                     },
-                ),
-                width: 5.0,
-                border_radius: Radius::default(),
-            },
-            handle: Handle {
-                shape: slider::HandleShape::Circle { radius: 10.0 },
-                color: self.active(style).handle.color,
-                border_width: 2.0,
-                border_color: Color {
-                    a: 0.8,
-                    ..self.active(style).handle.border_color
+                }
+            }
+            slider::Status::Hovered => slider::Style {
+                rail: Rail {
+                    backgrounds: (
+                        self.style(class, slider::Status::Active)
+                            .rail
+                            .backgrounds
+                            .0
+                            .scale_alpha(0.8),
+                        self.style(class, slider::Status::Active)
+                            .rail
+                            .backgrounds
+                            .0
+                            .scale_alpha(0.8),
+                    ),
+                    width: 5.0,
+                    border: Border::default(),
+                },
+                handle: Handle {
+                    shape: slider::HandleShape::Circle { radius: 10.0 },
+                    background: self.style(class, slider::Status::Active).handle.background,
+                    border_width: 2.0,
+                    border_color: Color {
+                        a: 0.8,
+                        ..self
+                            .style(class, slider::Status::Active)
+                            .handle
+                            .border_color
+                    },
                 },
             },
+            slider::Status::Dragged => self.style(class, slider::Status::Hovered),
         }
-    }
-
-    fn dragging(&self, style: &Self::Style) -> slider::Appearance {
-        self.hovered(style)
     }
 }

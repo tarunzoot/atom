@@ -1,6 +1,6 @@
 use super::AtomDownloadMetadata;
 use crate::messages::MetadataMessage;
-use iced::{subscription::unfold, Subscription};
+use iced::{futures::stream::unfold, Subscription};
 use ring::digest::{Context, SHA256};
 use std::fs::File;
 use std::io::{BufReader, Read};
@@ -40,38 +40,40 @@ impl AtomDownloadMetadata {
             return Subscription::none();
         }
 
-        unfold(
+        Subscription::run_with_id(
             self.url.len(),
-            (self.file_path.clone(), self.url.clone()),
-            move |(file_path, url)| async {
-                if file_path.is_empty() {
-                    iced::futures::future::pending().await
-                } else {
-                    let file_path = PathBuf::from(file_path);
-
-                    if file_path.exists() {
-                        if let Ok(digest) = AtomDownloadMetadata::sha256_digest(&file_path) {
-                            return (
-                                MetadataMessage::Checksum(digest, url),
-                                (String::default(), String::default()),
-                            );
-                        }
-
-                        (
-                            MetadataMessage::Checksum(
-                                "failed to calculate checksum!".to_owned(),
-                                url,
-                            ),
-                            (String::default(), String::default()),
-                        )
+            unfold(
+                (self.file_path.clone(), self.url.clone()),
+                move |(file_path, url)| async {
+                    if file_path.is_empty() {
+                        iced::futures::future::pending().await
                     } else {
-                        (
-                            MetadataMessage::Checksum("error: file not found!".to_owned(), url),
-                            (String::default(), String::default()),
-                        )
+                        let file_path = PathBuf::from(file_path);
+
+                        if file_path.exists() {
+                            if let Ok(digest) = AtomDownloadMetadata::sha256_digest(&file_path) {
+                                return Some((
+                                    MetadataMessage::Checksum(digest, url),
+                                    (String::default(), String::default()),
+                                ));
+                            }
+
+                            Some((
+                                MetadataMessage::Checksum(
+                                    "failed to calculate checksum!".to_owned(),
+                                    url,
+                                ),
+                                (String::default(), String::default()),
+                            ))
+                        } else {
+                            Some((
+                                MetadataMessage::Checksum("error: file not found!".to_owned(), url),
+                                (String::default(), String::default()),
+                            ))
+                        }
                     }
-                }
-            },
+                },
+            ),
         )
     }
 }

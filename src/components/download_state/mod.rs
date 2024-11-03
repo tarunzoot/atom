@@ -4,11 +4,13 @@ use crate::{
     elements::GuiElements,
     font::{icon, CustomFont},
     messages::{DownloadsListFilterMessage, Message, SideBarActiveButton},
-    style::{button::AtomStyleButton, container::AtomStyleContainer, Theme},
+    style::{button::AtomStyleButton, container::AtomStyleContainer, AtomTheme},
 };
 use iced::{
     widget::{button, column as col, container, horizontal_space, row, text, tooltip},
-    Element, Font, Length, Padding, Renderer,
+    Alignment, Element, Font,
+    Length::{Fill, Fixed, Shrink},
+    Padding, Renderer,
 };
 
 use super::{download::AtomDownload, settings::ListLayout};
@@ -23,12 +25,12 @@ struct FilterButton<'a> {
 }
 
 #[derive(Debug)]
-pub struct AtomDownloadStates<'a> {
+pub struct AtomDownloadStatesFilterBar<'a> {
     download_filter_buttons: Vec<FilterButton<'a>>,
     pub show_confirmation_dialog: bool,
 }
 
-impl<'a> Default for AtomDownloadStates<'a> {
+impl<'a> Default for AtomDownloadStatesFilterBar<'a> {
     fn default() -> Self {
         let df_buttons = vec![
             FilterButton {
@@ -98,14 +100,14 @@ impl<'a> Default for AtomDownloadStates<'a> {
     }
 }
 
-impl<'a> AtomDownloadStates<'a> {
+impl<'a> AtomDownloadStatesFilterBar<'a> {
     pub fn view(
         &self,
         active: &SideBarActiveButton,
         downloads: &BTreeMap<usize, AtomDownload>,
         layout: &ListLayout,
         icons_only: bool,
-    ) -> Element<Message, Theme, Renderer> {
+    ) -> Element<Message, AtomTheme, Renderer> {
         let count_downloading = downloads
             .iter()
             .filter(|f| f.1.downloading && !f.1.deleted)
@@ -124,7 +126,7 @@ impl<'a> AtomDownloadStates<'a> {
             row!()
                 .spacing(0)
                 .padding(0)
-                .align_items(iced::Alignment::Center),
+                .align_y(iced::Alignment::Center),
             |mut row, dfb| {
                 let btn_icon = if dfb.text.is_empty() {
                     match layout {
@@ -137,7 +139,7 @@ impl<'a> AtomDownloadStates<'a> {
 
                 let mut btn_content = row!()
                     .padding(Padding::from([10, 15]))
-                    .align_items(iced::Alignment::Center)
+                    .align_y(Alignment::Center)
                     .spacing(5)
                     .push(icon(btn_icon, CustomFont::IcoFont).size(12));
 
@@ -160,15 +162,15 @@ impl<'a> AtomDownloadStates<'a> {
                         }));
                 }
 
-                let mut active_bar = container(text(".").width(iced::Length::Fixed(1.0)))
+                let mut active_bar = container(text(".").width(Fixed(1.0)))
                     .padding(0)
-                    .height(Length::Fixed(3.0))
-                    .width(Length::Fixed(30.0));
+                    .height(Fixed(3.0))
+                    .width(Fixed(30.0));
 
                 if active == &dfb.state && dfb.tooltip.is_none() {
-                    active_bar = active_bar.style(AtomStyleContainer::MenuBarActiveContainer);
+                    active_bar = active_bar.class(AtomStyleContainer::MenuBarActiveContainer);
                 } else {
-                    active_bar = active_bar.style(AtomStyleContainer::MenuBarInActiveContainer);
+                    active_bar = active_bar.class(AtomStyleContainer::MenuBarInActiveContainer);
                 }
 
                 let df_button = button(
@@ -176,14 +178,13 @@ impl<'a> AtomDownloadStates<'a> {
                         col!()
                             .padding(0)
                             .spacing(0)
-                            .align_items(iced::Alignment::Center)
+                            .align_x(Alignment::Center)
                             .push(active_bar)
                             .push(btn_content),
                     )
-                    .style(AtomStyleContainer::ButtonContainer)
-                    .center_y()
-                    .center_x()
-                    .width(iced::Length::Shrink)
+                    .class(AtomStyleContainer::ButtonContainer)
+                    .center(Shrink)
+                    .width(Shrink)
                     .padding(0),
                 )
                 .padding(match dfb.state {
@@ -193,12 +194,12 @@ impl<'a> AtomDownloadStates<'a> {
                     SideBarActiveButton::Overview if dfb.text.is_empty() => 5,
                     _ => 0,
                 })
-                .width(iced::Length::Shrink)
-                .style(AtomStyleButton::SidebarButton)
+                .width(Shrink)
+                .class(AtomStyleButton::SidebarButton)
                 .on_press(dfb.message.clone());
 
                 if matches!(dfb.state, SideBarActiveButton::PauseAll) {
-                    row = row.push(horizontal_space().width(Length::Fill));
+                    row = row.push(horizontal_space().width(Fill));
                 }
 
                 if let Some(tooltip_text) = dfb.tooltip {
@@ -210,7 +211,7 @@ impl<'a> AtomDownloadStates<'a> {
                         )
                         .gap(5)
                         .padding(10)
-                        .style(AtomStyleContainer::ToolTipContainer),
+                        .class(AtomStyleContainer::ToolTipContainer),
                     )
                 } else {
                     row.push(df_button)
@@ -226,18 +227,20 @@ impl<'a> AtomDownloadStates<'a> {
             GuiElements::modal(
                 container(df_buttons_row)
                     .padding(0)
-                    .width(iced::Length::Fill)
-                    .style(AtomStyleContainer::ListHeaderContainer),
+                    .center(Shrink)
+                    .height(Shrink)
+                    .width(Fill)
+                    .class(AtomStyleContainer::ListHeaderContainer),
                 text(conf_string).size(24),
                 row!()
                     .spacing(10)
-                    .align_items(iced::Alignment::Center)
+                    .align_y(Alignment::Center)
                     .push(
                         GuiElements::primary_button(vec![
                             icon('\u{ec53}', CustomFont::IcoFont),
                             text("delete"),
                         ])
-                        .width(Length::Fixed(170.0))
+                        .width(Fixed(170.0))
                         .on_press(Message::Sidebar(crate::messages::SidebarMessage::DeleteAll)),
                     )
                     .push(
@@ -245,7 +248,7 @@ impl<'a> AtomDownloadStates<'a> {
                             icon('\u{eedd}', CustomFont::IcoFont),
                             text("cancel"),
                         ])
-                        .width(Length::Fixed(170.0))
+                        .width(Fixed(170.0))
                         .on_press(Message::GotoHomePage),
                     ),
                 Message::GotoHomePage,
@@ -253,8 +256,10 @@ impl<'a> AtomDownloadStates<'a> {
         } else {
             container(df_buttons_row)
                 .padding(0)
-                .width(iced::Length::Fill)
-                .style(AtomStyleContainer::ListHeaderContainer)
+                .center(Shrink)
+                .height(Shrink)
+                .width(Fill)
+                .class(AtomStyleContainer::ListHeaderContainer)
                 .into()
         }
     }

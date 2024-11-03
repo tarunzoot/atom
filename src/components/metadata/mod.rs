@@ -40,7 +40,7 @@ impl AtomDownloadMetadata {
 
     pub fn update_info(&mut self, download: &AtomDownload) {
         if let Some(extension) = Path::new(&download.get_file_name()).extension() {
-            self.extension = extension.to_string_lossy().to_string();
+            self.extension = extension.to_string_lossy().to_string().to_lowercase();
             self.file_path = Path::new(&download.file_path)
                 .join(download.get_file_name())
                 .to_string_lossy()
