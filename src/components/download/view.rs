@@ -393,6 +393,7 @@ impl AtomDownload {
     }
 
     fn get_extended_file_name_view(&self, text_size: f32) -> Element<DownloadMessage, AtomTheme> {
+        let text_icon_size = text_size - 6.0;
         let path_buf = PathBuf::from(&self.file_name);
         let extension = path_buf
             .extension()
@@ -416,27 +417,18 @@ impl AtomDownload {
             .align_y(iced::Alignment::Center),
             row![
                 icon('\u{ee57}', CustomFont::Symbols)
-                    .size(text_size - 6.0)
+                    .size(text_icon_size)
                     .class(AtomStyleText::Dimmed),
                 text(get_file_type(&extension))
-                    .size(text_size - 4.0)
+                    .size(text_icon_size)
                     .class(AtomStyleText::Dimmed),
-                // .font(iced::Font {
-                //     family: iced::font::Family::Name("Lexend Deca"),
-                //     weight: iced::font::Weight::Bold,
-                //     ..Default::default()
-                // }),
                 text("•").class(AtomStyleText::Dimmed),
                 icon('\u{ec45}', CustomFont::IcoFont)
-                    .size(text_size - 6.0)
+                    .size(text_icon_size)
                     .class(AtomStyleText::Dimmed),
                 text(&self.added)
-                    .size(text_size - 4.0)
-                    .class(AtomStyleText::Dimmed) // .font(iced::Font {
-                                                  //     family: iced::font::Family::Name("Lexend Deca"),
-                                                  //     weight: iced::font::Weight::Bold,
-                                                  //     ..Default::default()
-                                                  // })
+                    .size(text_icon_size)
+                    .class(AtomStyleText::Dimmed)
             ]
             .spacing(5)
             .align_y(iced::Alignment::Center),

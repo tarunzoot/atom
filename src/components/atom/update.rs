@@ -1,6 +1,10 @@
 use super::{Atom, View};
 use crate::{
-    components::{download::AtomDownload, form::AtomDownloadForm, settings::AtomSettings},
+    components::{
+        download::AtomDownload,
+        form::AtomDownloadForm,
+        settings::{AtomSettings, ListLayout},
+    },
     messages::{
         DownloadMessage, DownloadsListFilterMessage, Message, SideBarActiveButton, SideBarState,
         SidebarMessage, TitleBarMessage,
@@ -46,6 +50,7 @@ impl<'a> Atom<'a> {
     pub fn update(&mut self, message: Message) -> Command<Message> {
         match message {
             Message::Ignore => {}
+            Message::MouseOnTitlebar(on_titlebar) => self.mouse_on_titlebar = on_titlebar,
             Message::StatusBar(message) => self.status_bar_message = message,
             Message::EventsOccurred(ref event) => {
                 if let Event::Keyboard(keyboard::Event::KeyReleased {
@@ -98,6 +103,35 @@ impl<'a> Atom<'a> {
                             keyboard::Key::Character("k") => {
                                 Message::Sidebar(SidebarMessage::Shortcuts)
                             }
+                            keyboard::Key::Character("t") => {
+                                self.phantom_settings.theme = match self.theme {
+                                    crate::style::AtomTheme::Default => {
+                                        crate::style::AtomTheme::Tangerine
+                                    }
+                                    crate::style::AtomTheme::Tangerine => {
+                                        crate::style::AtomTheme::Light
+                                    }
+                                    crate::style::AtomTheme::Light => crate::style::AtomTheme::Hari,
+                                    crate::style::AtomTheme::Hari => {
+                                        crate::style::AtomTheme::Default
+                                    }
+                                }
+                                .into();
+
+                                return Command::done(Message::Settings(
+                                    crate::messages::SettingsMessage::SaveSettings(false),
+                                ));
+                            }
+                            keyboard::Key::Character("l") => {
+                                if matches!(self.settings.list_layout, ListLayout::ListExtended) {
+                                    self.phantom_settings.list_layout = ListLayout::List;
+                                } else {
+                                    self.phantom_settings.list_layout = ListLayout::ListExtended;
+                                }
+                                return Command::done(Message::Settings(
+                                    crate::messages::SettingsMessage::SaveSettings(true),
+                                ));
+                            }
                             keyboard::Key::Character("f") => {
                                 return iced::widget::text_input::focus(
                                     iced::widget::text_input::Id::new("search"),
@@ -122,7 +156,7 @@ impl<'a> Atom<'a> {
                 if let Event::Mouse(iced::mouse::Event::ButtonPressed(iced::mouse::Button::Left)) =
                     event
                 {
-                    if self.alt_pressed {
+                    if self.alt_pressed || self.mouse_on_titlebar {
                         return window::get_latest().and_then(window::drag);
                     }
                 }
@@ -275,14 +309,16 @@ impl<'a> Atom<'a> {
                         return self.phantom_settings.update(message);
                     }
                 }
-                crate::messages::SettingsMessage::SaveSettings => {
+                crate::messages::SettingsMessage::SaveSettings(update_view) => {
                     self.settings = self.phantom_settings.clone();
                     if !save_settings_toml(&self.settings) {
                         warn!("Warning: unable to save settings => {:#?}", self.settings);
                     }
 
                     self.theme = self.settings.theme.clone().into();
-                    self.update_view(View::Downloads);
+                    if update_view {
+                        self.update_view(View::Downloads);
+                    }
                 }
                 _ => return self.phantom_settings.update(message),
             },

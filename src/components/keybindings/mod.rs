@@ -25,6 +25,8 @@ pub fn view<'a>() -> Element<'a, Message, AtomTheme> {
         ("open settings", ",", '\u{ec83}'),
         ("open keyboard shortcuts", "K", '\u{ea54}'),
         ("search downloads", "F", '\u{ed11}'),
+        ("cycle themes", "T", '\u{ec88}'),
+        ("toggle list layout", "L", '\u{ef72}'),
         ("quit app", "Q", '\u{eedd}'),
     ];
 
@@ -56,7 +58,7 @@ pub fn view<'a>() -> Element<'a, Message, AtomTheme> {
                                         ..Default::default()
                                     }),
                                     row![
-                                        icon('\u{ee57}', CustomFont::Symbols)
+                                        icon(shortcut.2, CustomFont::IcoFont)
                                             .class(AtomStyleText::Dimmed)
                                             .size(text_size - 2),
                                         text(shortcut.0.to_string()).size(text_size).width(Fill),

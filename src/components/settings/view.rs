@@ -90,7 +90,7 @@ impl AtomSettings {
 
         let buttons_row = row![
             GuiElements::primary_button(vec![icon('\u{ef43}', IcoFont), text("save")])
-                .on_press(SettingsMessage::SaveSettings),
+                .on_press(SettingsMessage::SaveSettings(true)),
             GuiElements::primary_button(vec![icon('\u{ec80}', IcoFont), text("reset")])
                 .on_press(SettingsMessage::ResetSettings(false)),
             GuiElements::primary_button(vec![icon('\u{ec53}', IcoFont), text("clear cache")])

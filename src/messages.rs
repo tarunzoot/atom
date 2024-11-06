@@ -79,7 +79,7 @@ pub enum SettingsMessage {
     // BrowseCacheDirClicked,
     ClosePane,
     OpenConfigDir,
-    SaveSettings,
+    SaveSettings(bool),
     ResetSettings(bool),
     HideDialog,
 }
@@ -180,6 +180,7 @@ pub enum TitleBarMessage {
 #[derive(Debug, Clone)]
 pub enum Message {
     EventsOccurred(iced::Event),
+    MouseOnTitlebar(bool),
     StatusBar(String),
     TitleBar(TitleBarMessage),
     Sidebar(SidebarMessage),

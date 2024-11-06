@@ -25,10 +25,8 @@ impl AtomSettings {
                     |path| Message::Settings(SettingsMessage::DownloadDirSelected(path)),
                 );
             }
-            SettingsMessage::DownloadDirSelected(folder) => {
-                if let Some(folder) = folder {
-                    self.downloads_dir = folder.to_str().unwrap_or("").to_string();
-                }
+            SettingsMessage::DownloadDirSelected(Some(folder)) => {
+                self.downloads_dir = folder.to_str().unwrap_or("").to_string();
             }
             SettingsMessage::ThemeChanged(theme) => self.theme = theme,
             SettingsMessage::ListLayoutChanged(layout) => self.list_layout = layout.into(),
@@ -62,7 +60,7 @@ impl AtomSettings {
                     self.reset_settings = true;
                 }
             }
-            SettingsMessage::SaveSettings => {}
+            _ => {}
         }
 
         Command::none()

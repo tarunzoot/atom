@@ -114,6 +114,18 @@ impl From<String> for AtomTheme {
     }
 }
 
+impl From<AtomTheme> for String {
+    fn from(value: AtomTheme) -> Self {
+        match value {
+            AtomTheme::Default => "Default",
+            AtomTheme::Tangerine => "Tangerine",
+            AtomTheme::Light => "Light",
+            AtomTheme::Hari => "Hari",
+        }
+        .into()
+    }
+}
+
 impl application::DefaultStyle for AtomTheme {
     fn default_style(&self) -> application::Appearance {
         match self {
