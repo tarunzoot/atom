@@ -8,10 +8,12 @@ pub const MONOSPACED_FONT_BYTES: &[u8] =
     // include_bytes!("../resources/fonts/Google-Sans-Mono-Regular.ttf");
     include_bytes!("../resources/fonts/DMMono-Regular.ttf");
 pub const LEXEND_BYTES: &[u8] = include_bytes!("../resources/fonts/LexendDeca-Black.ttf");
+pub const JOSEFIN_BYTES: &[u8] = include_bytes!("../resources/fonts/JosefinSans-Regular.ttf");
 pub const ICOFONT_BYTES: &[u8] = include_bytes!("../resources/fonts/icofont.ttf");
 pub const SYMBOLS_BYTES: &[u8] =
     include_bytes!("../resources/fonts/SymbolsNerdFontMono-Regular.ttf");
 pub const ICOFONT: iced::Font = iced::Font::with_name("IcoFont");
+pub const JOSEFIN: iced::Font = iced::Font::with_name("Josefin Sans");
 pub const SYMBOLS: iced::Font = iced::Font::with_name("Symbols Nerd Font Mono");
 
 pub fn file_type_icon<'a>(file_type: &str) -> Text<'a, AtomTheme> {

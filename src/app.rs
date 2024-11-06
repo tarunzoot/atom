@@ -1,6 +1,6 @@
 use crate::{
     components::atom::Atom,
-    font::{ICOFONT_BYTES, LEXEND_BYTES, MONOSPACED_FONT_BYTES, SYMBOLS_BYTES},
+    font::{ICOFONT_BYTES, JOSEFIN_BYTES, LEXEND_BYTES, MONOSPACED_FONT_BYTES, SYMBOLS_BYTES},
     messages::Message,
     style::AtomTheme,
     utils::helpers::{handle_web_request, listen_for_tray_events},
@@ -23,8 +23,9 @@ impl<'a> App<'a> {
         (
             App::Loading,
             Command::batch(vec![
-                iced::font::load(LEXEND_BYTES).map(Message::FontLoaded),
                 iced::font::load(MONOSPACED_FONT_BYTES).map(Message::FontLoaded),
+                iced::font::load(LEXEND_BYTES).map(Message::FontLoaded),
+                iced::font::load(JOSEFIN_BYTES).map(Message::FontLoaded),
                 iced::font::load(ICOFONT_BYTES).map(Message::FontLoaded),
                 iced::font::load(SYMBOLS_BYTES).map(Message::FontLoaded),
                 Command::done(Message::LoadingComplete),
