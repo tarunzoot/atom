@@ -175,12 +175,12 @@ pub enum TitleBarMessage {
     AppMaximize,
     AppMinimize,
     SearchDownload(String),
+    MouseOnTitlebar(bool),
 }
 
 #[derive(Debug, Clone)]
 pub enum Message {
     EventsOccurred(iced::Event),
-    MouseOnTitlebar(bool),
     StatusBar(String),
     TitleBar(TitleBarMessage),
     Sidebar(SidebarMessage),

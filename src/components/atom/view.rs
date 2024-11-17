@@ -8,8 +8,8 @@ use crate::{
 use iced::{
     alignment::Vertical::Top,
     widget::{
-        column as col, container, horizontal_space, mouse_area, row, scrollable,
-        scrollable::Scrollbar, text, vertical_space,
+        column as col, container, horizontal_space, row, scrollable, scrollable::Scrollbar, text,
+        vertical_space,
     },
     Alignment, Element,
     Length::{Fill, FillPortion, Fixed, Shrink},
@@ -181,11 +181,7 @@ impl<'a> Atom<'a> {
                 .height(Fill)
                 .padding(0)
                 .align_x(Alignment::Center)
-                .push(
-                    mouse_area(self.titlebar.view(&self.settings).map(Message::TitleBar))
-                        .on_enter(Message::MouseOnTitlebar(true))
-                        .on_exit(Message::MouseOnTitlebar(false)),
-                )
+                .push(self.titlebar.view(&self.settings).map(Message::TitleBar))
                 .push(
                     container(
                         row!()
@@ -253,9 +249,7 @@ impl<'a> Atom<'a> {
         }
 
         let main_row = col![
-            mouse_area(self.titlebar.view(&self.settings).map(Message::TitleBar))
-                .on_enter(Message::MouseOnTitlebar(true))
-                .on_exit(Message::MouseOnTitlebar(false)),
+            self.titlebar.view(&self.settings).map(Message::TitleBar),
             items_row,
             container(
                 row![

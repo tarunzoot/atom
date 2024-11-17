@@ -10,7 +10,7 @@ use crate::{
         SidebarMessage, TitleBarMessage,
     },
     utils::helpers::{
-        get_epoch_ms, save_downloads_toml, save_settings_toml, show_notification,
+        get_current_time_in_millis, save_downloads_toml, save_settings_toml, show_notification,
         ATOM_SOCKET_ADDRESS,
     },
 };
@@ -50,7 +50,6 @@ impl<'a> Atom<'a> {
     pub fn update(&mut self, message: Message) -> Command<Message> {
         match message {
             Message::Ignore => {}
-            Message::MouseOnTitlebar(on_titlebar) => self.mouse_on_titlebar = on_titlebar,
             Message::StatusBar(message) => self.status_bar_message = message,
             Message::EventsOccurred(ref event) => {
                 if let Event::Keyboard(keyboard::Event::KeyReleased {
@@ -166,6 +165,9 @@ impl<'a> Atom<'a> {
                 }
             }
             Message::TitleBar(message) => match message {
+                TitleBarMessage::MouseOnTitlebar(on_titlebar) => {
+                    self.mouse_on_titlebar = on_titlebar
+                }
                 TitleBarMessage::AppMaximize => {
                     return window::get_latest().and_then(window::toggle_maximize);
                 }
@@ -438,7 +440,8 @@ impl<'a> Atom<'a> {
                     if let Some(entry) = self.downloads.first_key_value() {
                         self.downloads.insert(entry.0 - 1, existing_download);
                     } else {
-                        self.downloads.insert(get_epoch_ms(), existing_download);
+                        self.downloads
+                            .insert(get_current_time_in_millis(), existing_download);
                     }
                 } else {
                     match (
@@ -449,7 +452,8 @@ impl<'a> Atom<'a> {
                             self.downloads.insert(entry.0 - 1, new_download);
                         }
                         _ => {
-                            self.downloads.insert(get_epoch_ms(), new_download);
+                            self.downloads
+                                .insert(get_current_time_in_millis(), new_download);
                         }
                     };
                 }

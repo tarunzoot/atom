@@ -10,8 +10,7 @@ use crate::{
     messages::{DownloadsListFilterMessage, Message, SideBarActiveButton, SideBarState},
     style::AtomTheme,
     utils::helpers::{
-        get_conf_directory, load_tray_icon, parse_downloads_toml, parse_settings_toml,
-        save_settings_toml,
+        get_conf_directory, parse_downloads_toml, parse_settings_toml, save_settings_toml,
     },
 };
 use reqwest::Client;
@@ -155,6 +154,18 @@ impl<'a> Atom<'a> {
         }
     }
 
+    fn load_tray_icon(image_data: &[u8]) -> tray_icon::Icon {
+        let (icon_rgba, icon_width, icon_height) = {
+            let image = image::load_from_memory(image_data)
+                .expect("Failed to open icon path")
+                .into_rgba8();
+            let (width, height) = image.dimensions();
+            let rgba = image.into_raw();
+            (rgba, width, height)
+        };
+        tray_icon::Icon::from_rgba(icon_rgba, icon_width, icon_height).expect("Failed to open icon")
+    }
+
     fn load_system_tray(is_single: bool) -> (Option<TrayIcon>, HashMap<MenuId, Message>) {
         if !is_single || cfg!(target_os = "linux") {
             (None, HashMap::default())
@@ -205,7 +216,7 @@ impl<'a> Atom<'a> {
             let tray_icon = if let Ok(tray) = TrayIconBuilder::new()
                 .with_menu(Box::new(tray_menu))
                 .with_tooltip("A.T.O.M Download Manager")
-                .with_icon(load_tray_icon(include_bytes!(
+                .with_icon(Self::load_tray_icon(include_bytes!(
                     "../../../resources/images/icon.ico"
                 )))
                 .build()
@@ -213,7 +224,7 @@ impl<'a> Atom<'a> {
                 debug!("Tray menu enabled!");
                 Some(tray)
             } else {
-                debug!("Tray menu creation failed!");
+                warn!("Tray menu creation failed!");
                 None
             };
             (tray_icon, tray_messages)

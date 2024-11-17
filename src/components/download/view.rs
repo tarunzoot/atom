@@ -124,7 +124,7 @@ impl AtomDownload {
             .align_y(iced::Alignment::Center)
             .spacing(5),
             row![
-                icon('\u{ee57}', CustomFont::Symbols)
+                icon('\u{ed68}', CustomFont::IcoFont)
                     .size(text_size - 4.0)
                     .class(AtomStyleText::Dimmed),
                 text(get_file_type(&extension))
@@ -416,7 +416,7 @@ impl AtomDownload {
             .spacing(5)
             .align_y(iced::Alignment::Center),
             row![
-                icon('\u{ee57}', CustomFont::Symbols)
+                icon('\u{ed68}', CustomFont::IcoFont)
                     .size(text_icon_size)
                     .class(AtomStyleText::Dimmed),
                 text(get_file_type(&extension))
