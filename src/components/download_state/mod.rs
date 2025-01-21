@@ -107,6 +107,7 @@ impl<'a> AtomDownloadStatesFilterBar<'a> {
         downloads: &BTreeMap<usize, AtomDownload>,
         layout: &ListLayout,
         icons_only: bool,
+        text_in_search_box: bool,
     ) -> Element<Message, AtomTheme, Renderer> {
         let count_downloading = downloads
             .iter()
@@ -222,7 +223,11 @@ impl<'a> AtomDownloadStatesFilterBar<'a> {
         if self.show_confirmation_dialog {
             let conf_string = format!(
                 "Are you sure you want to delete {} downloads?",
-                <SideBarActiveButton as Into<String>>::into(active.to_owned())
+                if text_in_search_box {
+                    "filtered".into()
+                } else {
+                    <SideBarActiveButton as Into<String>>::into(active.to_owned())
+                }
             );
             GuiElements::modal(
                 container(df_buttons_row)

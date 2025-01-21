@@ -27,7 +27,8 @@ pub fn view<'a>() -> Element<'a, Message, AtomTheme> {
         ("search downloads", "F", '\u{ed11}'),
         ("cycle through themes", "T", '\u{ec88}'),
         ("toggle list layout", "L", '\u{ef72}'),
-        ("quit app", "Q", '\u{eedd}'),
+        ("clear search", "G", '\u{eedd}'),
+        ("quit app", "Q", '\u{ef1d}'),
     ];
 
     let main_col = col![GuiElements::panel_title("Keyboard Shortcuts").into()]

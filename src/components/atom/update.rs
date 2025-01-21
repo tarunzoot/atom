@@ -136,6 +136,10 @@ impl<'a> Atom<'a> {
                                     iced::widget::text_input::Id::new("search"),
                                 )
                             }
+                            keyboard::Key::Character("g") => {
+                                self.titlebar.search_text.clear();
+                                return Command::done(Message::Ignore);
+                            }
                             _ => Message::Ignore,
                         };
 
@@ -527,7 +531,19 @@ impl<'a> Atom<'a> {
                 }
                 SidebarMessage::DeleteAll => {
                     match self.sidebar.active {
-                        SideBarActiveButton::Overview => self.downloads.clear(),
+                        SideBarActiveButton::Overview => {
+                            if !self.titlebar.search_text.is_empty() {
+                                self.downloads.retain(|_, download| {
+                                    !download.deleted
+                                        && !download
+                                            .get_file_name()
+                                            .to_lowercase()
+                                            .contains(&self.titlebar.search_text)
+                                });
+                            } else {
+                                self.downloads.clear()
+                            }
+                        }
                         SideBarActiveButton::Downloading => {
                             self.downloads.retain(|_, download| {
                                 !(download.downloaded < download.size && download.downloading)

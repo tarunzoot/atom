@@ -93,6 +93,7 @@ impl<'a> Atom<'a> {
                 &self.downloads,
                 &self.settings.list_layout,
                 responsive,
+                !self.titlebar.search_text.is_empty(),
             );
 
             let downloads_list_col = match self.settings.list_layout {

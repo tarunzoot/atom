@@ -62,24 +62,17 @@ impl AtomTitleBar {
                                 row!()
                                     .spacing(20)
                                     .push(
-                                        mouse_area(
-                                            container(
-                                                text_input(
-                                                    "search downloads...",
-                                                    &self.search_text,
-                                                )
+                                        container(
+                                            text_input("search downloads...", &self.search_text)
                                                 .id(iced::widget::text_input::Id::new("search"))
                                                 .on_input(TitleBarMessage::SearchDownload)
                                                 .padding(Padding::new(20.0).top(8).bottom(8))
                                                 .class(AtomStyleInput::Search),
-                                            )
-                                            .class(AtomStyleContainer::HeaderContainer)
-                                            .center_x(Fill)
-                                            .center_y(Fill)
-                                            .width(Fill),
                                         )
-                                        .on_enter(TitleBarMessage::MouseOnTitlebar(true))
-                                        .on_exit(TitleBarMessage::MouseOnTitlebar(false)),
+                                        .class(AtomStyleContainer::HeaderContainer)
+                                        .center_x(Fill)
+                                        .center_y(Fill)
+                                        .width(Fill),
                                     )
                                     .push(
                                         container(
