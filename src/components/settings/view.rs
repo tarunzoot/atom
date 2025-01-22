@@ -114,13 +114,13 @@ impl AtomSettings {
             toggler(
                 self.auto_start_download,
             )
-            .label("Auto start download from browser")
+            .label("Auto start download")
             .on_toggle(SettingsMessage::AutoStartDownloadToggle)
             .spacing(10)
             .text_size(toggles_text_size)
             .text_alignment(iced::alignment::Horizontal::Left)
             .width(Shrink),
-            text("Adding downloads from browser auto starts the download without showing new download form(disables auto open feature)").size(12),
+            text("Captured download from the browser auto starts without showing new download form(disables auto open feature)").size(12),
             tooltip::Position::Top,
         )
         .class(AtomStyleContainer::ToolTipContainer)
@@ -172,35 +172,64 @@ impl AtomSettings {
         .padding(10)
         .class(AtomStyleContainer::ToolTipContainer);
 
-        let options_row = container(
-            row!()
+        let always_show_metadata_toggler = tooltip(
+            toggler(self.metadata_always_enabled)
+                .label("Always Show Preview Panel")
+                .on_toggle(SettingsMessage::AlwaysShowPreviewPaneToggle)
                 .spacing(10)
-                .align_y(Alignment::Center)
-                .width(Fill)
-                .push(
-                    col!()
-                        .spacing(10)
-                        .width(Fill)
-                        .align_x(Alignment::Start)
-                        .push(notification_toggler)
-                        .push(auto_start_toggler),
-                )
-                .push(
-                    col!()
-                        .spacing(10)
-                        .width(Fill)
-                        .align_x(Alignment::Center)
-                        .push(close_btn_toggler)
-                        .push(maximized_toggler),
-                )
-                .push(
-                    col!()
-                        .spacing(10)
-                        .width(Fill)
-                        .align_x(Alignment::End)
-                        .push(stretch_list_toggler)
-                        .push(new_download_notification_toggler),
-                ),
+                .text_size(toggles_text_size)
+                .text_alignment(iced::alignment::Horizontal::Left)
+                .width(Shrink),
+            text("Always keep the preview panel open").size(12),
+            tooltip::Position::Top,
+        )
+        .gap(10)
+        .padding(10)
+        .class(AtomStyleContainer::ToolTipContainer);
+
+        let options_row = container(
+            col![
+                row!()
+                    .spacing(10)
+                    .align_y(Alignment::Center)
+                    .width(Fill)
+                    .push(
+                        col!()
+                            .spacing(10)
+                            .width(Fill)
+                            .align_x(Alignment::Start)
+                            .push(notification_toggler)
+                            .push(auto_start_toggler)
+                    )
+                    .push(
+                        col!()
+                            .spacing(10)
+                            .width(Fill)
+                            .align_x(Alignment::Center)
+                            .push(close_btn_toggler)
+                            .push(maximized_toggler),
+                    )
+                    .push(
+                        col!()
+                            .spacing(10)
+                            .width(Fill)
+                            .align_x(Alignment::End)
+                            .push(stretch_list_toggler)
+                            .push(new_download_notification_toggler),
+                    ),
+                row!()
+                    .spacing(10)
+                    .align_y(Alignment::Center)
+                    .width(Fill)
+                    .push(
+                        col!()
+                            .spacing(10)
+                            .width(Fill)
+                            .align_x(Alignment::Start)
+                            .push(always_show_metadata_toggler),
+                    )
+            ]
+            .spacing(10),
         )
         .width(Fill)
         .padding(20)
@@ -362,7 +391,7 @@ impl AtomSettings {
                 settings_container,
                 col![
                     text(if self.reset_settings {
-                        "The current settings will be restored to the inital state by this action."
+                        "The current settings will be restored to the initial state by this action."
                     } else {
                         "This will remove the cache directory, which contains partial downloads."
                     })

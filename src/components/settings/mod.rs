@@ -55,6 +55,7 @@ pub struct AtomSettings {
     pub maximized: bool,
     pub new_download_pos: String,
     pub font_size: f32,
+    pub metadata_always_enabled: bool,
     #[serde(skip_deserializing, skip_serializing)]
     pub show_confirm_dialog: bool,
     #[serde(skip_deserializing, skip_serializing)]
@@ -95,6 +96,7 @@ impl Default for AtomSettings {
             font_size: 16.0,
             show_confirm_dialog: false,
             reset_settings: false,
+            metadata_always_enabled: false,
         }
     }
 }

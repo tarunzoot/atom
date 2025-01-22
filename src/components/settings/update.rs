@@ -42,6 +42,9 @@ impl AtomSettings {
             SettingsMessage::NewDownloadNotificationToggle(checked) => {
                 self.new_download_notification = checked
             }
+            SettingsMessage::AlwaysShowPreviewPaneToggle(checked) => {
+                self.metadata_always_enabled = checked
+            }
             SettingsMessage::ClosePane => {}
             SettingsMessage::HideDialog => {
                 self.show_confirm_dialog = false;

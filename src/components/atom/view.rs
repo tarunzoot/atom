@@ -55,11 +55,15 @@ impl<'a> Atom<'a> {
 
         let responsive = if self.settings.scaling <= 1.0 {
             self.window_dimensions.0 < 1281
-                && (self.metadata.enabled || !self.settings.sidebar_collapsed)
+                && (self.metadata.enabled
+                    || self.settings.metadata_always_enabled
+                    || !self.settings.sidebar_collapsed)
         } else {
             self.window_dimensions.0 < 1087
                 || (self.window_dimensions.0 < 1281
-                    && (self.metadata.enabled || !self.settings.sidebar_collapsed))
+                    && (self.metadata.enabled
+                        || self.settings.metadata_always_enabled
+                        || !self.settings.sidebar_collapsed))
         };
 
         let mut count = 0;
@@ -216,6 +220,7 @@ impl<'a> Atom<'a> {
         };
 
         let mut items_row = row!()
+            .spacing(0)
             .width(Fill)
             .push(
                 col!().width(Shrink).align_x(Alignment::Center).push(
@@ -231,21 +236,22 @@ impl<'a> Atom<'a> {
                         .width(Shrink)
                         .height(Shrink),
                 )
-                .padding(
-                    Padding::new(20.0)
-                        .right(if self.metadata.enabled { 0 } else { 15 })
-                        .left(0),
-                )
+                .padding(Padding::new(20.0).right(0).left(0))
                 .width(Fill)
                 .height(Shrink),
-            );
+            )
+            .push(container(vertical_space()).width(15).padding(0));
 
-        if self.metadata.enabled {
+        if self.metadata.enabled || self.settings.metadata_always_enabled {
             items_row = items_row.push(
-                container(self.metadata.view().map(Message::Metadata))
-                    .padding(Padding::from([20, 15]))
-                    .height(Fill)
-                    .width(Shrink),
+                container(
+                    self.metadata
+                        .view(self.settings.metadata_always_enabled)
+                        .map(Message::Metadata),
+                )
+                .padding(Padding::new(20.0).right(15).left(0))
+                .height(Fill)
+                .width(Shrink),
             );
         }
 

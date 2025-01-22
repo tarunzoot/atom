@@ -670,7 +670,7 @@ impl AtomDownload {
 
             let force_delete_btn = tooltip(
                 GuiElements::primary_button(vec![
-                    icon('\u{ec53}', CustomFont::IcoFont),
+                    icon('\u{edec}', CustomFont::IcoFont),
                     text("force delete"),
                 ])
                 .width(Length::Fixed(200.0))
@@ -691,7 +691,11 @@ impl AtomDownload {
 
             GuiElements::modal(
                 download_container,
-                text("Are you sure?").size(24),
+                text(format!(
+                    "Are you sure you want to delete \"{}\"?",
+                    self.file_name
+                ))
+                .size(24),
                 row!()
                     .spacing(10)
                     .align_y(iced::Alignment::Center)

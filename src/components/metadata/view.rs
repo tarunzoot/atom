@@ -18,7 +18,7 @@ use iced::{
 use std::{path::Path, time::Duration};
 
 impl AtomDownloadMetadata {
-    pub fn view(&self) -> Element<MetadataMessage, AtomTheme> {
+    pub fn view(&self, always_enabled: bool) -> Element<MetadataMessage, AtomTheme> {
         let file_path = Path::new(&self.file_path);
         let mut open_btn = GuiElements::primary_button(vec![
             icon('\u{ef13}', CustomFont::IcoFont).size(12),
@@ -193,6 +193,12 @@ impl AtomDownloadMetadata {
                 )
         };
 
+        let mut pane_close_button =
+            GuiElements::round_button('\u{eee1}').padding(Padding::from([2, 4]));
+        if !always_enabled {
+            pane_close_button = pane_close_button.on_press(MetadataMessage::ClosePane);
+        }
+
         container(
             scrollable(
                 col!()
@@ -207,11 +213,7 @@ impl AtomDownloadMetadata {
                                     .spacing(20)
                                     .align_y(Alignment::Center)
                                     .push(text("Resources").width(Fill))
-                                    .push(
-                                        GuiElements::round_button('\u{eee1}')
-                                            .padding(Padding::from([2, 4]))
-                                            .on_press(MetadataMessage::ClosePane),
-                                    ),
+                                    .push(pane_close_button),
                             )
                             .push(
                                 text(format!(

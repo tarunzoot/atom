@@ -70,6 +70,7 @@ pub enum SettingsMessage {
     AutoStartDownloadToggle(bool),
     ListBackgroundToggle(bool),
     NewDownloadNotificationToggle(bool),
+    AlwaysShowPreviewPaneToggle(bool),
     ThemeChanged(String),
     ListLayoutChanged(String),
     NewDownloadPositionChanged(String),
