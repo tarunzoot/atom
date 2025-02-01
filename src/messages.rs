@@ -1,3 +1,4 @@
+use iced::{window::Id, Size};
 use tray_icon::menu::MenuId;
 
 use crate::{
@@ -46,6 +47,7 @@ pub enum DownloadFormMessage {
     AutoReferer(bool),
     AutoOpen(bool),
     AddNewDownload,
+    Minimize,
     ClosePane,
 }
 
@@ -181,11 +183,12 @@ pub enum TitleBarMessage {
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    EventsOccurred(iced::Event),
+    EventsOccurred((iced::Event, Id)),
+    WindowResized((Id, Size)),
     StatusBar(String),
     TitleBar(TitleBarMessage),
     Sidebar(SidebarMessage),
-    DownloadForm(DownloadFormMessage),
+    DownloadForm(DownloadFormMessage, Option<Id>),
     NewDownloadReceivedFromBrowser(JSONFromBrowser),
     AddNewDownload(AtomDownload),
     SaveDownloads,
@@ -200,5 +203,8 @@ pub enum Message {
     TrayEvent(MenuId),
     FontLoaded(Result<(), iced::font::Error>),
     LoadingComplete,
+    MainWindow(Id),
+    WindowClosed(Id),
+    WindowOpened(Id, Option<AtomDownload>),
     Ignore,
 }

@@ -11,6 +11,7 @@ use iced::{
         column as col, container, horizontal_space, row, scrollable, scrollable::Scrollbar, text,
         vertical_space,
     },
+    window::Id,
     Alignment, Element,
     Length::{Fill, FillPortion, Fixed, Shrink},
     Padding,
@@ -18,7 +19,7 @@ use iced::{
 
 type DownloadTuple<'a> = (&'a usize, &'a AtomDownload);
 
-impl<'a> Atom<'a> {
+impl Atom<'_> {
     fn filter_downloads_view(&self) -> Element<Message, AtomTheme> {
         let deleted_filter: Box<dyn Fn(&DownloadTuple) -> bool> =
             Box::new(|f: &(&usize, &AtomDownload)| f.1.deleted);
@@ -89,8 +90,8 @@ impl<'a> Atom<'a> {
             && !matches!(self.filter_type, DownloadsListFilterMessage::Deleted)
         {
             self.download_form
-                .view(self.downloads.len())
-                .map(Message::DownloadForm)
+                .view(self.downloads.len(), None)
+                .map(|message| Message::DownloadForm(message, None))
         } else {
             let download_state_filters_bar = self.download_state_filter_bar.view(
                 &self.sidebar.active,
@@ -177,8 +178,17 @@ impl<'a> Atom<'a> {
         }
     }
 
-    pub fn view(&self) -> Element<Message, AtomTheme> {
+    pub fn view(&self, window_id: Id) -> Element<Message, AtomTheme> {
         let status_bar_text_icon_size = 10;
+
+        if let Some(window) = self.windows.get(&window_id) {
+            if window.0 != "main" {
+                return window
+                    .1
+                    .view(self.downloads.len(), Some(window_id))
+                    .map(move |message| Message::DownloadForm(message, Some(window_id)));
+            }
+        }
 
         if !self.instance.as_ref().unwrap().is_single() {
             let main_row = col!()
@@ -210,8 +220,8 @@ impl<'a> Atom<'a> {
             View::Downloads => self.filter_downloads_view(),
             View::NewDownloadForm => self
                 .download_form
-                .view(self.downloads.len())
-                .map(Message::DownloadForm),
+                .view(self.downloads.len(), None)
+                .map(|message| Message::DownloadForm(message, None)),
             View::Settings => self
                 .phantom_settings
                 .view(&self.theme)

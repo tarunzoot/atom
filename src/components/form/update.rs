@@ -1,8 +1,5 @@
 use super::AtomDownloadForm;
-use crate::{
-    components::settings::AtomSettings,
-    messages::{DownloadFormMessage, Message},
-};
+use crate::{components::settings::AtomSettings, messages::DownloadFormMessage};
 use iced::Task as Command;
 
 impl AtomDownloadForm {
@@ -10,7 +7,7 @@ impl AtomDownloadForm {
         &mut self,
         message: DownloadFormMessage,
         settings: &AtomSettings,
-    ) -> Command<Message> {
+    ) -> Command<DownloadFormMessage> {
         match message {
             DownloadFormMessage::UrlChange(url) => {
                 self.url = url;
@@ -91,7 +88,7 @@ impl AtomDownloadForm {
                             .await
                             .map(|file| file.path().to_owned())
                     },
-                    |path| Message::DownloadForm(DownloadFormMessage::FileSavePathChanged(path)),
+                    DownloadFormMessage::FileSavePathChanged,
                 );
             }
             DownloadFormMessage::ImportHeaders => {
@@ -102,33 +99,28 @@ impl AtomDownloadForm {
                             .await
                             .map(|file| file.path().to_owned())
                     },
-                    |path| Message::DownloadForm(DownloadFormMessage::HeaderFilePath(path)),
+                    DownloadFormMessage::HeaderFilePath,
                 );
             }
-            DownloadFormMessage::FileSavePathChanged(save_as_path) => {
-                if let Some(path) = save_as_path {
-                    self.file_name = path.to_str().unwrap_or_default().to_string()
-                }
+            DownloadFormMessage::FileSavePathChanged(Some(path)) => {
+                self.file_name = path.to_str().unwrap_or_default().to_string()
             }
-            DownloadFormMessage::HeaderFilePath(file_path) => {
-                if let Some(file_path) = file_path {
-                    if let Ok(content) = std::fs::read_to_string(file_path) {
-                        let headers = content.split('\n').filter(|f| !f.is_empty());
-                        for header in headers {
-                            let mut header_splitted = header.trim().split(':');
-                            let header_name = header_splitted.next().unwrap_or("").trim();
-                            let header_value = header_splitted.next().unwrap_or("").trim();
+            DownloadFormMessage::HeaderFilePath(Some(file_path)) => {
+                if let Ok(content) = std::fs::read_to_string(file_path) {
+                    let headers = content.split('\n').filter(|f| !f.is_empty());
+                    for header in headers {
+                        let mut header_splitted = header.trim().split(':');
+                        let header_name = header_splitted.next().unwrap_or("").trim();
+                        let header_value = header_splitted.next().unwrap_or("").trim();
 
-                            if !header_name.is_empty() {
-                                self.headers
-                                    .insert(header_name.to_owned(), header_value.to_owned());
-                            }
+                        if !header_name.is_empty() {
+                            self.headers
+                                .insert(header_name.to_owned(), header_value.to_owned());
                         }
                     }
                 }
             }
-            DownloadFormMessage::ClosePane => {}
-            DownloadFormMessage::AddNewDownload => {}
+            _ => {}
         }
         Command::none()
     }

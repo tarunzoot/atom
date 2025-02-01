@@ -3,14 +3,18 @@ use crate::{
     elements::GuiElements,
     font::{icon, CustomFont, ICOFONT, SYMBOLS},
     messages::DownloadFormMessage,
-    style::{container::AtomStyleContainer, input::AtomStyleInput, AtomStyleText, AtomTheme},
+    style::{
+        button::AtomStyleButton, container::AtomStyleContainer, input::AtomStyleInput,
+        AtomStyleText, AtomTheme,
+    },
     utils::helpers::ATOM_INPUT_DEFAULT_PADDING,
 };
 use iced::{
     widget::{
-        column as col, container, row, scrollable, scrollable::Scrollbar, text, text_input,
-        toggler, tooltip, tooltip::Position, vertical_space,
+        button, column as col, container, horizontal_space, row, scrollable, scrollable::Scrollbar,
+        text, text_input, toggler, tooltip, tooltip::Position, vertical_space,
     },
+    window::Id,
     Alignment, Element,
     Length::{Fill, FillPortion, Fixed, Shrink},
     Padding,
@@ -129,7 +133,11 @@ impl AtomDownloadForm {
         .into()
     }
 
-    pub fn view(&self, downloads_count: usize) -> Element<DownloadFormMessage, AtomTheme> {
+    pub fn view(
+        &self,
+        downloads_count: usize,
+        window_id: Option<Id>,
+    ) -> Element<DownloadFormMessage, AtomTheme> {
         let mut download_btn = GuiElements::primary_button(vec![
             icon('\u{eee5}', CustomFont::IcoFont),
             text("download"),
@@ -144,7 +152,7 @@ impl AtomDownloadForm {
 
         let mut buttons_row = row!().spacing(20).width(Fill).push(download_btn);
 
-        if downloads_count > 0 {
+        if downloads_count > 0 || window_id.is_some() {
             buttons_row = buttons_row.push(
                 GuiElements::primary_button(vec![
                     icon('\u{eedd}', CustomFont::IcoFont),
@@ -214,11 +222,44 @@ impl AtomDownloadForm {
             .push(self.vertical_line())
             .push(import_headers_tooltip);
 
+        let mut headers_container = container(
+            scrollable(if !self.headers.is_empty() {
+                headers
+            } else {
+                col![text("No additional headers").width(Shrink)]
+                    .align_x(Alignment::Center)
+                    .width(Fill)
+                    .into()
+            })
+            .direction(scrollable::Direction::Vertical(
+                Scrollbar::new().margin(0).width(0).scroller_width(0),
+            )),
+        )
+        .padding(15)
+        .width(Fill)
+        .class(AtomStyleContainer::ListContainer);
+
+        if window_id.is_none() {
+            headers_container = headers_container.max_height(200);
+        } else {
+            headers_container = headers_container.height(200);
+        }
+
+        let mut page_title = row![GuiElements::panel_title("Add New Download").into()];
+        if window_id.is_some() {
+            page_title = page_title.push(horizontal_space().width(Fill)).push(
+                button(icon('\u{ef9a}', CustomFont::IcoFont))
+                    .padding(14)
+                    .class(AtomStyleButton::HeaderButtons)
+                    .on_press(DownloadFormMessage::Minimize),
+            );
+        }
+
         container(
             col!()
                 .spacing(20)
                 .padding(Padding::new(10.0).top(0))
-                .push(GuiElements::panel_title("Add New Download"))
+                .push(page_title)
                 .push(
                     scrollable(
                         col!()
@@ -232,27 +273,7 @@ impl AtomDownloadForm {
                                     .push(text("Additional Headers").width(Fill))
                                     .push(headers_list),
                             )
-                            .push(
-                                container(
-                                    scrollable(if !self.headers.is_empty() {
-                                        headers
-                                    } else {
-                                        col![text("No additional headers").width(Shrink)]
-                                            .align_x(Alignment::Center)
-                                            .width(Fill)
-                                            .into()
-                                    })
-                                    .direction(
-                                        scrollable::Direction::Vertical(
-                                            Scrollbar::new().margin(0).width(0).scroller_width(0),
-                                        ),
-                                    ),
-                                )
-                                .padding(15)
-                                .width(Fill)
-                                .max_height(200)
-                                .class(AtomStyleContainer::ListContainer),
-                            )
+                            .push(headers_container)
                             .push(
                                 container(col!().push(toggles))
                                     .width(Fill)
@@ -269,9 +290,17 @@ impl AtomDownloadForm {
                     )),
                 ),
         )
-        .padding(Padding::new(10.0).top(0))
-        .height(Shrink)
-        .class(AtomStyleContainer::ListContainer)
+        .padding(
+            Padding::new(10.0)
+                .top(0)
+                .bottom(if window_id.is_none() { 10 } else { 0 }),
+        )
+        .height(if window_id.is_none() { Shrink } else { Fill })
+        .class(if window_id.is_some() {
+            AtomStyleContainer::MainContainer
+        } else {
+            AtomStyleContainer::ListContainer
+        })
         .into()
     }
 }

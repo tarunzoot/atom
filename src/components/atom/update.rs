@@ -11,17 +11,18 @@ use crate::{
     },
     utils::helpers::{
         get_current_time_in_millis, save_downloads_toml, save_settings_toml, show_notification,
-        ATOM_SOCKET_ADDRESS,
+        ATOM_ICON, ATOM_SOCKET_ADDRESS,
     },
 };
 use iced::{
     keyboard::{self, key::Named},
-    window, Event, Task as Command,
+    window::{self, settings::PlatformSpecific, Settings},
+    Event, Size, Task as Command,
 };
 use std::path::PathBuf;
 use tracing::{debug, error, warn};
 
-impl<'a> Atom<'a> {
+impl Atom<'_> {
     fn update_view(&mut self, view: View) {
         match view {
             View::NewDownloadForm => {
@@ -50,8 +51,25 @@ impl<'a> Atom<'a> {
     pub fn update(&mut self, message: Message) -> Command<Message> {
         match message {
             Message::Ignore => {}
+            Message::MainWindow(id) => {
+                self.windows
+                    .insert(id, ("main", AtomDownloadForm::default()));
+            }
+            Message::WindowOpened(id, download) => {
+                let window = AtomDownloadForm::new(download.unwrap(), &self.settings);
+                self.windows.insert(id, ("", window));
+            }
+            Message::WindowClosed(id) => {
+                self.windows.remove(&id);
+
+                if self.windows.is_empty() {
+                    return iced::exit();
+                }
+
+                return window::close(id);
+            }
             Message::StatusBar(message) => self.status_bar_message = message,
-            Message::EventsOccurred(ref event) => {
+            Message::EventsOccurred((ref event, window_id)) => {
                 if let Event::Keyboard(keyboard::Event::KeyReleased {
                     modifiers: _, key, ..
                 }) = event
@@ -147,20 +165,17 @@ impl<'a> Atom<'a> {
                     }
                 }
 
-                if let Event::Window(window::Event::Resized(size)) = event {
-                    self.window_dimensions = (size.width as u32, size.height as u32);
-                    // if *width <= 1025 || *height <= 600 {
-                    //     self.phantom_settings.scaling = 0.80;
-                    // } else {
-                    //     self.phantom_settings.scaling = self.settings.scaling;
-                    // }
-                }
-
                 if let Event::Mouse(iced::mouse::Event::ButtonPressed(iced::mouse::Button::Left)) =
                     event
                 {
-                    if self.alt_pressed || self.mouse_on_titlebar {
-                        return window::get_latest().and_then(window::drag);
+                    if let Some(window) = self.windows.get(&window_id) {
+                        if window.0 == "main" {
+                            if self.alt_pressed || self.mouse_on_titlebar {
+                                return window::drag(window_id);
+                            }
+                        } else {
+                            return window::drag(window_id);
+                        }
                     }
                 }
 
@@ -168,25 +183,32 @@ impl<'a> Atom<'a> {
                     return Command::done(Message::TitleBar(TitleBarMessage::AppExit));
                 }
             }
+            Message::WindowResized((window_id, size)) => {
+                if let Some(window) = self.windows.get(&window_id) {
+                    if window.0 == "main" {
+                        self.window_dimensions = (size.width as u32, size.height as u32);
+                    }
+                }
+            }
             Message::TitleBar(message) => match message {
                 TitleBarMessage::MouseOnTitlebar(on_titlebar) => {
                     self.mouse_on_titlebar = on_titlebar
                 }
                 TitleBarMessage::AppMaximize => {
-                    return window::get_latest().and_then(window::toggle_maximize);
+                    return window::get_oldest().and_then(window::toggle_maximize);
                 }
                 TitleBarMessage::AppMinimize => {
-                    return window::get_latest().and_then(|id| window::minimize(id, true));
+                    return window::get_oldest().and_then(|id| window::minimize(id, true));
                 }
                 TitleBarMessage::AppHide => {
                     if !self.instance.as_ref().unwrap().is_single() {
                         return Command::done(Message::TitleBar(TitleBarMessage::AppExit));
                     }
-                    return window::get_latest()
+                    return window::get_oldest()
                         .and_then(|id| window::change_mode(id, window::Mode::Hidden));
                 }
                 TitleBarMessage::AppShow => {
-                    return window::get_latest()
+                    return window::get_oldest()
                         .and_then(|id| window::change_mode(id, window::Mode::Windowed));
                 }
                 TitleBarMessage::AppExit => {
@@ -211,7 +233,8 @@ impl<'a> Atom<'a> {
                         },
                     );
 
-                    return window::get_latest().and_then(window::close);
+                    // return window::get_oldest().and_then(window::close);
+                    return iced::exit();
                 }
                 TitleBarMessage::SearchDownload(search_text) => {
                     self.titlebar.search_text = search_text.to_ascii_lowercase();
@@ -396,8 +419,8 @@ impl<'a> Atom<'a> {
                     Ok(atom_download) => {
                         if self.settings.new_download_notification {
                             show_notification(
-                                "New download received from the browser",
-                                &atom_download.file_name,
+                                "New download received from browser",
+                                atom_download.file_name.clone().as_str(),
                                 2000,
                             );
                         }
@@ -405,17 +428,35 @@ impl<'a> Atom<'a> {
                         if self.settings.auto_start_download {
                             return Command::done(Message::AddNewDownload(atom_download));
                         } else {
-                            self.download_form =
-                                AtomDownloadForm::new(atom_download, &self.settings);
-                            self.update_view(View::NewDownloadForm);
-                            return Command::batch(vec![
-                                Command::done(Message::TitleBar(TitleBarMessage::AppShow)),
-                                // window::request_user_attention(
-                                //     Id::MAIN,
-                                //     Some(UserAttention::Critical),
-                                // ),
-                                window::get_latest().and_then(window::gain_focus),
-                            ]);
+                            #[cfg(target_os = "windows")]
+                            let platform_specific_settings = PlatformSpecific {
+                                undecorated_shadow: true,
+                                ..Default::default()
+                            };
+                            #[cfg(not(target_os = "windows"))]
+                            let platform_specific_settings = PlatformSpecific::default();
+
+                            let (_id, open) = window::open(Settings {
+                                position: window::Position::Centered,
+                                visible: true,
+                                resizable: false,
+                                decorations: false,
+                                transparent: false,
+                                level: window::Level::AlwaysOnTop,
+                                exit_on_close_request: true,
+                                size: Size {
+                                    width: 800.0,
+                                    height: 680.0,
+                                },
+                                platform_specific: platform_specific_settings,
+                                icon: Some(
+                                    iced::window::icon::from_file_data(ATOM_ICON, None).unwrap(),
+                                ),
+                                ..Default::default()
+                            });
+                            return open.map(move |id| {
+                                Message::WindowOpened(id, Some(atom_download.clone()))
+                            });
                         }
                     }
                     Err(e) => warn!("Error: new download from browser, {:#?}", e),
@@ -486,18 +527,54 @@ impl<'a> Atom<'a> {
                     SideBarActiveButton::Overview
                 };
             }
-            Message::DownloadForm(message) => {
+            Message::DownloadForm(message, window_id) => {
                 self.metadata.enabled = false;
-                match message {
-                    crate::messages::DownloadFormMessage::AddNewDownload => {
-                        if let Ok(download) = self.download_form.make_download() {
-                            return Command::done(Message::AddNewDownload(download));
+                if window_id.is_some() {
+                    if let Some(window) = self.windows.get_mut(&window_id.unwrap()) {
+                        match message {
+                            crate::messages::DownloadFormMessage::Minimize => {
+                                return window::minimize(window_id.unwrap(), true);
+                            }
+                            crate::messages::DownloadFormMessage::AddNewDownload => {
+                                let window_id = window_id.unwrap();
+                                if let Some(window) = self.windows.get_mut(&window_id) {
+                                    if let Ok(download) = window.1.make_download() {
+                                        return Command::batch([
+                                            Command::done(Message::AddNewDownload(download)),
+                                            Command::done(Message::WindowClosed(window_id)),
+                                        ]);
+                                    }
+                                }
+                            }
+                            crate::messages::DownloadFormMessage::ClosePane => {
+                                let window_id = window_id.unwrap();
+                                return Command::done(Message::WindowClosed(window_id));
+                            }
+                            _ => {
+                                return window
+                                    .1
+                                    .update(message, &self.settings)
+                                    .map(move |message| Message::DownloadForm(message, window_id))
+                            }
                         }
                     }
-                    crate::messages::DownloadFormMessage::ClosePane => {
-                        return Command::done(Message::GotoHomePage)
+                } else {
+                    match message {
+                        crate::messages::DownloadFormMessage::AddNewDownload => {
+                            if let Ok(download) = self.download_form.make_download() {
+                                return Command::done(Message::AddNewDownload(download));
+                            }
+                        }
+                        crate::messages::DownloadFormMessage::ClosePane => {
+                            return Command::done(Message::GotoHomePage);
+                        }
+                        _ => {
+                            return self
+                                .download_form
+                                .update(message, &self.settings)
+                                .map(move |message| Message::DownloadForm(message, window_id))
+                        }
                     }
-                    _ => return self.download_form.update(message, &self.settings),
                 }
                 // return self.download_form.update(message, &self.settings);
             }

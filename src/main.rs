@@ -4,7 +4,7 @@
 
 use crate::app::App;
 use font::MONOSPACED_FONT_BYTES;
-use iced::{Font, Size};
+use iced::Font;
 use tracing_subscriber::{prelude::*, registry, EnvFilter};
 mod app;
 mod components;
@@ -37,7 +37,7 @@ fn main() -> iced::Result {
     }
 
     // run app
-    iced::application(App::title, App::update, App::view)
+    iced::daemon(App::title, App::update, App::view)
         .theme(App::theme)
         .scale_factor(App::scale_factor)
         .subscription(App::subscription)
@@ -49,15 +49,5 @@ fn main() -> iced::Result {
             ..Default::default()
         })
         .font(MONOSPACED_FONT_BYTES)
-        .centered()
-        .transparent(false)
-        .resizable(true)
-        .decorations(false)
-        .level(iced::window::Level::Normal)
-        .exit_on_close_request(false)
-        .window_size(Size {
-            width: 1086.0,
-            height: 610.0,
-        })
         .run_with(App::new)
 }

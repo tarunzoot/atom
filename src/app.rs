@@ -3,16 +3,20 @@ use crate::{
     font::{ICOFONT_BYTES, JOSEFIN_BYTES, LEXEND_BYTES, MONOSPACED_FONT_BYTES, SYMBOLS_BYTES},
     messages::Message,
     style::AtomTheme,
-    utils::{helpers::ATOM_SOCKET_ADDRESS, json_from_browser::JSONFromBrowser},
+    utils::{
+        helpers::{ATOM_ICON, ATOM_SOCKET_ADDRESS},
+        json_from_browser::JSONFromBrowser,
+    },
 };
 use iced::{
-    event, futures,
-    futures::Stream,
+    event,
+    futures::{self, Stream},
     keyboard,
     widget::{container, text},
-    window, Event,
+    window::{self, settings::PlatformSpecific, Id},
+    Event,
     Length::Fill,
-    Subscription, Task as Command,
+    Size, Subscription, Task as Command,
 };
 use std::{
     io::{prelude::*, BufReader, Write},
@@ -26,8 +30,37 @@ pub enum App<'a> {
     Loaded(Atom<'a>),
 }
 
-impl<'a> App<'a> {
+impl App<'_> {
     pub fn new() -> (Self, Command<Message>) {
+        #[cfg(target_os = "windows")]
+        let platform_specific_settings = PlatformSpecific {
+            undecorated_shadow: true,
+            ..Default::default()
+        };
+        #[cfg(not(target_os = "windows"))]
+        let platform_specific_settings = PlatformSpecific::default();
+
+        let (_id, open) = window::open(window::Settings {
+            size: Size {
+                width: 1086.0,
+                height: 610.0,
+            },
+            position: window::Position::Centered,
+            min_size: Some(Size {
+                width: 1086.0,
+                height: 610.0,
+            }),
+            visible: true,
+            resizable: true,
+            decorations: false,
+            transparent: false,
+            level: window::Level::Normal,
+            exit_on_close_request: false,
+            platform_specific: platform_specific_settings,
+            icon: Some(iced::window::icon::from_file_data(ATOM_ICON, None).unwrap()),
+            ..Default::default()
+        });
+
         (
             App::Loading,
             Command::batch(vec![
@@ -36,23 +69,24 @@ impl<'a> App<'a> {
                 iced::font::load(JOSEFIN_BYTES).map(Message::FontLoaded),
                 iced::font::load(ICOFONT_BYTES).map(Message::FontLoaded),
                 iced::font::load(SYMBOLS_BYTES).map(Message::FontLoaded),
+                open.map(Message::MainWindow),
                 Command::done(Message::LoadingComplete),
             ]),
         )
     }
 
-    pub fn title(&self) -> String {
+    pub fn title(&self, _: Id) -> String {
         "A.T.O.M".to_string()
     }
 
-    pub fn theme(&self) -> AtomTheme {
+    pub fn theme(&self, _: Id) -> AtomTheme {
         match self {
             App::Loading => AtomTheme::Default,
             App::Loaded(atom) => atom.theme,
         }
     }
 
-    pub fn scale_factor(&self) -> f64 {
+    pub fn scale_factor(&self, _: Id) -> f64 {
         match self {
             App::Loading => 1.0,
             App::Loaded(atom) => atom.settings.scaling,
@@ -73,23 +107,24 @@ impl<'a> App<'a> {
 
                 // subscriptions.push(event::listen().map(Message::EventsOccurred));
                 subscriptions.push(
-                    event::listen_with(|event, _, _| match event {
+                    event::listen_with(|event, _, id| match event {
                         Event::Keyboard(keyboard::Event::KeyReleased { .. })
                         | Event::Keyboard(keyboard::Event::KeyPressed { .. })
                         | Event::Window(window::Event::Resized(_))
                         | Event::Mouse(iced::mouse::Event::ButtonPressed(
                             iced::mouse::Button::Left,
                         ))
-                        | Event::Window(window::Event::CloseRequested) => Some(event),
+                        | Event::Window(window::Event::CloseRequested) => Some((event, id)),
                         _ => None,
                     })
                     .map(Message::EventsOccurred),
                 );
                 subscriptions.push(atom.metadata.subscription().map(Message::Metadata));
+                subscriptions.push(window::close_events().map(Message::WindowClosed));
+                subscriptions.push(window::resize_events().map(Message::WindowResized));
 
                 if !atom.should_exit {
                     subscriptions.push(Subscription::run(App::subscribe_web_requests));
-                    // subscriptions.push(handle_web_request());
                 }
 
                 if atom.tray.is_some() && !atom.should_exit {
@@ -120,7 +155,7 @@ impl<'a> App<'a> {
         }
     }
 
-    pub fn view(&self) -> iced::Element<'_, Message, AtomTheme> {
+    pub fn view(&self, window_id: Id) -> iced::Element<Message, AtomTheme> {
         match self {
             App::Loading => container(
                 text("loading...")
@@ -132,12 +167,12 @@ impl<'a> App<'a> {
             .center_x(Fill)
             .center_y(Fill)
             .into(),
-            App::Loaded(atom) => atom.view(),
+            App::Loaded(atom) => atom.view(window_id),
         }
     }
 }
 
-impl<'a> App<'a> {
+impl App<'_> {
     fn subscribe_tray_events() -> impl Stream<Item = Message> {
         let (mut sender, receiver) = futures::channel::mpsc::channel(100);
         std::thread::spawn(move || loop {

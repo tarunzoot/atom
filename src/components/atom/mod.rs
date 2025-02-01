@@ -1,18 +1,19 @@
 mod update;
 mod view;
 use crate::{
-    components::download::AtomDownload,
     components::{
-        download_state::AtomDownloadStatesFilterBar, form::AtomDownloadForm, import::AtomImport,
-        metadata::AtomDownloadMetadata, settings::AtomSettings, sidebar::AtomSidebar,
-        titlebar::AtomTitleBar,
+        download::AtomDownload, download_state::AtomDownloadStatesFilterBar,
+        form::AtomDownloadForm, import::AtomImport, metadata::AtomDownloadMetadata,
+        settings::AtomSettings, sidebar::AtomSidebar, titlebar::AtomTitleBar,
     },
     messages::{DownloadsListFilterMessage, Message, SideBarActiveButton, SideBarState},
     style::AtomTheme,
     utils::helpers::{
         get_conf_directory, parse_downloads_toml, parse_settings_toml, save_settings_toml,
+        ATOM_ICON,
     },
 };
+use iced::window::Id;
 use reqwest::Client;
 use single_instance::SingleInstance;
 use std::{
@@ -71,9 +72,10 @@ pub struct Atom<'a> {
     pub status_bar_message: String,
     pub alt_pressed: bool,
     pub mouse_on_titlebar: bool,
+    pub windows: BTreeMap<Id, (&'a str, AtomDownloadForm)>,
 }
 
-impl<'a> Atom<'a> {
+impl Atom<'_> {
     pub fn new() -> Self {
         // check single instance of application
         let app_instance =
@@ -216,9 +218,7 @@ impl<'a> Atom<'a> {
             let tray_icon = if let Ok(tray) = TrayIconBuilder::new()
                 .with_menu(Box::new(tray_menu))
                 .with_tooltip("A.T.O.M Download Manager")
-                .with_icon(Self::load_tray_icon(include_bytes!(
-                    "../../../resources/images/icon.ico"
-                )))
+                .with_icon(Self::load_tray_icon(ATOM_ICON))
                 .build()
             {
                 debug!("Tray menu enabled!");

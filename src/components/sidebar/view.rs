@@ -11,7 +11,7 @@ use iced::{
     Padding, Renderer,
 };
 
-impl<'a> AtomSidebar<'a> {
+impl AtomSidebar<'_> {
     pub fn get_sidebar_button(&self) -> Element<SidebarMessage, AtomTheme, Renderer> {
         let icon_size = 20;
         let button_padding = 0;

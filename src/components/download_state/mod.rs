@@ -30,7 +30,7 @@ pub struct AtomDownloadStatesFilterBar<'a> {
     pub show_confirmation_dialog: bool,
 }
 
-impl<'a> Default for AtomDownloadStatesFilterBar<'a> {
+impl Default for AtomDownloadStatesFilterBar<'_> {
     fn default() -> Self {
         let df_buttons = vec![
             FilterButton {
@@ -100,7 +100,7 @@ impl<'a> Default for AtomDownloadStatesFilterBar<'a> {
     }
 }
 
-impl<'a> AtomDownloadStatesFilterBar<'a> {
+impl AtomDownloadStatesFilterBar<'_> {
     pub fn view(
         &self,
         active: &SideBarActiveButton,

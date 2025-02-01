@@ -17,7 +17,7 @@ pub struct AtomSidebar<'a> {
     menu_buttons: Vec<SidebarButton<'a>>,
 }
 
-impl<'a> Default for AtomSidebar<'a> {
+impl Default for AtomSidebar<'_> {
     fn default() -> Self {
         let menu_buttons = vec![
             SidebarButton {
@@ -72,7 +72,7 @@ impl<'a> Default for AtomSidebar<'a> {
     }
 }
 
-impl<'a> AtomSidebar<'a> {
+impl AtomSidebar<'_> {
     pub fn new(active: SideBarActiveButton, state: SideBarState) -> Self {
         Self {
             active,
