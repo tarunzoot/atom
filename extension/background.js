@@ -108,7 +108,7 @@ function postData(jsonObject, id) {
     let jsonString = JSON.stringify(jsonObject);
     console.log(jsonObject);
 
-    fetch(`http://127.0.0.1:2866/`, {
+    fetch(`http://127.0.0.1:6682/`, {
         method: 'POST',
         cache: 'no-cache',
         mode: 'no-cors',

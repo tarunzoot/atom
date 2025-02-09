@@ -191,6 +191,7 @@ impl App<'_> {
             let listener = TcpListener::bind(ATOM_SOCKET_ADDRESS);
 
             if listener.is_err() {
+                warn!("Error: {}", listener.unwrap_err());
                 sender
                     .try_send(Message::StatusBar(
                         "Browser download capture : OFF (Listener Failed)".to_string(),

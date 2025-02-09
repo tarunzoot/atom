@@ -19,7 +19,7 @@ use tracing::debug;
 
 pub const ATOM_USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.72 Safari/537.36";
 pub const ATOM_INPUT_DEFAULT_PADDING: u16 = 6;
-pub const ATOM_SOCKET_ADDRESS: &str = "127.0.0.1:2866";
+pub const ATOM_SOCKET_ADDRESS: &str = "127.0.0.1:6682";
 pub const ATOM_ICON: &[u8] = include_bytes!("../../resources/images/icon.ico");
 
 #[derive(Serialize, Deserialize, Debug)]
