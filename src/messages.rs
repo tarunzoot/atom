@@ -71,7 +71,6 @@ pub enum SettingsMessage {
     MaximizedActionToggle(bool),
     AutoStartDownloadToggle(bool),
     ListBackgroundToggle(bool),
-    NewDownloadNotificationToggle(bool),
     AlwaysShowPreviewPaneToggle(bool),
     ThemeChanged(String),
     ListLayoutChanged(String),

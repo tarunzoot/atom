@@ -39,9 +39,6 @@ impl AtomSettings {
             SettingsMessage::MaximizedActionToggle(checked) => self.maximized = checked,
             SettingsMessage::AutoStartDownloadToggle(checked) => self.auto_start_download = checked,
             SettingsMessage::ListBackgroundToggle(checked) => self.stretch_list_view = checked,
-            SettingsMessage::NewDownloadNotificationToggle(checked) => {
-                self.new_download_notification = checked
-            }
             SettingsMessage::AlwaysShowPreviewPaneToggle(checked) => {
                 self.metadata_always_enabled = checked
             }

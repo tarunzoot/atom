@@ -661,7 +661,7 @@ impl AtomDownload {
                 ])
                 .width(Length::Fixed(150.0))
                 .on_press(DownloadMessage::RemoveDownload(false)),
-                text("Will move the download from the main list to the trashed list without deleting the cached/incomplete files.").size(10),
+                text("Without erasing the cached or unfinished files, will transfer the download from the main list to the garbage list.").size(10),
                 tooltip::Position::Top,
             )
             .class(AtomStyleContainer::ToolTipContainer)
@@ -671,11 +671,11 @@ impl AtomDownload {
             let force_delete_btn = tooltip(
                 GuiElements::primary_button(vec![
                     icon('\u{edec}', CustomFont::IcoFont),
-                    text("force delete"),
+                    text("delete"),
                 ])
                 .width(Length::Fixed(200.0))
                 .on_press(DownloadMessage::RemoveDownload(true)),
-                text("Removes the download from the list and the cached/incomplete files from the disk.").size(10),
+                text("Deletes the cached or partial files from the disc and the download from the list.").size(10),
                 tooltip::Position::Top,
             )
             .class(AtomStyleContainer::ToolTipContainer)

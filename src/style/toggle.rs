@@ -90,9 +90,9 @@ impl toggler::Catalog for AtomTheme {
                 }
             }
             toggler::Status::Disabled => toggler::Style {
-                background: color_palette.background.scale_alpha(0.2),
-                background_border_color: color_palette.background.scale_alpha(0.2),
-                foreground: color_palette.foreground.scale_alpha(0.2),
+                background: color_palette.background.scale_alpha(0.6),
+                background_border_color: color_palette.background.scale_alpha(0.6),
+                foreground: color_palette.foreground.scale_alpha(0.6),
                 foreground_border_color: Color::TRANSPARENT,
                 background_border_width: 2.0,
                 foreground_border_width: 2.0,

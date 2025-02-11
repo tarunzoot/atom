@@ -14,7 +14,7 @@ use iced::{
     keyboard,
     widget::{container, text},
     window::{self, settings::PlatformSpecific, Id},
-    Event,
+    Element, Event,
     Length::Fill,
     Size, Subscription, Task as Command,
 };
@@ -86,10 +86,17 @@ impl App<'_> {
         }
     }
 
-    pub fn scale_factor(&self, _: Id) -> f64 {
+    pub fn scale_factor(&self, window_id: Id) -> f64 {
         match self {
             App::Loading => 1.0,
-            App::Loaded(atom) => atom.settings.scaling,
+            App::Loaded(atom) => {
+                if let Some(window) = atom.windows.get(&window_id) {
+                    if window.0 == "main" {
+                        return atom.settings.scaling;
+                    }
+                }
+                1.0
+            }
         }
     }
 
@@ -144,7 +151,7 @@ impl App<'_> {
                 if let Message::LoadingComplete = message {
                     let atom = Atom::new();
                     if atom.settings.maximized {
-                        command = window::get_latest().and_then(iced::window::toggle_maximize)
+                        command = window::get_oldest().and_then(iced::window::toggle_maximize)
                     }
                     *self = App::Loaded(atom);
                 }
@@ -155,7 +162,7 @@ impl App<'_> {
         }
     }
 
-    pub fn view(&self, window_id: Id) -> iced::Element<Message, AtomTheme> {
+    pub fn view(&self, window_id: Id) -> Element<Message, AtomTheme> {
         match self {
             App::Loading => container(
                 text("loading...")
@@ -194,14 +201,15 @@ impl App<'_> {
                 warn!("Error: {}", listener.unwrap_err());
                 sender
                     .try_send(Message::StatusBar(
-                        "Browser download capture : OFF (Listener Failed)".to_string(),
+                        "Grabbing the download from the web browser : OFF (Listener Failed)"
+                            .to_string(),
                     ))
                     .ok();
                 return;
             } else {
                 sender
                     .try_send(Message::StatusBar(
-                        "Browser download capture : ON".to_string(),
+                        "Grabbing the download from the web browser : ON".to_string(),
                     ))
                     .ok();
             }

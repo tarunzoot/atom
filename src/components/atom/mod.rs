@@ -71,7 +71,7 @@ pub struct Atom<'a> {
     pub window_dimensions: (u32, u32), // width x height
     pub status_bar_message: String,
     pub alt_pressed: bool,
-    pub mouse_on_titlebar: bool,
+    pub mouse_over_titlebar: bool,
     pub windows: BTreeMap<Id, (&'a str, AtomDownloadForm)>,
 }
 
@@ -151,7 +151,7 @@ impl Atom<'_> {
             tray_event: tray_messages,
             status_bar_message: String::from("App loaded"),
             alt_pressed: false,
-            mouse_on_titlebar: false,
+            mouse_over_titlebar: false,
             ..Default::default()
         }
     }

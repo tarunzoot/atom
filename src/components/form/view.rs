@@ -69,17 +69,21 @@ impl AtomDownloadForm {
             .into()
     }
 
-    fn toggles_view(&self) -> Element<DownloadFormMessage, AtomTheme> {
+    fn toggles_view(&self, window_id: Option<Id>) -> Element<DownloadFormMessage, AtomTheme> {
+        let mut sequential_toggler = toggler(self.sequential)
+            .label("Download Sequentially".to_string())
+            .spacing(10)
+            .text_alignment(iced::alignment::Horizontal::Left)
+            .width(Fill);
+
+        if window_id.is_none() {
+            sequential_toggler =
+                sequential_toggler.on_toggle(DownloadFormMessage::DownloadSequentially);
+        }
+
         let mut toggles = row!().spacing(20).width(Fill).push(
             col!()
-                .push(
-                    toggler(self.sequential)
-                        .label("Download Sequentially".to_string())
-                        .on_toggle(DownloadFormMessage::DownloadSequentially)
-                        .spacing(10)
-                        .text_alignment(iced::alignment::Horizontal::Left)
-                        .width(Fill),
-                )
+                .push(sequential_toggler)
                 .width(Fill)
                 .align_x(iced::Alignment::Start),
         );
@@ -148,7 +152,7 @@ impl AtomDownloadForm {
         }
 
         let headers = self.headers_view();
-        let toggles = self.toggles_view();
+        let toggles = self.toggles_view(window_id);
 
         let mut buttons_row = row!().spacing(20).width(Fill).push(download_btn);
 

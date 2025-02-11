@@ -103,7 +103,7 @@ impl AtomSettings {
         let toggles_text_size = self.font_size - 1.0;
 
         let notification_toggler = toggler(self.show_notifications)
-            .label("Show download notification")
+            .label("Show download complete notification")
             .on_toggle(SettingsMessage::NotificationToggle)
             .spacing(10)
             .text_size(toggles_text_size)
@@ -120,7 +120,7 @@ impl AtomSettings {
             .text_size(toggles_text_size)
             .text_alignment(iced::alignment::Horizontal::Left)
             .width(Shrink),
-            text("Captured download from the browser auto starts without showing new download form(disables auto open feature)").size(12),
+            text("The browser's captured download begins automatically without displaying a download form (disables auto open feature).").size(12),
             tooltip::Position::Top,
         )
         .class(AtomStyleContainer::ToolTipContainer)
@@ -157,21 +157,6 @@ impl AtomSettings {
         .padding(10)
         .class(AtomStyleContainer::ToolTipContainer);
 
-        let new_download_notification_toggler = tooltip(
-            toggler(self.new_download_notification)
-                .label("New Download Notification")
-                .on_toggle(SettingsMessage::NewDownloadNotificationToggle)
-                .spacing(10)
-                .text_size(toggles_text_size)
-                .text_alignment(iced::alignment::Horizontal::Left)
-                .width(Shrink),
-            text("A notification is shown when a new download is added").size(12),
-            tooltip::Position::Top,
-        )
-        .gap(10)
-        .padding(10)
-        .class(AtomStyleContainer::ToolTipContainer);
-
         let always_show_metadata_toggler = tooltip(
             toggler(self.metadata_always_enabled)
                 .label("Always Show Preview Panel")
@@ -188,47 +173,34 @@ impl AtomSettings {
         .class(AtomStyleContainer::ToolTipContainer);
 
         let options_row = container(
-            col![
-                row!()
-                    .spacing(10)
-                    .align_y(Alignment::Center)
-                    .width(Fill)
-                    .push(
-                        col!()
-                            .spacing(10)
-                            .width(Fill)
-                            .align_x(Alignment::Start)
-                            .push(notification_toggler)
-                            .push(auto_start_toggler)
-                    )
-                    .push(
-                        col!()
-                            .spacing(10)
-                            .width(Fill)
-                            .align_x(Alignment::Center)
-                            .push(close_btn_toggler)
-                            .push(maximized_toggler),
-                    )
-                    .push(
-                        col!()
-                            .spacing(10)
-                            .width(Fill)
-                            .align_x(Alignment::End)
-                            .push(stretch_list_toggler)
-                            .push(new_download_notification_toggler),
-                    ),
-                row!()
-                    .spacing(10)
-                    .align_y(Alignment::Center)
-                    .width(Fill)
-                    .push(
-                        col!()
-                            .spacing(10)
-                            .width(Fill)
-                            .align_x(Alignment::Start)
-                            .push(always_show_metadata_toggler),
-                    )
-            ]
+            col![row!()
+                .spacing(10)
+                .align_y(Alignment::Center)
+                .width(Fill)
+                .push(
+                    col!()
+                        .spacing(10)
+                        .width(Fill)
+                        .align_x(Alignment::Start)
+                        .push(notification_toggler)
+                        .push(auto_start_toggler)
+                )
+                .push(
+                    col!()
+                        .spacing(10)
+                        .width(Fill)
+                        .align_x(Alignment::Center)
+                        .push(close_btn_toggler)
+                        .push(maximized_toggler),
+                )
+                .push(
+                    col!()
+                        .spacing(10)
+                        .width(Fill)
+                        .align_x(Alignment::End)
+                        .push(stretch_list_toggler)
+                        .push(always_show_metadata_toggler),
+                )]
             .spacing(10),
         )
         .width(Fill)

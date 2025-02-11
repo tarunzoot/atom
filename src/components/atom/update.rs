@@ -10,8 +10,8 @@ use crate::{
         SidebarMessage, TitleBarMessage,
     },
     utils::helpers::{
-        get_current_time_in_millis, save_downloads_toml, save_settings_toml, show_notification,
-        ATOM_ICON, ATOM_SOCKET_ADDRESS,
+        get_current_time_in_millis, save_downloads_toml, save_settings_toml, ATOM_ICON,
+        ATOM_SOCKET_ADDRESS,
     },
 };
 use iced::{
@@ -170,7 +170,7 @@ impl Atom<'_> {
                 {
                     if let Some(window) = self.windows.get(&window_id) {
                         if window.0 == "main" {
-                            if self.alt_pressed || self.mouse_on_titlebar {
+                            if self.alt_pressed || self.mouse_over_titlebar {
                                 return window::drag(window_id);
                             }
                         } else {
@@ -192,7 +192,7 @@ impl Atom<'_> {
             }
             Message::TitleBar(message) => match message {
                 TitleBarMessage::MouseOnTitlebar(on_titlebar) => {
-                    self.mouse_on_titlebar = on_titlebar
+                    self.mouse_over_titlebar = on_titlebar
                 }
                 TitleBarMessage::AppMaximize => {
                     return window::get_oldest().and_then(window::toggle_maximize);
@@ -417,14 +417,6 @@ impl Atom<'_> {
 
                 match download.build() {
                     Ok(atom_download) => {
-                        if self.settings.new_download_notification {
-                            show_notification(
-                                "New download received from browser",
-                                atom_download.file_name.clone().as_str(),
-                                2000,
-                            );
-                        }
-
                         if self.settings.auto_start_download {
                             return Command::done(Message::AddNewDownload(atom_download));
                         } else {
