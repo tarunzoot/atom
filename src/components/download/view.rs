@@ -5,7 +5,7 @@ use crate::{
     font::{file_type_icon, get_file_type, icon, CustomFont},
     messages::DownloadMessage,
     style::{button::AtomStyleButton, container::AtomStyleContainer, AtomStyleText, AtomTheme},
-    utils::helpers::get_formatted_time,
+    utils::helpers::{get_formatted_time, get_list_view_column_length, ListViewColumns},
 };
 use iced::{
     widget::{button, column as col, container, progress_bar, row, text, tooltip, vertical_space},
@@ -17,7 +17,7 @@ use std::path::PathBuf;
 
 impl AtomDownload {
     fn get_formatted_size(&self, size: usize) -> (f64, &str) {
-        let suffix: [&str; 4] = ["Bytes", "KB", "MB", "GB"];
+        let suffix: [&str; 4] = ["By", "KB", "MB", "GB"];
         let size_len = size.to_string().len();
         let size_len = if size_len % 3 == 0 {
             (size_len / 3) - 1
@@ -49,22 +49,21 @@ impl AtomDownload {
 
     fn get_formatted_progress_percent(&self, decimals: bool) -> String {
         let percent = self.get_progress_percent();
+
         if decimals {
-            format!("{0:>4.2} %", if percent.is_nan() { 0.0 } else { percent })
+            format!("{0:>4.2} %", percent)
         } else {
-            format!(
-                "{0:>4.0}%",
-                if percent.is_nan() {
-                    0.0
-                } else {
-                    percent.floor()
-                }
-            )
+            format!("{0:>4.0} %", percent.floor())
         }
     }
 
     fn get_progress_percent(&self) -> f32 {
-        ((self.downloaded * 100) as f64 / self.size as f64) as f32
+        let percent = ((self.downloaded * 100) as f64 / self.size as f64) as f32;
+        if percent.is_infinite() || percent.is_nan() {
+            0.0
+        } else {
+            percent
+        }
     }
 
     fn get_download_state_icon(&self) -> char {
@@ -135,7 +134,7 @@ impl AtomDownload {
             .spacing(5)
         ]
         .spacing(10)
-        .width(FillPortion(5))
+        .width(get_list_view_column_length(ListViewColumns::FileName))
         .align_x(iced::Alignment::Start)
         .into()
     }
@@ -144,18 +143,30 @@ impl AtomDownload {
         let downloaded = self.get_formatted_size(self.downloaded);
         let size = self.get_formatted_size(self.size);
 
-        let text_col = col![row![
-            text(format!("{0:<4.2} {1} / ", downloaded.0, downloaded.1))
-                .width(Shrink)
-                .size(text_size),
-            text(format!("{0:>4.2} {1}", size.0, size.1)).size(text_size)
+        let text_col = col![col![
+            row![
+                icon('\u{f019}', CustomFont::Symbols).size(text_size),
+                text(format!("{0:0>6.2} {1}", downloaded.0, downloaded.1))
+                    .width(Shrink)
+                    .size(text_size),
+            ]
+            .align_y(Alignment::Center)
+            .spacing(5),
+            row![
+                icon('\u{ed95}', CustomFont::Symbols).size(text_size),
+                text(format!("{0:0>6.2} {1}", size.0, size.1)).size(text_size)
+            ]
+            .align_y(Alignment::Center)
+            .spacing(5)
         ]
-        .spacing(2)]
+        .align_x(Alignment::Start)
+        .spacing(5)]
         .spacing(5)
-        .align_x(Alignment::Center)
         .align_x(Alignment::Start);
 
-        text_col.width(FillPortion(3)).into()
+        text_col
+            .width(get_list_view_column_length(ListViewColumns::FileSize))
+            .into()
     }
 
     fn get_failed_view(
@@ -242,12 +253,15 @@ impl AtomDownload {
         &self,
         layout: ListLayout,
         text_size: f32,
-        responsive: bool,
+        _responsive: bool,
     ) -> Element<DownloadMessage, AtomTheme, Renderer> {
-        let length = if matches!(layout, ListLayout::List) {
-            Length::FillPortion(2)
+        let (length, progress_bar_length) = if matches!(layout, ListLayout::List) {
+            (
+                get_list_view_column_length(ListViewColumns::Status),
+                Length::Fixed(50.0),
+            )
         } else {
-            Length::Shrink
+            (Length::Shrink, Length::Fill)
         };
 
         if !self.error.is_empty() {
@@ -262,7 +276,9 @@ impl AtomDownload {
 
         let progress = self.get_progress_percent();
         let percent_el = text(self.get_formatted_progress_percent(true)).size(text_size - 2.0);
-        let progress_bar_el = progress_bar(0.0..=100.0, progress).height(iced::Length::Fixed(5.0));
+        let progress_bar_el = progress_bar(0.0..=100.0, progress)
+            .height(iced::Length::Fixed(5.0))
+            .width(progress_bar_length);
         let mut progress_row = row!()
             .spacing(5)
             .align_y(iced::Alignment::Center)
@@ -277,18 +293,18 @@ impl AtomDownload {
                 return progress_row.into();
             }
             ListLayout::List => {
-                let mut upper_row = row!().align_y(Alignment::Center);
-                if responsive {
-                    upper_row = upper_row.push(
-                        text(self.get_formatted_transfer_rate())
-                            .width(Length::Fill)
-                            .size(text_size - 2.0),
-                    );
-                }
+                // let mut upper_row = row!().align_y(Alignment::Center);
+                // if responsive {
+                //     upper_row = upper_row.push(
+                //         text(self.get_formatted_transfer_rate())
+                //             .width(Length::Fill)
+                //             .size(text_size - 2.0),
+                //     );
+                // }
 
                 progress_row = progress_row.push(
                     col![
-                        upper_row,
+                        // upper_row,
                         row![progress_bar_el, percent_el]
                             .align_y(Alignment::Center)
                             .spacing(5)
@@ -307,7 +323,7 @@ impl AtomDownload {
         text_size: f32,
     ) -> Element<DownloadMessage, AtomTheme, Renderer> {
         col![text(self.get_formatted_transfer_rate()).size(text_size)]
-            .width(FillPortion(2))
+            .width(get_list_view_column_length(ListViewColumns::Speed))
             .align_x(Alignment::Start)
             .into()
     }
@@ -363,7 +379,8 @@ impl AtomDownload {
         let file_size_col = self.get_file_size_view(text_size);
         let status_col = self.get_status_view(ListLayout::List, text_size, responsive);
         let transfer_rate_col = self.get_transfer_rate_view(text_size);
-        let actions_col = self.get_actions_view(Length::Fixed(75.0));
+        let actions_col =
+            self.get_actions_view(get_list_view_column_length(ListViewColumns::Actions));
 
         let mut main_row = row!()
             .align_y(iced::Alignment::Center)
@@ -375,7 +392,7 @@ impl AtomDownload {
             .push(transfer_rate_col)
             .push(
                 text(self.get_formatted_eta())
-                    .width(Length::FillPortion(2))
+                    .width(get_list_view_column_length(ListViewColumns::Eta))
                     .size(text_size),
             );
 
@@ -383,7 +400,7 @@ impl AtomDownload {
             main_row = main_row.push(
                 text(&self.added)
                     .size(text_size)
-                    .width(Length::FillPortion(2)),
+                    .width(get_list_view_column_length(ListViewColumns::Added)),
             );
         }
 

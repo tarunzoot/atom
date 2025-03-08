@@ -2,11 +2,12 @@ use crate::{
     font::{icon, CustomFont},
     messages::Message,
     style::{container::AtomStyleContainer, AtomTheme},
+    utils::helpers::{get_list_view_column_length, ListViewColumns},
 };
 use iced::{
     widget::{container, row, text},
     Alignment, Element, Font,
-    Length::{Fill, FillPortion, Fixed},
+    Length::Fill,
 };
 
 pub fn view<'a>(responsive: bool) -> Element<'a, Message, AtomTheme> {
@@ -27,7 +28,7 @@ pub fn view<'a>(responsive: bool) -> Element<'a, Message, AtomTheme> {
     )
     .class(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    .width(FillPortion(5));
+    .width(get_list_view_column_length(ListViewColumns::FileName));
 
     let file_size_container = container(
         row!()
@@ -38,7 +39,7 @@ pub fn view<'a>(responsive: bool) -> Element<'a, Message, AtomTheme> {
     )
     .class(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    .width(FillPortion(3));
+    .width(get_list_view_column_length(ListViewColumns::FileSize));
 
     let eta_container = container(
         row!()
@@ -49,7 +50,7 @@ pub fn view<'a>(responsive: bool) -> Element<'a, Message, AtomTheme> {
     )
     .class(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    .width(FillPortion(2));
+    .width(get_list_view_column_length(ListViewColumns::Eta));
 
     let status_container = container(
         row!()
@@ -60,7 +61,7 @@ pub fn view<'a>(responsive: bool) -> Element<'a, Message, AtomTheme> {
     )
     .class(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    .width(FillPortion(2));
+    .width(get_list_view_column_length(ListViewColumns::Status));
 
     let speed_con = container(
         row!()
@@ -71,7 +72,7 @@ pub fn view<'a>(responsive: bool) -> Element<'a, Message, AtomTheme> {
     )
     .class(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    .width(FillPortion(2));
+    .width(get_list_view_column_length(ListViewColumns::Speed));
 
     let added_con = container(
         row!()
@@ -82,7 +83,7 @@ pub fn view<'a>(responsive: bool) -> Element<'a, Message, AtomTheme> {
     )
     .class(AtomStyleContainer::Transparent)
     .align_x(iced::alignment::Horizontal::Left)
-    .width(FillPortion(2));
+    .width(get_list_view_column_length(ListViewColumns::Added));
 
     let actions_con = container(
         row!()
@@ -92,8 +93,8 @@ pub fn view<'a>(responsive: bool) -> Element<'a, Message, AtomTheme> {
             .push(text("Actions").size(text_size).font(font)),
     )
     .class(AtomStyleContainer::Transparent)
-    .align_x(iced::alignment::Horizontal::Left)
-    .width(Fixed(75.0));
+    .align_x(iced::alignment::Horizontal::Right)
+    .width(get_list_view_column_length(ListViewColumns::Actions));
 
     let mut main_row = row!()
         .padding(10)

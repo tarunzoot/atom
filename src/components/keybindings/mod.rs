@@ -28,6 +28,9 @@ pub fn view<'a>() -> Element<'a, Message, AtomTheme> {
         ("cycle through themes", "T", '\u{ec88}'),
         ("toggle list layout", "L", '\u{ef72}'),
         ("clear search", "G", '\u{eedd}'),
+        ("decrease scaling by 0.10", "-", '\u{ef9a}'),
+        ("increase scaling by 0.10", "=", '\u{efc2}'),
+        ("reset scaling", "0", '\u{ec7f}'),
         ("quit app", "Q", '\u{ef1d}'),
     ];
 

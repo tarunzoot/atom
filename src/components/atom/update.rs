@@ -6,8 +6,8 @@ use crate::{
         settings::{AtomSettings, ListLayout},
     },
     messages::{
-        DownloadMessage, DownloadsListFilterMessage, Message, SideBarActiveButton, SideBarState,
-        SidebarMessage, TitleBarMessage,
+        DownloadMessage, DownloadsListFilterMessage, Message, SettingsMessage, SideBarActiveButton,
+        SideBarState, SidebarMessage, TitleBarMessage,
     },
     utils::helpers::{
         get_current_time_in_millis, save_downloads_toml, save_settings_toml, ATOM_ICON,
@@ -157,6 +157,28 @@ impl Atom<'_> {
                             keyboard::Key::Character("g") => {
                                 self.titlebar.search_text.clear();
                                 return Command::done(Message::Ignore);
+                            }
+                            keyboard::Key::Character("-") => {
+                                if self.phantom_settings.scaling - 0.10 > 0.70 {
+                                    self.phantom_settings.scaling -= 0.10;
+                                }
+                                return Command::done(Message::Settings(
+                                    SettingsMessage::SaveSettings(false),
+                                ));
+                            }
+                            keyboard::Key::Character("=") => {
+                                if self.phantom_settings.scaling + 0.10 < 2.0 {
+                                    self.phantom_settings.scaling += 0.10;
+                                }
+                                return Command::done(Message::Settings(
+                                    SettingsMessage::SaveSettings(false),
+                                ));
+                            }
+                            keyboard::Key::Character("0") => {
+                                self.phantom_settings.scaling = 1.0;
+                                return Command::done(Message::Settings(
+                                    SettingsMessage::SaveSettings(false),
+                                ));
                             }
                             _ => Message::Ignore,
                         };

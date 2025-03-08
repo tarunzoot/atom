@@ -33,6 +33,9 @@ impl AtomDownload {
                 self.downloading = false;
                 self.joining = false;
                 self.download_this_session = 0;
+                if self.size < 1 {
+                    self.size = self.downloaded;
+                }
                 if settings.show_notifications {
                     show_notification("Download Complete", &self.file_name, 6000);
                 }

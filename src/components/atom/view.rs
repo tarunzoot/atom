@@ -55,13 +55,13 @@ impl Atom<'_> {
         };
 
         let responsive = if self.settings.scaling <= 1.0 {
-            self.window_dimensions.0 < 1281
+            self.window_dimensions.0 < 1280
                 && (self.metadata.enabled
                     || self.settings.metadata_always_enabled
                     || !self.settings.sidebar_collapsed)
         } else {
             self.window_dimensions.0 < 1087
-                || (self.window_dimensions.0 < 1281
+                || (self.window_dimensions.0 < 1280
                     && (self.metadata.enabled
                         || self.settings.metadata_always_enabled
                         || !self.settings.sidebar_collapsed))
