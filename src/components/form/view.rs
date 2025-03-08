@@ -247,6 +247,11 @@ impl AtomDownloadForm {
         )
         .padding(15)
         .width(Fill)
+        .align_y(if self.headers.is_empty() {
+            Alignment::Center
+        } else {
+            Alignment::Start
+        })
         .class(AtomStyleContainer::ListContainer);
 
         if window_id.is_none() {
