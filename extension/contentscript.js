@@ -5,9 +5,11 @@ window.addEventListener('DOMContentLoaded', function () {
 
         if (keyvalue == 'alt') {
             let message = { key: keyvalue, state: 'down' };
-            chrome.runtime.sendMessage(null, message, (response) => {
-                console.log(response);
-            });
+            if (chrome.runtime)
+                chrome.runtime.sendMessage(null, message, (response) => {
+                    console.log(response);
+                });
+            else console.log('no chrome runtime found');
         }
     });
 
@@ -16,9 +18,11 @@ window.addEventListener('DOMContentLoaded', function () {
         let keyvalue = key.key.toLowerCase();
         if (keyvalue == 'alt') {
             let message = { key: keyvalue, state: 'up' };
-            chrome.runtime.sendMessage(null, message, (response) => {
-                console.log(response);
-            });
+            if (chrome.runtime)
+                chrome.runtime.sendMessage(null, message, (response) => {
+                    console.log(response);
+                });
+            else console.log('no chrome runtime found');
         }
     });
 });
