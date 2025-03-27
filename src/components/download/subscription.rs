@@ -27,7 +27,7 @@ enum State {
     ThreadedStarting(Client, AtomDownload, String, Vec<String>),
     SequentialDownloading(Response, BufWriter<File>, usize),
     ThreadedDownloading(AtomDownload, Vec<SubDownloads>, String, Vec<String>, usize),
-    FileJoining(BufWriter<File>, Vec<BufReader<File>>, usize),
+    FileJoining(BufWriter<File>, Vec<BufReader<File>>, usize, usize),
     SequentialFinished,
     ThreadedFinished(String, Vec<String>),
     Wait,
@@ -110,8 +110,8 @@ impl AtomDownload {
                     State::Starting(client, download, cache_dir) => {
                         Some(handle_download_starting(download, client, cache_dir, index).await)
                     }
-                    State::FileJoining(bw, chunk_files, index) => {
-                        Some(handle_joining_progress(bw, chunk_files, index).await)
+                    State::FileJoining(bw, chunk_files, current_index, index) => {
+                        Some(handle_joining_progress(bw, chunk_files, current_index, index).await)
                     }
                 }
             }),
@@ -322,7 +322,18 @@ async fn handle_threaded_download_starting(
             .append(true)
             .open(f)
         {
-            let file_len = file.metadata().unwrap().len() as usize;
+            let mut file_len: usize = 0;
+            if let Ok(meta) = file.metadata() {
+                file_len = meta.len() as usize;
+            }
+            downloaded += file_len;
+
+            debug!("file_len: {file_len}, chunk_len: {chunk_size}, previous_chunk_start: {previous_chunk_start}");
+
+            if file_len >= chunk_size || (previous_chunk_start + file_len) >= download.size {
+                continue;
+            }
+
             let mut client = client
                 .request(
                     match download.method {
@@ -344,14 +355,13 @@ async fn handle_threaded_download_starting(
                 format!(
                     "bytes={}-{}",
                     previous_chunk_start + file_len,
-                    if previous_chunk_start + chunk_size >= download.size {
+                    if (i + 1) == (download.threads as usize) {
                         download.size
                     } else {
                         previous_chunk_start + chunk_size
                     }
                 ),
             );
-            downloaded += file_len;
             open_chunk_files.push(file);
 
             debug!(client=?client);
@@ -373,7 +383,7 @@ async fn handle_threaded_download_starting(
 
     for (response, file) in responses.into_iter().zip(open_chunk_files) {
         if let Ok(response) = response.await {
-            tracing::debug!("response = {response:#?}");
+            debug!("response = {response:#?}");
             if response.status().is_success() {
                 sub_downloads.push(SubDownloads {
                     response,
@@ -506,7 +516,7 @@ fn handle_threaded_download_finish(
 
             (
                 Message::Download(DownloadMessage::JoiningProgress(0), index),
-                State::FileJoining(BufWriter::new(out), chunk_file_handles, 0),
+                State::FileJoining(BufWriter::new(out), chunk_file_handles, 0, 0),
             )
         }
         Err(error) => {
@@ -520,6 +530,7 @@ fn handle_threaded_download_finish(
 async fn handle_joining_progress(
     mut bw: BufWriter<File>,
     mut chunk_files: Vec<BufReader<File>>,
+    mut current_index: usize,
     index: usize,
 ) -> (Message, State) {
     let error_msg = (
@@ -530,32 +541,31 @@ async fn handle_joining_progress(
         State::Wait,
     );
 
-    let buffer_len = 10000000;
+    let buffer_len = 102400;
     let mut copied = 0;
 
     debug!(chunk_files=?chunk_files);
-    if chunk_files.is_empty() {
+    if chunk_files.is_empty() || current_index >= chunk_files.len() {
         return (
             Message::Download(DownloadMessage::Finished, index),
             State::SequentialFinished,
         );
     }
 
-    let mut br = chunk_files.remove(0);
     let mut buffer = vec![0; buffer_len];
-    while let Ok(_read) = br.read(&mut buffer) {
+    if let Ok(_read) = chunk_files[current_index].read(&mut buffer) {
         if bw.write_all(&buffer[.._read]).is_err() {
             return error_msg;
         }
         copied += _read;
 
         if _read < buffer_len {
-            break;
+            current_index += 1;
         }
     }
 
     (
         Message::Download(DownloadMessage::JoiningProgress(copied), index),
-        State::FileJoining(bw, chunk_files, index),
+        State::FileJoining(bw, chunk_files, current_index, index),
     )
 }

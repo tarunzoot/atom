@@ -77,7 +77,6 @@ impl AtomDownload {
             DownloadMessage::JoiningProgress(bytes) => {
                 self.joined_bytes += bytes;
                 self.joining = true;
-                // self.is_downloading = true;
             }
             DownloadMessage::Downloading => {
                 self.downloading = true;
