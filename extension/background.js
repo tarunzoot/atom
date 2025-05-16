@@ -116,14 +116,14 @@ function postData(jsonObject, id) {
     })
         .then((value) => value.text())
         .then((text) => {
-            chrome.downloads.cancel(id, (e) => {});
+            chrome.downloads.cancel(id, (e) => { });
         })
         .catch(console.log);
 }
 
 function handleDownload(e) {
     let url = e.finalUrl || e.url;
-    if (/^blob/.test(url)) return;
+    if (/^(blob|data:)/.test(url)) return;
     let referer = new URL(url).origin;
 
     let jsonObject = {

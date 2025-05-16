@@ -54,6 +54,10 @@ cargo r --release
 
 You can move the window by pressing **Alt** and dragging with the mouse.
 
+## Debugging
+
+To facilitate debugging, define the `ATOM_LOG_FILE` environment variable to specify the path to the desired log file.
+
 ## Limitations
 
 Atom is tested and used on Windows only. Atom may or may not work as intended on Linux or macOS.
