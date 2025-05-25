@@ -12,8 +12,8 @@ impl AtomDownloadForm {
             DownloadFormMessage::UrlChange(url) => {
                 self.url = url;
                 if let Ok(url) = reqwest::Url::parse(&self.url) {
-                    if let Some(file_name) = url.path_segments() {
-                        if let Some(file_name) = file_name.last() {
+                    if let Some(mut file_name) = url.path_segments() {
+                        if let Some(file_name) = file_name.next_back() {
                             urlencoding::decode(file_name)
                                 .map(|file_name| {
                                     if !file_name.is_empty() {
@@ -120,6 +120,8 @@ impl AtomDownloadForm {
                     }
                 }
             }
+            DownloadFormMessage::MouseOverHeading => self.is_mouse_over_heading = true,
+            DownloadFormMessage::MouseAwayFromHeading => self.is_mouse_over_heading = false,
             _ => {}
         }
         Command::none()

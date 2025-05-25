@@ -115,7 +115,7 @@ impl AtomDownload {
 
         col![
             row![
-                file_type_icon(self.file_name.split('.').last().unwrap())
+                file_type_icon(self.file_name.split('.').next_back().unwrap())
                     .size(text_size)
                     .class(AtomStyleText::Accented),
                 text(file_name).size(text_size)

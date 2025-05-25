@@ -143,8 +143,8 @@ impl AtomDownload {
     pub fn build<'a>(mut self) -> Result<Self, &'a str> {
         if self.file_name.is_empty() {
             if let Ok(url) = reqwest::Url::parse(&self.url) {
-                if let Some(file_name) = url.path_segments() {
-                    if let Some(file_name) = file_name.last() {
+                if let Some(mut file_name) = url.path_segments() {
+                    if let Some(file_name) = file_name.next_back() {
                         urlencoding::decode(file_name)
                             .map(|file_name| {
                                 self.file_name = file_name.into();

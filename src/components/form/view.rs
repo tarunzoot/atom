@@ -11,8 +11,9 @@ use crate::{
 };
 use iced::{
     widget::{
-        button, column as col, container, horizontal_space, row, scrollable, scrollable::Scrollbar,
-        text, text_input, toggler, tooltip, tooltip::Position, vertical_space,
+        button, column as col, container, horizontal_space, mouse_area, row, scrollable,
+        scrollable::Scrollbar, text, text_input, toggler, tooltip, tooltip::Position,
+        vertical_space,
     },
     window::Id,
     Alignment, Element,
@@ -270,11 +271,19 @@ impl AtomDownloadForm {
             );
         }
 
+        let mut mouse_area_title = mouse_area(page_title);
+
+        if window_id.is_some() {
+            mouse_area_title = mouse_area_title
+                .on_enter(DownloadFormMessage::MouseOverHeading)
+                .on_exit(DownloadFormMessage::MouseAwayFromHeading);
+        };
+
         container(
             col!()
                 .spacing(20)
                 .padding(Padding::new(10.0).top(0))
-                .push(page_title)
+                .push(mouse_area_title)
                 .push(
                     scrollable(
                         col!()

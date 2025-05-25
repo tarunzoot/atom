@@ -15,6 +15,7 @@ pub struct AtomDownloadForm {
     pub header_value: String,
     pub auto_referer: bool,
     pub auto_open: bool,
+    pub is_mouse_over_heading: bool,
 }
 
 impl AtomDownloadForm {
@@ -29,6 +30,7 @@ impl AtomDownloadForm {
             headers: download.headers,
             sequential: download.size == 0 || download.sequential,
             is_valid_url: true,
+            is_mouse_over_heading: false,
             ..Default::default()
         }
     }

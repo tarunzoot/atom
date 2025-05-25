@@ -195,7 +195,7 @@ impl Atom<'_> {
                             if self.alt_pressed || self.mouse_over_titlebar {
                                 return window::drag(window_id);
                             }
-                        } else {
+                        } else if self.alt_pressed || window.1.is_mouse_over_heading {
                             return window::drag(window_id);
                         }
                     }
@@ -279,8 +279,8 @@ impl Atom<'_> {
                                     .unwrap_or(link);
 
                                 if let Ok(url) = reqwest::Url::parse(link) {
-                                    if let Some(file_name) = url.path_segments() {
-                                        if let Some(file_name) = file_name.last() {
+                                    if let Some(mut file_name) = url.path_segments() {
+                                        if let Some(file_name) = file_name.next_back() {
                                             urlencoding::decode(file_name)
                                                 .map(|file_name| {
                                                     match AtomDownload::new()

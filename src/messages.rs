@@ -48,6 +48,8 @@ pub enum DownloadFormMessage {
     AutoOpen(bool),
     AddNewDownload,
     Minimize,
+    MouseOverHeading,
+    MouseAwayFromHeading,
     ClosePane,
 }
 
