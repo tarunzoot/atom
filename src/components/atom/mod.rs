@@ -96,18 +96,22 @@ impl Atom<'_> {
             .zstd(true)
             .referer(true)
             .build()
-            .expect("Error: cannot create download client.");
+            .map_err(|e| {
+                error!("error creating HTTP client: {e:#?}");
+                std::process::exit(1);
+            })
+            .unwrap();
 
         // check if config path can be created or exists
         let config_dir_path = get_conf_directory()
             .map_err(|e| {
-                error!("{e:#?}");
+                error!("cannot get configuration directory, error: {e:#?}");
                 std::process::exit(1);
             })
             .unwrap();
 
         if !config_dir_path.exists() && create_dir_all(&config_dir_path).is_err() {
-            error!("Error: cannot create config directory `{config_dir_path:#?}`, exiting.");
+            error!("cannot create config directory `{config_dir_path:#?}`, exiting.");
             std::process::exit(1);
         }
 
@@ -159,7 +163,11 @@ impl Atom<'_> {
     fn load_tray_icon(image_data: &[u8]) -> tray_icon::Icon {
         let (icon_rgba, icon_width, icon_height) = {
             let image = image::load_from_memory(image_data)
-                .expect("Failed to open icon path")
+                .map_err(|e| {
+                    error!("failed to load icon image: {e:#?}");
+                    std::process::exit(1);
+                })
+                .unwrap()
                 .into_rgba8();
             let (width, height) = image.dimensions();
             let rgba = image.into_raw();

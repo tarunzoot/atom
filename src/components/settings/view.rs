@@ -103,7 +103,7 @@ impl AtomSettings {
         let toggles_text_size = self.font_size - 1.0;
 
         let notification_toggler = toggler(self.show_notifications)
-            .label("Show download complete notification")
+            .label("Download complete notification")
             .on_toggle(SettingsMessage::NotificationToggle)
             .spacing(10)
             .text_size(toggles_text_size)

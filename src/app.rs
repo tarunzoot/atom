@@ -22,7 +22,7 @@ use std::{
     io::{prelude::*, BufReader, Write},
     net::TcpListener,
 };
-use tracing::warn;
+use tracing::{debug, warn};
 use tray_icon::menu::MenuEvent;
 
 pub enum App<'a> {
@@ -201,16 +201,14 @@ impl App<'_> {
                 warn!("Error: {}", listener.unwrap_err());
                 sender
                     .try_send(Message::StatusBar(
-                        "Grabbing the download from the web browser : OFF (Listener Failed)"
-                            .to_string(),
+                        "Download Capture: OFF(ERROR)".to_string(),
                     ))
                     .ok();
                 return;
             } else {
+                debug!("TCP listener started on {}", ATOM_SOCKET_ADDRESS);
                 sender
-                    .try_send(Message::StatusBar(
-                        "Grabbing the download from the web browser : ON".to_string(),
-                    ))
+                    .try_send(Message::StatusBar("Download Capture: ON".to_string()))
                     .ok();
             }
 
@@ -229,19 +227,23 @@ impl App<'_> {
                 stream.write_all(response.as_bytes()).ok();
 
                 if http_request.is_empty() {
-                    warn!("http_request from the browser is empty, maybe the app is exiting//");
+                    warn!("HTTP request from the browser is empty, maybe the app is exiting//");
                     continue;
                 }
 
                 let json = http_request.last().unwrap();
                 let json = serde_json::from_str::<JSONFromBrowser>(json);
                 if json.is_err() {
-                    warn!("TCP JSON error : {:#?}", json);
+                    warn!(
+                        "parsing JSON from the browser failed, received JSON: {:#?}",
+                        json
+                    );
                     continue;
                 }
 
                 let json = json.unwrap();
                 if json.file_name.is_empty() || json.url.is_empty() {
+                    debug!("received empty filename or URL in JSON received from the browser, skipping download");
                     continue;
                 }
 
