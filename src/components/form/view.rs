@@ -71,65 +71,80 @@ impl AtomDownloadForm {
     }
 
     fn toggles_view(&self) -> Element<DownloadFormMessage, AtomTheme> {
-        let sequential_tooltip_text = "Only switch if you are certain the server supports the download mode; otherwise, the download might not succeed.";
+        let sequential_tooltip_text = "Switch modes only if you are certain that the server supports the selected download method; otherwise, the download may fail.";
+
         let sequential_toggler = toggler(self.sequential)
             .label("Download Sequentially".to_string())
             .spacing(10)
             .text_alignment(iced::alignment::Horizontal::Left)
-            .width(Fill)
+            .width(Shrink)
             .on_toggle(DownloadFormMessage::DownloadSequentially);
 
-        let mut toggles = row!().spacing(20).width(Fill).push(
-            col!()
-                .push(
-                    tooltip(
-                        sequential_toggler,
-                        text(sequential_tooltip_text).size(12),
-                        Position::Top,
-                    )
-                    .gap(10)
-                    .padding(10)
-                    .class(AtomStyleContainer::ToolTipContainer),
+        let mut toggles = row!().spacing(20).width(Fill).align_y(Alignment::Center);
+
+        if self.sequential {
+            toggles = toggles.push(
+                col![tooltip(
+                    sequential_toggler,
+                    text(sequential_tooltip_text).size(12),
+                    Position::Top,
                 )
+                .gap(10)
+                .padding(10)
+                .class(AtomStyleContainer::ToolTipContainer)]
                 .width(Fill)
-                .align_x(iced::Alignment::Start),
-        );
+                .align_x(Alignment::Start),
+            );
+        } else {
+            toggles = toggles.push(
+                col![sequential_toggler]
+                    .width(Fill)
+                    .align_x(Alignment::Start),
+            );
+        }
+
+        let auto_open_toggle = tooltip(
+            toggler(self.auto_open)
+                .label("Auto Open".to_string())
+                .on_toggle(DownloadFormMessage::AutoOpen)
+                .spacing(10)
+                .text_alignment(iced::alignment::Horizontal::Left)
+                .width(Shrink),
+            text("Automatically opens the file upon completion of the download.").size(12),
+            Position::Top,
+        )
+        .gap(10)
+        .padding(10)
+        .class(AtomStyleContainer::ToolTipContainer);
+
+        let auto_referer_toggle = tooltip(
+            toggler(self.auto_referer)
+                .label("Auto Referer".to_string())
+                .on_toggle(DownloadFormMessage::AutoReferer)
+                .spacing(10)
+                .text_alignment(iced::alignment::Horizontal::Left)
+                .width(Shrink),
+            text("Automatically includes the Referer header in the request.").size(12),
+            Position::Top,
+        )
+        .gap(10)
+        .padding(10)
+        .class(AtomStyleContainer::ToolTipContainer);
+
         if self.is_valid_url {
             toggles = toggles
                 .push(
-                    col!()
-                        .push(
-                            toggler(self.auto_open)
-                                .label("Open file after download".to_string())
-                                .on_toggle(DownloadFormMessage::AutoOpen)
-                                .spacing(10)
-                                .text_alignment(iced::alignment::Horizontal::Left)
-                                .width(Shrink),
-                        )
+                    col![auto_open_toggle]
                         .width(Fill)
                         .align_x(Alignment::Center),
                 )
                 .push(
-                    col!()
-                        .push(
-                            tooltip(
-                                toggler(self.auto_referer)
-                                    .label("Add Referer Header".to_string())
-                                    .on_toggle(DownloadFormMessage::AutoReferer)
-                                    .spacing(10)
-                                    .text_alignment(iced::alignment::Horizontal::Left)
-                                    .width(Shrink),
-                                text("Automatically adds referer header to the request").size(12),
-                                Position::Top,
-                            )
-                            .gap(10)
-                            .padding(10)
-                            .class(AtomStyleContainer::ToolTipContainer),
-                        )
+                    col![auto_referer_toggle]
                         .width(Fill)
                         .align_x(Alignment::End),
-                );
+                )
         }
+
         toggles.into()
     }
 

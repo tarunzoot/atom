@@ -562,6 +562,7 @@ impl Atom<'_> {
                             }
                             crate::messages::DownloadFormMessage::ClosePane => {
                                 let window_id = window_id.unwrap();
+                                self.status_bar_message = "Ready".to_string();
                                 return Command::done(Message::WindowClosed(window_id));
                             }
                             _ => {
