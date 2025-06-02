@@ -4,10 +4,11 @@ use crate::{
         download::AtomDownload,
         form::AtomDownloadForm,
         settings::{AtomSettings, ListLayout},
+        sidebar::{SideBarActiveButton, SideBarState},
     },
     messages::{
-        DownloadMessage, DownloadsListFilterMessage, Message, SettingsMessage, SideBarActiveButton,
-        SideBarState, SidebarMessage, TitleBarMessage,
+        DownloadMessage, DownloadsListFilterMessage, Message, SettingsMessage, SidebarMessage,
+        TitleBarMessage,
     },
     utils::helpers::{
         get_current_time_in_millis, save_downloads_toml, save_settings_toml, ATOM_ICON,
@@ -112,7 +113,11 @@ impl Atom<'_> {
                             }
                             keyboard::Key::Character("h") => Message::GotoHomePage,
                             keyboard::Key::Character("d") => {
-                                Message::Sidebar(SidebarMessage::DeleteConfirm)
+                                if self.downloads.is_empty() {
+                                    Message::Ignore
+                                } else {
+                                    Message::Sidebar(SidebarMessage::DeleteConfirm)
+                                }
                             }
                             keyboard::Key::Character(",") => {
                                 Message::Sidebar(SidebarMessage::Settings)
@@ -152,7 +157,7 @@ impl Atom<'_> {
                             keyboard::Key::Character("f") => {
                                 return iced::widget::text_input::focus(
                                     iced::widget::text_input::Id::new("search"),
-                                )
+                                );
                             }
                             keyboard::Key::Character("g") => {
                                 self.titlebar.search_text.clear();
@@ -162,9 +167,14 @@ impl Atom<'_> {
                                 if self.phantom_settings.scaling - 0.10 > 0.70 {
                                     self.phantom_settings.scaling -= 0.10;
                                 }
+
                                 return Command::done(Message::Settings(
                                     SettingsMessage::SaveSettings(false),
-                                ));
+                                ))
+                                .chain(
+                                    window::get_size(window_id)
+                                        .map(move |size| Message::WindowResized((window_id, size))),
+                                );
                             }
                             keyboard::Key::Character("=") => {
                                 if self.phantom_settings.scaling + 0.10 < 2.0 {
@@ -172,13 +182,21 @@ impl Atom<'_> {
                                 }
                                 return Command::done(Message::Settings(
                                     SettingsMessage::SaveSettings(false),
-                                ));
+                                ))
+                                .chain(
+                                    window::get_size(window_id)
+                                        .map(move |size| Message::WindowResized((window_id, size))),
+                                );
                             }
                             keyboard::Key::Character("0") => {
                                 self.phantom_settings.scaling = 1.0;
                                 return Command::done(Message::Settings(
                                     SettingsMessage::SaveSettings(false),
-                                ));
+                                ))
+                                .chain(
+                                    window::get_size(window_id)
+                                        .map(move |size| Message::WindowResized((window_id, size))),
+                                );
                             }
                             _ => Message::Ignore,
                         };
@@ -340,6 +358,9 @@ impl Atom<'_> {
                     }
                     DownloadsListFilterMessage::Deleted => {
                         self.sidebar.active = SideBarActiveButton::Trash;
+                    }
+                    DownloadsListFilterMessage::Failed => {
+                        self.sidebar.active = SideBarActiveButton::Failed;
                     }
                 }
                 self.filter_type = message;
@@ -531,7 +552,7 @@ impl Atom<'_> {
             }
             Message::GotoHomePage => {
                 self.status_bar_message = "Main View".to_string();
-                self.download_state_filter_bar.show_confirmation_dialog = false;
+                self.sidebar.show_dialog = false;
                 self.view = View::Downloads;
                 self.filter_type = DownloadsListFilterMessage::All;
                 self.metadata.enabled = false;
@@ -599,7 +620,7 @@ impl Atom<'_> {
                     self.download_form.reset();
                 }
                 SidebarMessage::Expand => {
-                    self.sidebar.state = SideBarState::Full;
+                    self.sidebar.state = SideBarState::Expanded;
                     self.settings.sidebar_collapsed = false;
                 }
                 SidebarMessage::Collapse => {
@@ -619,7 +640,7 @@ impl Atom<'_> {
                     self.metadata.enabled = false;
                 }
                 SidebarMessage::DeleteConfirm => {
-                    self.download_state_filter_bar.show_confirmation_dialog = true;
+                    self.sidebar.show_dialog = true;
                 }
                 SidebarMessage::DeleteAll => {
                     match self.sidebar.active {
@@ -667,7 +688,7 @@ impl Atom<'_> {
                         self.metadata.enabled = false;
                     }
 
-                    self.download_state_filter_bar.show_confirmation_dialog = false;
+                    self.sidebar.show_dialog = false;
                 }
                 SidebarMessage::PauseAll => {
                     self.downloads.iter_mut().for_each(|(&_, download)| {
@@ -686,6 +707,9 @@ impl Atom<'_> {
                 }
                 SidebarMessage::GotoHomePage => {
                     let _ = self.update(Message::GotoHomePage);
+                }
+                SidebarMessage::HideDialog => {
+                    self.sidebar.show_dialog = false;
                 }
             },
             Message::TrayMessages(tray_message) => {

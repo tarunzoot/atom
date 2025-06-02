@@ -4,9 +4,12 @@ use crate::{
     style::{button::AtomStyleButton, container::AtomStyleContainer, AtomTheme},
 };
 use iced::{
-    widget::{button, column as col, container, row, text, text_input, Button},
+    widget::{
+        button, column as col, container, row, scrollable, scrollable::Scrollbar, text, text_input,
+        tooltip, vertical_space, Button,
+    },
     Alignment, Element, Font,
-    Length::Shrink,
+    Length::{Fill, Shrink},
     Padding,
 };
 
@@ -111,5 +114,57 @@ impl GuiElements {
             spacing: 5.0,
             side: text_input::Side::Right,
         }
+    }
+
+    pub fn scrollbar<'a, E, M>(elements: E) -> impl Into<Element<'a, M, AtomTheme>>
+    where
+        M: Clone + std::fmt::Debug + 'static,
+        E: Into<Element<'a, M, AtomTheme>>,
+    {
+        scrollable(elements)
+            .height(Fill)
+            .direction(scrollable::Direction::Vertical(
+                Scrollbar::new().margin(0).scroller_width(0).width(0),
+            ))
+    }
+
+    pub fn horizontal_separator<'a, M>() -> impl Into<Element<'a, M, AtomTheme>>
+    where
+        M: Clone + std::fmt::Debug + 'static,
+    {
+        col![container(vertical_space().height(1))
+            .center(Fill)
+            .height(1)
+            .class(AtomStyleContainer::ListContainer)]
+        .height(Shrink)
+        .padding(15)
+        .align_x(Alignment::Center)
+    }
+
+    #[allow(dead_code)]
+    pub fn vertical_separator<'a, M>() -> impl Into<Element<'a, M, AtomTheme>>
+    where
+        M: Clone + std::fmt::Debug + 'static,
+    {
+        col![container(vertical_space().height(30).width(1))
+            .class(AtomStyleContainer::ListItemContainer)
+            .width(1)]
+        .align_x(iced::Alignment::Center)
+        .width(Shrink)
+    }
+
+    #[allow(dead_code)]
+    pub fn tooltip_top<'a, E, M>(
+        content: E,
+        tooltip_text: &'a str,
+    ) -> impl Into<Element<'a, M, AtomTheme>>
+    where
+        E: Into<Element<'a, M, AtomTheme>>,
+        M: Clone + std::fmt::Debug + 'static,
+    {
+        tooltip(content, text(tooltip_text).size(10), tooltip::Position::Top)
+            .gap(5)
+            .padding(10)
+            .class(AtomStyleContainer::ToolTipContainer)
     }
 }

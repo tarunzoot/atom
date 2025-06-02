@@ -6,7 +6,7 @@ use crate::{
         form::AtomDownloadForm, import::AtomImport, metadata::AtomDownloadMetadata,
         settings::AtomSettings, sidebar::AtomSidebar, titlebar::AtomTitleBar,
     },
-    messages::{DownloadsListFilterMessage, Message, SideBarActiveButton, SideBarState},
+    messages::{DownloadsListFilterMessage, Message},
     style::AtomTheme,
     utils::helpers::{
         get_conf_directory, parse_downloads_toml, parse_settings_toml, save_settings_toml,
@@ -25,6 +25,8 @@ use tray_icon::{
     menu::{Menu, MenuId, MenuItem},
     TrayIcon, TrayIconBuilder,
 };
+
+use super::sidebar::{SideBarActiveButton, SideBarState};
 
 #[derive(Debug, Clone, Default)]
 pub enum View {
@@ -137,7 +139,7 @@ impl Atom<'_> {
             if settings.sidebar_collapsed {
                 SideBarState::Collapsed
             } else {
-                SideBarState::Full
+                SideBarState::Expanded
             },
         );
 

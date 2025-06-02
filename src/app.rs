@@ -149,9 +149,19 @@ impl App<'_> {
             App::Loading => {
                 let mut command = Command::none();
                 if let Message::LoadingComplete = message {
-                    let atom = Atom::new();
+                    let mut atom = Atom::new();
                     if atom.settings.maximized {
-                        command = window::get_oldest().and_then(iced::window::toggle_maximize)
+                        if let Some(entry) = atom.windows.first_entry() {
+                            let window_id = *entry.key();
+                            command = window::get_oldest()
+                                .and_then(iced::window::toggle_maximize)
+                                .chain(
+                                    iced::window::get_size(window_id)
+                                        .map(move |size| Message::WindowResized((window_id, size))),
+                                );
+                        } else {
+                            command = window::get_oldest().and_then(iced::window::toggle_maximize);
+                        }
                     }
                     *self = App::Loaded(atom);
                 }

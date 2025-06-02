@@ -22,6 +22,8 @@ pub const ATOM_USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_2
 pub const ATOM_INPUT_DEFAULT_PADDING: u16 = 6;
 pub const ATOM_SOCKET_ADDRESS: &str = "127.0.0.1:6682";
 pub const ATOM_ICON: &[u8] = include_bytes!("../../resources/images/icon.ico");
+pub const METADATA_PANEL_WIDTH: u16 = 210;
+pub const SIDEBAR_WIDTH: u16 = 210;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TomlDownloads {
@@ -326,4 +328,28 @@ pub fn parse_downloads_toml(downloads_file_path: &PathBuf) -> BTreeMap<usize, At
     }
 
     downloads
+}
+
+pub fn check_responsive_threshold(
+    width: u32,
+    scaling: f64,
+    sidebar_collapsed: bool,
+    metadata_panel_visible: bool,
+) -> bool {
+    let threshold = 1150.0;
+
+    if (width as f64) < threshold && (!sidebar_collapsed || metadata_panel_visible) {
+        return true;
+    }
+
+    let mut scaled_width = width as f64 / scaling;
+
+    if !sidebar_collapsed {
+        scaled_width -= SIDEBAR_WIDTH as f64;
+    }
+    if metadata_panel_visible {
+        scaled_width -= METADATA_PANEL_WIDTH as f64;
+    }
+
+    scaled_width < threshold
 }

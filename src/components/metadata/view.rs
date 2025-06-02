@@ -4,7 +4,9 @@ use crate::{
     font::{file_type_icon, icon, CustomFont},
     messages::MetadataMessage,
     style::{container::AtomStyleContainer, AtomStyleText, AtomTheme},
-    utils::helpers::{get_file_type, get_formatted_time, get_relative_file_size},
+    utils::helpers::{
+        get_file_type, get_formatted_time, get_relative_file_size, METADATA_PANEL_WIDTH,
+    },
 };
 use iced::{
     widget::{
@@ -12,7 +14,7 @@ use iced::{
         vertical_space,
     },
     Alignment, Element,
-    Length::{Fill, FillPortion, Fixed},
+    Length::{Fill, FillPortion},
     Padding,
 };
 use std::{path::Path, time::Duration};
@@ -288,7 +290,7 @@ impl AtomDownloadMetadata {
         )
         .padding(15)
         .class(AtomStyleContainer::ListContainer)
-        .width(Fixed(210.0))
+        .width(METADATA_PANEL_WIDTH)
         .height(Fill)
         .into()
     }

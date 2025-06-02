@@ -3,31 +3,31 @@ use std::collections::BTreeMap;
 use crate::{
     elements::GuiElements,
     font::{icon, CustomFont},
-    messages::{DownloadsListFilterMessage, Message, SideBarActiveButton},
+    messages::{DownloadsListFilterMessage, Message},
     style::{button::AtomStyleButton, container::AtomStyleContainer, AtomTheme},
 };
 use iced::{
-    widget::{button, column as col, container, horizontal_space, row, text, tooltip},
+    widget::{button, column as col, container, row, text},
     Alignment, Element, Font,
-    Length::{Fill, Fixed, Shrink},
+    Length::{Fill, Shrink},
     Padding, Renderer,
 };
 
-use super::{download::AtomDownload, settings::ListLayout};
+use super::{download::AtomDownload, settings::ListLayout, sidebar::SideBarActiveButton};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct FilterButton<'a> {
     icon: char,
+    icon_font: CustomFont,
     text: &'a str,
     message: Message,
     state: SideBarActiveButton,
-    tooltip: Option<&'a str>,
+    tooltip: &'a str,
 }
 
 #[derive(Debug)]
 pub struct AtomDownloadStatesFilterBar<'a> {
     download_filter_buttons: Vec<FilterButton<'a>>,
-    pub show_confirmation_dialog: bool,
 }
 
 impl Default for AtomDownloadStatesFilterBar<'_> {
@@ -35,67 +35,56 @@ impl Default for AtomDownloadStatesFilterBar<'_> {
         let df_buttons = vec![
             FilterButton {
                 icon: '\u{ef74}',
+                icon_font: CustomFont::IcoFont,
                 text: "All",
                 message: Message::GotoHomePage,
                 state: SideBarActiveButton::Overview,
-                tooltip: None,
+                tooltip: "All Downloads",
             },
             FilterButton {
                 icon: '\u{eee5}',
+                icon_font: CustomFont::IcoFont,
                 text: "Downloading",
                 message: Message::DownloadsListFilter(DownloadsListFilterMessage::Downloading),
                 state: SideBarActiveButton::Downloading,
-                tooltip: None,
+                tooltip: "Downloading",
             },
             FilterButton {
                 icon: '\u{eca5}',
+                icon_font: CustomFont::IcoFont,
                 text: "Paused",
                 message: Message::DownloadsListFilter(DownloadsListFilterMessage::Paused),
                 state: SideBarActiveButton::Paused,
-                tooltip: None,
+                tooltip: "Paused",
             },
             FilterButton {
                 icon: '\u{f00d}',
+                icon_font: CustomFont::IcoFont,
                 text: "Finished",
                 message: Message::DownloadsListFilter(DownloadsListFilterMessage::Finished),
                 state: SideBarActiveButton::Finished,
-                tooltip: None,
+                tooltip: "Finished",
             },
             FilterButton {
                 icon: '\u{ec53}',
+                icon_font: CustomFont::IcoFont,
                 text: "Trash",
                 message: Message::DownloadsListFilter(DownloadsListFilterMessage::Deleted),
                 state: SideBarActiveButton::Trash,
-                tooltip: None,
+                tooltip: "Trashed",
             },
             FilterButton {
-                text: "Pause",
-                icon: '\u{eca5}',
-                message: Message::Sidebar(crate::messages::SidebarMessage::PauseAll),
-                state: SideBarActiveButton::PauseAll,
-                tooltip: Some("Pause all downloads"),
-            },
-            FilterButton {
-                text: "Resume",
-                icon: '\u{eca8}',
-                message: Message::Sidebar(crate::messages::SidebarMessage::ResumeAll),
-                state: SideBarActiveButton::ResumeAll,
-                tooltip: Some("Resume all downloads"),
-            },
-            FilterButton {
-                text: "Delete",
-                icon: '\u{edec}',
-                message: Message::Sidebar(crate::messages::SidebarMessage::DeleteConfirm),
-                state: SideBarActiveButton::DeleteAll,
-                tooltip: Some(
-                    "Delete all downloads based on the current view (All, Paused, Trash etc...)",
-                ),
+                text: "Failed",
+                icon_font: CustomFont::Symbols,
+                icon: '\u{f0164}',
+                message: Message::DownloadsListFilter(DownloadsListFilterMessage::Failed),
+                state: SideBarActiveButton::Failed,
+                tooltip: "Failed",
             },
         ];
 
         Self {
             download_filter_buttons: df_buttons,
-            show_confirmation_dialog: false,
         }
     }
 }
@@ -107,28 +96,35 @@ impl AtomDownloadStatesFilterBar<'_> {
         downloads: &BTreeMap<usize, AtomDownload>,
         layout: &ListLayout,
         icons_only: bool,
-        text_in_search_box: bool,
     ) -> Element<Message, AtomTheme, Renderer> {
-        let count_downloading = downloads
-            .iter()
-            .filter(|f| f.1.downloading && !f.1.deleted)
-            .count();
-        let count_paused = downloads
-            .iter()
-            .filter(|f| !f.1.is_downloaded() && !f.1.is_downloading() && !f.1.deleted)
-            .count();
-        let count_deleted = downloads.iter().filter(|f| f.1.deleted).count();
-        let count_finished = downloads
-            .iter()
-            .filter(|f| f.1.is_downloaded() && !f.1.deleted)
-            .count();
+        let mut count_downloading = 0;
+        let mut count_paused = 0;
+        let mut count_deleted = 0;
+        let mut count_finished = 0;
+        let mut count_failed = 0;
+
+        downloads.iter().for_each(|f| {
+            if f.1.deleted {
+                count_deleted += 1;
+            } else {
+                if f.1.downloading || f.1.joining {
+                    count_downloading += 1;
+                } else if !f.1.error.is_empty() {
+                    count_failed += 1;
+                } else if !f.1.is_downloaded() && !f.1.is_downloading() {
+                    count_paused += 1;
+                } else if f.1.is_downloaded() {
+                    count_finished += 1;
+                }
+            }
+        });
 
         let df_buttons_row = self.download_filter_buttons.iter().fold(
             row!()
                 .spacing(0)
                 .padding(0)
                 .align_y(iced::Alignment::Center),
-            |mut row, dfb| {
+            |row, dfb| {
                 let btn_icon = if dfb.text.is_empty() {
                     match layout {
                         ListLayout::ListExtended => '\u{efa2}',
@@ -142,7 +138,7 @@ impl AtomDownloadStatesFilterBar<'_> {
                     .padding(Padding::from([10, 15]))
                     .align_y(Alignment::Center)
                     .spacing(5)
-                    .push(icon(btn_icon, CustomFont::IcoFont).size(12));
+                    .push(icon(btn_icon, dfb.icon_font.clone()).size(12));
 
                 if !dfb.text.is_empty() && !icons_only {
                     btn_content = btn_content.push(text(dfb.text).size(12).font(Font {
@@ -152,27 +148,24 @@ impl AtomDownloadStatesFilterBar<'_> {
                     }));
                 }
 
-                if dfb.tooltip.is_none() {
-                    btn_content =
-                        btn_content.push(GuiElements::round_text_button(match dfb.state {
-                            SideBarActiveButton::Downloading => count_downloading,
-                            SideBarActiveButton::Paused => count_paused,
-                            SideBarActiveButton::Finished => count_finished,
-                            SideBarActiveButton::Trash => count_deleted,
-                            _ => downloads.len(),
-                        }));
-                }
+                btn_content = btn_content.push(GuiElements::round_text_button(match dfb.state {
+                    SideBarActiveButton::Downloading => count_downloading,
+                    SideBarActiveButton::Paused => count_paused,
+                    SideBarActiveButton::Finished => count_finished,
+                    SideBarActiveButton::Trash => count_deleted,
+                    SideBarActiveButton::Failed => count_failed,
+                    _ => downloads.len(),
+                }));
 
-                let mut active_bar = container(text(".").width(Fixed(1.0)))
+                let active_bar = container(text(".").width(1))
                     .padding(0)
-                    .height(Fixed(3.0))
-                    .width(Fixed(30.0));
-
-                if active == &dfb.state && dfb.tooltip.is_none() {
-                    active_bar = active_bar.class(AtomStyleContainer::MenuBarActiveContainer);
-                } else {
-                    active_bar = active_bar.class(AtomStyleContainer::MenuBarInActiveContainer);
-                }
+                    .height(3)
+                    .width(30)
+                    .class(if active == &dfb.state {
+                        AtomStyleContainer::MenuBarActiveContainer
+                    } else {
+                        AtomStyleContainer::MenuBarInActiveContainer
+                    });
 
                 let df_button = button(
                     container(
@@ -195,77 +188,24 @@ impl AtomDownloadStatesFilterBar<'_> {
                     SideBarActiveButton::Overview if dfb.text.is_empty() => 5,
                     _ => 0,
                 })
-                .width(Shrink)
+                .width(Fill)
                 .class(AtomStyleButton::SidebarButton)
                 .on_press(dfb.message.clone());
 
-                if matches!(dfb.state, SideBarActiveButton::PauseAll) {
-                    row = row.push(horizontal_space().width(Fill));
-                }
-
-                if let Some(tooltip_text) = dfb.tooltip {
-                    row.push(
-                        tooltip(
-                            df_button,
-                            text(tooltip_text).size(10),
-                            tooltip::Position::Top,
-                        )
-                        .gap(5)
-                        .padding(10)
-                        .class(AtomStyleContainer::ToolTipContainer),
-                    )
+                if icons_only {
+                    row.push(GuiElements::tooltip_top(df_button, dfb.tooltip))
                 } else {
                     row.push(df_button)
                 }
             },
         );
 
-        if self.show_confirmation_dialog {
-            let conf_string = format!(
-                "Are you sure you want to delete {} downloads?",
-                if text_in_search_box {
-                    "filtered".into()
-                } else {
-                    <SideBarActiveButton as Into<String>>::into(active.to_owned())
-                }
-            );
-            GuiElements::modal(
-                container(df_buttons_row)
-                    .padding(0)
-                    .center(Shrink)
-                    .height(Shrink)
-                    .width(Fill)
-                    .class(AtomStyleContainer::ListHeaderContainer),
-                text(conf_string).size(24),
-                row!()
-                    .spacing(10)
-                    .align_y(Alignment::Center)
-                    .push(
-                        GuiElements::primary_button(vec![
-                            icon('\u{ec53}', CustomFont::IcoFont),
-                            text("delete"),
-                        ])
-                        .width(Fixed(170.0))
-                        .on_press(Message::Sidebar(crate::messages::SidebarMessage::DeleteAll)),
-                    )
-                    .push(
-                        GuiElements::primary_button(vec![
-                            icon('\u{eedd}', CustomFont::IcoFont),
-                            text("cancel"),
-                        ])
-                        .width(Fixed(170.0))
-                        .on_press(Message::GotoHomePage),
-                    ),
-                Message::GotoHomePage,
-            )
-        } else {
-            container(df_buttons_row)
-                .padding(0)
-                .center(Shrink)
-                .height(Shrink)
-                .width(Fill)
-                .class(AtomStyleContainer::ListHeaderContainer)
-                .into()
-        }
+        container(df_buttons_row)
+            .padding(0)
+            .center(Shrink)
+            .height(Shrink)
+            .width(Fill)
+            .class(AtomStyleContainer::ListHeaderContainer)
+            .into()
     }
 }

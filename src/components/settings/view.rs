@@ -12,7 +12,7 @@ use crate::{
 use iced::{
     widget::{
         column as col, container, pick_list, row, scrollable, scrollable::Scrollbar, slider, text,
-        text_input, toggler, tooltip, vertical_space,
+        text_input, toggler, tooltip,
     },
     Alignment, Element,
     Length::{Fill, Fixed, Shrink},
@@ -20,17 +20,6 @@ use iced::{
 };
 
 impl AtomSettings {
-    fn vertical_line(&self) -> Element<SettingsMessage, AtomTheme, Renderer> {
-        col![
-            container(vertical_space().height(Fixed(30.0)).width(Fixed(1.0)))
-                .class(AtomStyleContainer::ListItemContainer)
-                .width(Fixed(1.0))
-        ]
-        .align_x(iced::Alignment::Center)
-        .width(Shrink)
-        .into()
-    }
-
     pub fn view(&self, theme: &AtomTheme) -> Element<SettingsMessage, AtomTheme, Renderer> {
         let config_dir_col = col!()
             .spacing(5)
@@ -274,7 +263,7 @@ impl AtomSettings {
                                         ]
                                         .spacing(5)
                                         .width(Fill),
-                                        self.vertical_line(),
+                                        GuiElements::vertical_separator().into(),
                                         col![
                                             row![
                                                 text("UI Scaling").width(Fill),
@@ -298,7 +287,7 @@ impl AtomSettings {
                                         ]
                                         .spacing(5)
                                         .width(Fill),
-                                        self.vertical_line(),
+                                        GuiElements::vertical_separator().into(),
                                         col![
                                             row![
                                                 text("Font Size").width(Fill),

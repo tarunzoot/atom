@@ -59,6 +59,7 @@ pub enum DownloadsListFilterMessage {
     Paused,
     Finished,
     Deleted,
+    Failed,
     #[default]
     All,
 }
@@ -112,44 +113,7 @@ pub enum SidebarMessage {
     Expand,
     Collapse,
     GotoHomePage,
-}
-
-#[derive(Debug, Clone, Default, PartialEq)]
-pub enum SideBarActiveButton {
-    #[default]
-    Overview,
-    AddDownload,
-    PauseAll,
-    DeleteAll,
-    ResumeAll,
-    Settings,
-    Shortcuts,
-    Import,
-    Downloading,
-    Paused,
-    Finished,
-    Trash,
-    Null,
-}
-
-impl From<SideBarActiveButton> for String {
-    fn from(value: SideBarActiveButton) -> Self {
-        match value {
-            SideBarActiveButton::Overview => "all".to_owned(),
-            SideBarActiveButton::Downloading => "in progress".to_owned(),
-            SideBarActiveButton::Paused => "paused".to_owned(),
-            SideBarActiveButton::Finished => "finished".to_owned(),
-            SideBarActiveButton::Trash => "trashed".to_owned(),
-            _ => String::default(),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Default)]
-pub enum SideBarState {
-    #[default]
-    Collapsed,
-    Full,
+    HideDialog,
 }
 
 #[derive(Debug, Clone)]

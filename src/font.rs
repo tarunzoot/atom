@@ -67,6 +67,7 @@ pub fn get_file_type(file_type: &str) -> &'static str {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum CustomFont {
     Symbols,
     IcoFont,
