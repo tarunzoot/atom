@@ -10,10 +10,7 @@ use crate::{
     utils::helpers::ATOM_INPUT_DEFAULT_PADDING,
 };
 use iced::{
-    widget::{
-        column as col, container, pick_list, row, scrollable, scrollable::Scrollbar, slider, text,
-        text_input, toggler, tooltip,
-    },
+    widget::{column as col, container, pick_list, row, slider, text, text_input},
     Alignment, Element,
     Length::{Fill, Fixed, Shrink},
     Padding, Renderer,
@@ -91,105 +88,84 @@ impl AtomSettings {
 
         let toggles_text_size = self.font_size - 1.0;
 
-        let notification_toggler = toggler(self.show_notifications)
-            .label("Download complete notification")
-            .on_toggle(SettingsMessage::NotificationToggle)
-            .spacing(10)
-            .text_size(toggles_text_size)
-            .text_alignment(iced::alignment::Horizontal::Left)
-            .width(Shrink);
+        let notification_toggler = GuiElements::toggle(
+            self.show_notifications,
+            SettingsMessage::NotificationToggle,
+            "Download complete notification",
+        )
+        .text_size(toggles_text_size);
 
-        let auto_start_toggler = tooltip(
-            toggler(
+        let label = "The browser's captured download begins automatically without displaying a download form (disables auto open feature).";
+        let auto_start_toggler = GuiElements::tooltip_top(
+            GuiElements::toggle(
                 self.auto_start_download,
+                SettingsMessage::AutoStartDownloadToggle,
+                "Auto start download",
             )
-            .label("Auto start download")
-            .on_toggle(SettingsMessage::AutoStartDownloadToggle)
-            .spacing(10)
-            .text_size(toggles_text_size)
-            .text_alignment(iced::alignment::Horizontal::Left)
-            .width(Shrink),
-            text("The browser's captured download begins automatically without displaying a download form (disables auto open feature).").size(12),
-            tooltip::Position::Top,
+            .text_size(toggles_text_size),
+            label,
+        );
+
+        let close_btn_toggler = GuiElements::toggle(
+            self.minimize_to_tray,
+            SettingsMessage::QuitActionToggle,
+            "Minimize to tray",
         )
-        .class(AtomStyleContainer::ToolTipContainer)
-        .padding(10)
-        .gap(5);
+        .text_size(toggles_text_size);
 
-        let close_btn_toggler = toggler(self.minimize_to_tray)
-            .label("Minimize to tray")
-            .on_toggle(SettingsMessage::QuitActionToggle)
-            .spacing(10)
-            .text_size(toggles_text_size)
-            .text_alignment(iced::alignment::Horizontal::Left)
-            .width(Shrink);
-
-        let maximized_toggler = toggler(self.maximized)
-            .label("Start Maximized ")
-            .on_toggle(SettingsMessage::MaximizedActionToggle)
-            .spacing(10)
-            .text_size(toggles_text_size)
-            .text_alignment(iced::alignment::Horizontal::Left)
-            .width(Shrink);
-
-        let stretch_list_toggler = tooltip(
-            toggler(
-                self.stretch_list_view
-            ).label("Stretch List Background  ").on_toggle(SettingsMessage::ListBackgroundToggle)
-            .spacing(10).text_size(toggles_text_size)
-            .text_alignment(iced::alignment::Horizontal::Left)
-            .width(Shrink),
-            text("Stretch the list view container to fill the available space(applies a background color)").size(12),
-            tooltip::Position::Top,
+        let maximized_toggler = GuiElements::toggle(
+            self.maximized,
+            SettingsMessage::MaximizedActionToggle,
+            "Start Maximized ",
         )
-        .gap(10)
-        .padding(10)
-        .class(AtomStyleContainer::ToolTipContainer);
+        .text_size(toggles_text_size);
 
-        let always_show_metadata_toggler = tooltip(
-            toggler(self.metadata_always_enabled)
-                .label("Always Show Preview Panel")
-                .on_toggle(SettingsMessage::AlwaysShowPreviewPaneToggle)
-                .spacing(10)
-                .text_size(toggles_text_size)
-                .text_alignment(iced::alignment::Horizontal::Left)
-                .width(Shrink),
-            text("Always keep the preview panel open").size(12),
-            tooltip::Position::Top,
+        let label = "Stretch the list view container to fill the available space(applies a background color)";
+        let stretch_list_toggler = GuiElements::tooltip_top(
+            GuiElements::toggle(
+                self.stretch_list_view,
+                SettingsMessage::ListBackgroundToggle,
+                "Stretch List Background  ",
+            )
+            .text_size(toggles_text_size),
+            label,
+        );
+
+        let always_show_metadata_toggler = GuiElements::tooltip_top(
+            GuiElements::toggle(
+                self.metadata_always_enabled,
+                SettingsMessage::AlwaysShowPreviewPaneToggle,
+                "Always Show Preview Panel",
+            )
+            .text_size(toggles_text_size),
+            "Always keep the preview panel open",
+        );
+
+        let scrollbar_toggler = GuiElements::toggle(
+            self.scrollbars_visible,
+            SettingsMessage::ScrollbarsVisible,
+            "Scrollbars Visible",
         )
-        .gap(10)
-        .padding(10)
-        .class(AtomStyleContainer::ToolTipContainer);
+        .text_size(toggles_text_size);
 
         let options_row = container(
-            col![row!()
-                .spacing(10)
-                .align_y(Alignment::Center)
-                .width(Fill)
-                .push(
-                    col!()
-                        .spacing(10)
-                        .width(Fill)
-                        .align_x(Alignment::Start)
-                        .push(notification_toggler)
-                        .push(auto_start_toggler)
-                )
-                .push(
-                    col!()
-                        .spacing(10)
-                        .width(Fill)
-                        .align_x(Alignment::Center)
-                        .push(close_btn_toggler)
-                        .push(maximized_toggler),
-                )
-                .push(
-                    col!()
-                        .spacing(10)
-                        .width(Fill)
-                        .align_x(Alignment::End)
-                        .push(stretch_list_toggler)
-                        .push(always_show_metadata_toggler),
-                )]
+            col![row![
+                col![notification_toggler, auto_start_toggler, scrollbar_toggler]
+                    .spacing(10)
+                    .width(Fill)
+                    .align_x(Alignment::Start),
+                col![close_btn_toggler, maximized_toggler]
+                    .spacing(10)
+                    .width(Fill)
+                    .align_x(Alignment::Center),
+                col![stretch_list_toggler, always_show_metadata_toggler]
+                    .spacing(10)
+                    .width(Fill)
+                    .align_x(Alignment::End),
+            ]
+            .spacing(10)
+            .align_y(Alignment::Start)
+            .width(Fill)]
             .spacing(10),
         )
         .width(Fill)
@@ -200,124 +176,114 @@ impl AtomSettings {
             .spacing(20)
             .padding(Padding::new(10.0).top(0))
             .push(GuiElements::panel_title("Settings"))
-            .push(
-                scrollable(
-                    col!()
-                        .spacing(20)
-                        .push(config_dir_col)
-                        .push(temp_dir_col)
-                        .push(default_dir_col)
-                        .push(
-                            row!()
-                                .spacing(10)
-                                .push(
-                                    col!().width(Fill).spacing(5).push(text("Theme")).push(
+            .push(GuiElements::scrollbar(
+                col!()
+                    .spacing(20)
+                    .push(config_dir_col)
+                    .push(temp_dir_col)
+                    .push(default_dir_col)
+                    .push(
+                        row!()
+                            .spacing(10)
+                            .push(
+                                col!().width(Fill).spacing(5).push(text("Theme")).push(
+                                    pick_list(
+                                        theme.variants(),
+                                        Some(self.theme.clone()),
+                                        SettingsMessage::ThemeChanged,
+                                    )
+                                    .width(Fill),
+                                ),
+                            )
+                            .push(
+                                col!()
+                                    .width(Fill)
+                                    .spacing(5)
+                                    .push(text("List View Layout"))
+                                    .push(
                                         pick_list(
-                                            theme.variants(),
-                                            Some(self.theme.clone()),
-                                            SettingsMessage::ThemeChanged,
+                                            ListLayout::variants(),
+                                            Some::<String>(self.list_layout.clone().into()),
+                                            SettingsMessage::ListLayoutChanged,
                                         )
                                         .width(Fill),
                                     ),
-                                )
-                                .push(
-                                    col!()
-                                        .width(Fill)
-                                        .spacing(5)
-                                        .push(text("List View Layout"))
-                                        .push(
-                                            pick_list(
-                                                ListLayout::variants(),
-                                                Some::<String>(self.list_layout.clone().into()),
-                                                SettingsMessage::ListLayoutChanged,
-                                            )
-                                            .width(Fill),
-                                        ),
-                                )
-                                .push(
-                                    col!()
-                                        .width(Fill)
-                                        .spacing(5)
-                                        .push(text("New Download Position"))
-                                        .push(
-                                            pick_list(
-                                                vec!["First".to_string(), "Last".to_string()],
-                                                Some(self.new_download_pos.clone()),
-                                                SettingsMessage::NewDownloadPositionChanged,
-                                            )
-                                            .width(Fill),
-                                        ),
-                                ),
-                        )
-                        .push(
-                            container(
-                                col!().spacing(5).push(
-                                    row![
-                                        col![
-                                            row![text("Threads").width(Fill), text(self.threads)]
-                                                .spacing(10),
-                                            slider(2..=8, self.threads, |threads| {
-                                                SettingsMessage::ThreadsChanged(threads)
-                                            })
-                                            .width(Fill)
-                                        ]
-                                        .spacing(5)
+                            )
+                            .push(
+                                col!()
+                                    .width(Fill)
+                                    .spacing(5)
+                                    .push(text("New Download Position"))
+                                    .push(
+                                        pick_list(
+                                            vec!["First".to_string(), "Last".to_string()],
+                                            Some(self.new_download_pos.clone()),
+                                            SettingsMessage::NewDownloadPositionChanged,
+                                        )
                                         .width(Fill),
-                                        GuiElements::vertical_separator().into(),
-                                        col![
-                                            row![
-                                                text("UI Scaling").width(Fill),
-                                                text(format!("{0:>1.2}", self.scaling))
-                                                    .width(Shrink)
-                                            ]
+                                    ),
+                            ),
+                    )
+                    .push(
+                        container(
+                            col!().spacing(5).push(
+                                row![
+                                    col![
+                                        row![text("Threads").width(Fill), text(self.threads)]
                                             .spacing(10),
-                                            tooltip(
-                                                slider(0.70..=2.00, self.scaling, |scaling| {
-                                                    SettingsMessage::ScalingChanged(scaling)
-                                                })
-                                                .step(0.01)
-                                                .width(Fill),
-                                                text("Resize window if not applied properly")
-                                                    .size(12),
-                                                tooltip::Position::Bottom
-                                            )
-                                            .class(AtomStyleContainer::ToolTipContainer)
-                                            .padding(10)
-                                            .gap(5),
-                                        ]
-                                        .spacing(5)
-                                        .width(Fill),
-                                        GuiElements::vertical_separator().into(),
-                                        col![
-                                            row![
-                                                text("Font Size").width(Fill),
-                                                text(self.font_size.floor()).width(Shrink)
-                                            ]
-                                            .spacing(10),
-                                            slider(12.0..=28.0, self.font_size, |font_size| {
-                                                SettingsMessage::TextSizeChanged(font_size)
-                                            })
-                                            .step(1.0)
-                                            .width(Fill),
-                                        ]
-                                        .spacing(5)
+                                        slider(2..=8, self.threads, |threads| {
+                                            SettingsMessage::ThreadsChanged(threads)
+                                        })
                                         .width(Fill)
                                     ]
-                                    .align_y(Alignment::Center)
-                                    .spacing(30),
-                                ),
-                            )
-                            .padding(20)
-                            .class(AtomStyleContainer::ListContainer),
+                                    .spacing(5)
+                                    .width(Fill),
+                                    GuiElements::vertical_separator().into(),
+                                    col![
+                                        row![
+                                            text("UI Scaling").width(Fill),
+                                            text(format!("{0:>1.2}", self.scaling)).width(Shrink)
+                                        ]
+                                        .spacing(10),
+                                        GuiElements::tooltip_bottom(
+                                            slider(0.70..=2.00, self.scaling, |scaling| {
+                                                SettingsMessage::ScalingChanged(scaling)
+                                            })
+                                            .step(0.01)
+                                            .width(Fill),
+                                            "Resize window if not applied properly"
+                                        ),
+                                    ]
+                                    .spacing(5)
+                                    .width(Fill),
+                                    GuiElements::vertical_separator().into(),
+                                    col![
+                                        row![
+                                            text("Font Size").width(Fill),
+                                            text(self.font_size.floor()).width(Shrink)
+                                        ]
+                                        .spacing(10),
+                                        slider(12.0..=28.0, self.font_size, |font_size| {
+                                            SettingsMessage::TextSizeChanged(font_size)
+                                        })
+                                        .step(1.0)
+                                        .width(Fill),
+                                    ]
+                                    .spacing(5)
+                                    .width(Fill)
+                                ]
+                                .align_y(Alignment::Center)
+                                .spacing(30),
+                            ),
                         )
-                        .push(options_row)
-                        .push(buttons_row)
-                        .width(Fill),
-                )
-                .direction(scrollable::Direction::Vertical(
-                    Scrollbar::new().margin(0).width(0).scroller_width(0),
-                )),
-            );
+                        .padding(20)
+                        .class(AtomStyleContainer::ListContainer),
+                    )
+                    .push(options_row)
+                    .push(buttons_row)
+                    .width(Fill),
+                self.scrollbars_visible,
+            ));
 
         let settings_container = container(settings_col)
             .class(AtomStyleContainer::ListContainer)

@@ -42,6 +42,7 @@ impl AtomSettings {
             SettingsMessage::AlwaysShowPreviewPaneToggle(checked) => {
                 self.metadata_always_enabled = checked
             }
+            SettingsMessage::ScrollbarsVisible(checked) => self.scrollbars_visible = checked,
             SettingsMessage::ClosePane => {}
             SettingsMessage::HideDialog => {
                 self.show_confirm_dialog = false;

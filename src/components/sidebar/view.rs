@@ -149,6 +149,7 @@ impl AtomSidebar<'_> {
         &self,
         downloads_list_is_empty: bool,
         has_empty_search_bar: bool,
+        scrollbar_visible: bool,
     ) -> Element<SidebarMessage, AtomTheme, Renderer> {
         let primary = self.build_button_column(&self.buttons_primary, false);
         let secondary = self.build_button_column(&self.buttons_secondary, downloads_list_is_empty);
@@ -160,9 +161,9 @@ impl AtomSidebar<'_> {
                     .push(primary)
                     .push(GuiElements::horizontal_separator())
                     .push(secondary)
-                    .push(GuiElements::horizontal_separator())
-            )
-            .into(),
+                    .push(GuiElements::horizontal_separator()),
+                scrollbar_visible
+            ),
             self.get_tertiary_button()
         ]
         .spacing(10)

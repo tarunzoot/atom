@@ -5,16 +5,13 @@ use crate::{
     style::{button::AtomStyleButton, container::AtomStyleContainer, AtomStyleText, AtomTheme},
 };
 use iced::{
-    widget::{
-        button, column as col, container, horizontal_space, row, scrollable, scrollable::Scrollbar,
-        text, vertical_space,
-    },
+    widget::{button, column as col, container, horizontal_space, row, text, vertical_space},
     Alignment, Element,
     Length::{Fill, FillPortion, Fixed, Shrink},
     Padding,
 };
 
-pub fn view<'a>() -> Element<'a, Message, AtomTheme> {
+pub fn view<'a>(scrollbars_visible: bool) -> Element<'a, Message, AtomTheme> {
     let shortcuts = vec![
         ("add new download", "N", '\u{efc0}'),
         ("open imports view", "I", '\u{ec84}'),
@@ -134,14 +131,10 @@ pub fn view<'a>() -> Element<'a, Message, AtomTheme> {
         },
     ));
 
-    container(main_col.push(
-        scrollable(shortcuts_col).direction(scrollable::Direction::Vertical(
-            Scrollbar::new().margin(0).width(0).scroller_width(0),
-        )),
-    ))
-    .class(AtomStyleContainer::ListContainer)
-    .padding(Padding::new(10.0).top(0))
-    .height(Fill)
-    .width(Fill)
-    .into()
+    container(main_col.push(GuiElements::scrollbar(shortcuts_col, scrollbars_visible)))
+        .class(AtomStyleContainer::ListContainer)
+        .padding(Padding::new(10.0).top(0))
+        .height(Fill)
+        .width(Fill)
+        .into()
 }

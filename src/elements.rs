@@ -6,7 +6,7 @@ use crate::{
 use iced::{
     widget::{
         button, column as col, container, row, scrollable, scrollable::Scrollbar, text, text_input,
-        tooltip, vertical_space, Button,
+        toggler, tooltip, vertical_space, Button, Scrollable, Toggler, Tooltip,
     },
     Alignment, Element, Font,
     Length::{Fill, Shrink},
@@ -116,18 +116,6 @@ impl GuiElements {
         }
     }
 
-    pub fn scrollbar<'a, E, M>(elements: E) -> impl Into<Element<'a, M, AtomTheme>>
-    where
-        M: Clone + std::fmt::Debug + 'static,
-        E: Into<Element<'a, M, AtomTheme>>,
-    {
-        scrollable(elements)
-            .height(Fill)
-            .direction(scrollable::Direction::Vertical(
-                Scrollbar::new().margin(0).scroller_width(0).width(0),
-            ))
-    }
-
     pub fn horizontal_separator<'a, M>() -> impl Into<Element<'a, M, AtomTheme>>
     where
         M: Clone + std::fmt::Debug + 'static,
@@ -153,18 +141,60 @@ impl GuiElements {
         .width(Shrink)
     }
 
-    #[allow(dead_code)]
-    pub fn tooltip_top<'a, E, M>(
-        content: E,
-        tooltip_text: &'a str,
-    ) -> impl Into<Element<'a, M, AtomTheme>>
+    pub fn tooltip_top<'a, E, M>(content: E, tooltip_text: &'a str) -> Tooltip<'a, M, AtomTheme>
     where
         E: Into<Element<'a, M, AtomTheme>>,
         M: Clone + std::fmt::Debug + 'static,
     {
-        tooltip(content, text(tooltip_text).size(10), tooltip::Position::Top)
+        tooltip(content, text(tooltip_text).size(12), tooltip::Position::Top)
             .gap(5)
             .padding(10)
             .class(AtomStyleContainer::ToolTipContainer)
+    }
+
+    pub fn tooltip_bottom<'a, E, M>(content: E, tooltip_text: &'a str) -> Tooltip<'a, M, AtomTheme>
+    where
+        E: Into<Element<'a, M, AtomTheme>>,
+        M: Clone + std::fmt::Debug + 'static,
+    {
+        tooltip(
+            content,
+            text(tooltip_text).size(12),
+            tooltip::Position::Bottom,
+        )
+        .gap(5)
+        .padding(10)
+        .class(AtomStyleContainer::ToolTipContainer)
+    }
+
+    pub fn toggle<'a, M>(
+        is_checked: bool,
+        message: impl Fn(bool) -> M + 'a,
+        label: &'a str,
+    ) -> Toggler<'a, M, AtomTheme>
+    where
+        M: Clone + std::fmt::Debug + 'static,
+    {
+        toggler(is_checked)
+            .label(label)
+            .on_toggle(message)
+            .spacing(10)
+            .text_alignment(iced::alignment::Horizontal::Left)
+            .width(Shrink)
+    }
+
+    pub fn scrollbar<'a, E, M>(content: E, visible: bool) -> Scrollable<'a, M, AtomTheme>
+    where
+        E: Into<Element<'a, M, AtomTheme>>,
+        M: Clone + std::fmt::Debug + 'static,
+    {
+        let width = if visible { 6 } else { 0 };
+
+        scrollable(content).direction(scrollable::Direction::Vertical(
+            Scrollbar::new()
+                .margin(0)
+                .scroller_width(width)
+                .width(width),
+        ))
     }
 }

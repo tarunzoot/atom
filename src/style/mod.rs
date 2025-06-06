@@ -195,39 +195,34 @@ impl scrollable::Catalog for AtomTheme {
             container: Default::default(),
             gap: Default::default(),
             vertical_rail: Rail {
-                background: None,
+                background: Some(Background::Color(accent.scale_alpha(0.01))),
                 border: Border {
                     radius: Radius::from(5.0),
-                    width: 2.0,
-                    // border_color: ATOM_BUTTON_BACKGROUND,
-                    // background: Some(Background::Color(ATOM_BUTTON_BACKGROUND)),
-                    // color: accent,
+                    width: 0.0,
                     color: Color::TRANSPARENT,
                 },
                 scroller: Scroller {
-                    color: accent.scale_alpha(0.0),
+                    color: accent.scale_alpha(0.6),
                     border: Border {
                         radius: Radius::from(5.0),
                         width: 3.0,
-                        color: accent.scale_alpha(0.0),
+                        color: accent.scale_alpha(0.6),
                     },
                 },
             },
             horizontal_rail: Rail {
-                background: None,
+                background: Some(Background::Color(accent.scale_alpha(0.01))),
                 border: Border {
                     radius: Radius::from(5.0),
-                    width: 2.0,
-                    // border_color: ATOM_BUTTON_BACKGROUND,
-                    // background: Some(Background::Color(ATOM_BUTTON_BACKGROUND)),
+                    width: 0.0,
                     color: Color::TRANSPARENT,
                 },
                 scroller: Scroller {
-                    color: color!(50, 50, 50, 0),
+                    color: accent.scale_alpha(0.6),
                     border: Border {
                         radius: Radius::from(5.0),
                         width: 3.0,
-                        color: color!(50, 50, 50, 0),
+                        color: accent.scale_alpha(0.6),
                     },
                 },
             },

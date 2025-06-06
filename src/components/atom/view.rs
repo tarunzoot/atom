@@ -3,6 +3,7 @@ use crate::{
     components::{
         download::AtomDownload, keybindings, listview_header, sidebar::SideBarActiveButton,
     },
+    elements::GuiElements,
     font::icon,
     messages::{DownloadsListFilterMessage, Message},
     style::{container::AtomStyleContainer, AtomTheme},
@@ -10,10 +11,7 @@ use crate::{
 };
 use iced::{
     alignment::Vertical::Top,
-    widget::{
-        column as col, container, horizontal_space, row, scrollable, scrollable::Scrollbar, text,
-        vertical_space,
-    },
+    widget::{column as col, container, horizontal_space, row, text, vertical_space},
     window::Id,
     Alignment, Element,
     Length::{Fill, FillPortion, Shrink},
@@ -88,13 +86,13 @@ impl Atom<'_> {
             },
         );
 
-        let filtered_content = scrollable(downloads);
+        let filtered_content = GuiElements::scrollbar(downloads, self.settings.scrollbars_visible);
 
         if self.downloads.is_empty()
             && !matches!(self.filter_type, DownloadsListFilterMessage::Deleted)
         {
             self.download_form
-                .view(self.downloads.len(), None)
+                .view(self.downloads.len(), None, self.settings.scrollbars_visible)
                 .map(|message| Message::DownloadForm(message, None))
         } else {
             let download_state_filters_bar = self.download_state_filter_bar.view(
@@ -110,17 +108,11 @@ impl Atom<'_> {
                     .align_x(Alignment::Center)
                     .push(download_state_filters_bar)
                     .push(
-                        container(
-                            filtered_content
-                                .height(if self.settings.stretch_list_view {
-                                    Fill
-                                } else {
-                                    Shrink
-                                })
-                                .direction(scrollable::Direction::Vertical(
-                                    Scrollbar::new().margin(0).scroller_width(0).width(0),
-                                )),
-                        )
+                        container(filtered_content.height(if self.settings.stretch_list_view {
+                            Fill
+                        } else {
+                            Shrink
+                        }))
                         .center(Fill)
                         .height(Shrink)
                         .width(Fill)
@@ -147,17 +139,13 @@ impl Atom<'_> {
                                     //     .width(Fill)
                                     //     .class(AtomStyleContainer::LogoContainer),
                                 ])
-                                .push(
-                                    filtered_content
-                                        .height(if self.settings.stretch_list_view {
-                                            Fill
-                                        } else {
-                                            Shrink
-                                        })
-                                        .direction(scrollable::Direction::Vertical(
-                                            Scrollbar::new().margin(0).scroller_width(0).width(0),
-                                        )),
-                                ),
+                                .push(filtered_content.height(
+                                    if self.settings.stretch_list_view {
+                                        Fill
+                                    } else {
+                                        Shrink
+                                    },
+                                )),
                         )
                         .padding(0)
                         .center(Fill)
@@ -183,7 +171,11 @@ impl Atom<'_> {
             if window.0 != "main" {
                 return window
                     .1
-                    .view(self.downloads.len(), Some(window_id))
+                    .view(
+                        self.downloads.len(),
+                        Some(window_id),
+                        self.settings.scrollbars_visible,
+                    )
                     .map(move |message| Message::DownloadForm(message, Some(window_id)));
             }
         }
@@ -221,13 +213,13 @@ impl Atom<'_> {
             View::Downloads => self.filter_downloads_view(),
             View::NewDownloadForm => self
                 .download_form
-                .view(self.downloads.len(), None)
+                .view(self.downloads.len(), None, self.settings.scrollbars_visible)
                 .map(|message| Message::DownloadForm(message, None)),
             View::Settings => self
                 .phantom_settings
                 .view(&self.theme)
                 .map(Message::Settings),
-            View::Shortcuts => keybindings::view(),
+            View::Shortcuts => keybindings::view(self.settings.scrollbars_visible),
         };
 
         let mut items_row = row!()
@@ -240,6 +232,7 @@ impl Atom<'_> {
                             .view(
                                 self.downloads.is_empty(),
                                 self.titlebar.search_text.is_empty(),
+                                self.settings.scrollbars_visible,
                             )
                             .map(Message::Sidebar),
                     )
@@ -264,7 +257,10 @@ impl Atom<'_> {
             items_row = items_row.push(
                 container(
                     self.metadata
-                        .view(self.settings.metadata_always_enabled)
+                        .view(
+                            self.settings.metadata_always_enabled,
+                            self.settings.scrollbars_visible,
+                        )
                         .map(Message::Metadata),
                 )
                 .padding(Padding::new(20.0).right(15).left(0))

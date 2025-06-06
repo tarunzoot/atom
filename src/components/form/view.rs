@@ -163,6 +163,7 @@ impl AtomDownloadForm {
         &self,
         downloads_count: usize,
         window_id: Option<Id>,
+        scrollbars_visible: bool,
     ) -> Element<DownloadFormMessage, AtomTheme> {
         let mut download_btn = GuiElements::primary_button(vec![
             icon('\u{eee5}', CustomFont::IcoFont),
@@ -248,19 +249,17 @@ impl AtomDownloadForm {
             .push(self.vertical_line())
             .push(import_headers_tooltip);
 
-        let mut headers_container = container(
-            scrollable(if !self.headers.is_empty() {
+        let mut headers_container = container(GuiElements::scrollbar(
+            if !self.headers.is_empty() {
                 headers
             } else {
                 col![text("No additional headers").width(Shrink)]
                     .align_x(Alignment::Center)
                     .width(Fill)
                     .into()
-            })
-            .direction(scrollable::Direction::Vertical(
-                Scrollbar::new().margin(0).width(0).scroller_width(0),
-            )),
-        )
+            },
+            scrollbars_visible,
+        ))
         .padding(15)
         .width(Fill)
         .align_y(if self.headers.is_empty() {
