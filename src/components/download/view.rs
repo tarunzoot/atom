@@ -1,6 +1,6 @@
 use super::AtomDownload;
 use crate::{
-    components::settings::ListLayout,
+    components::settings::{AtomSettings, ListLayout},
     elements::GuiElements,
     font::{file_type_icon, get_file_type, icon, CustomFont},
     messages::DownloadMessage,
@@ -643,13 +643,12 @@ impl AtomDownload {
 
     pub fn view(
         &self,
-        layout: &ListLayout,
-        text_size: f32,
+        settings: &AtomSettings,
         responsive: bool,
     ) -> Element<DownloadMessage, AtomTheme, Renderer> {
-        let text_size = text_size - if responsive { 2.0 } else { 0.0 };
+        let text_size = settings.font_size - if responsive { 2.0 } else { 0.0 };
 
-        let main_row = match layout {
+        let main_row = match settings.list_layout {
             crate::components::settings::ListLayout::ListExtended => {
                 self.list_extended_view(text_size)
             }

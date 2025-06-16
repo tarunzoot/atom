@@ -190,11 +190,13 @@ impl GuiElements {
     {
         let width = if visible { 6 } else { 0 };
 
-        scrollable(content).direction(scrollable::Direction::Vertical(
-            Scrollbar::new()
-                .margin(0)
-                .scroller_width(width)
-                .width(width),
-        ))
+        scrollable(content)
+            .height(Fill)
+            .direction(scrollable::Direction::Vertical(
+                Scrollbar::new()
+                    .margin(0)
+                    .scroller_width(width)
+                    .width(width),
+            ))
     }
 }

@@ -1,5 +1,6 @@
 use super::AtomDownloadMetadata;
 use crate::{
+    components::settings::AtomSettings,
     elements::GuiElements,
     font::{file_type_icon, icon, CustomFont},
     messages::MetadataMessage,
@@ -17,11 +18,7 @@ use iced::{
 use std::{path::Path, time::Duration};
 
 impl AtomDownloadMetadata {
-    pub fn view(
-        &self,
-        always_enabled: bool,
-        scrollbars_visible: bool,
-    ) -> Element<MetadataMessage, AtomTheme> {
+    pub fn view(&self, settings: &AtomSettings) -> Element<MetadataMessage, AtomTheme> {
         let file_path = Path::new(&self.file_path);
         let mut open_btn = GuiElements::primary_button(vec![
             icon('\u{ef13}', CustomFont::IcoFont).size(12),
@@ -198,7 +195,7 @@ impl AtomDownloadMetadata {
 
         let mut pane_close_button =
             GuiElements::round_button('\u{eee1}').padding(Padding::from([2, 4]));
-        if !always_enabled {
+        if !settings.metadata_always_enabled {
             pane_close_button = pane_close_button.on_press(MetadataMessage::ClosePane);
         }
 
@@ -283,7 +280,7 @@ impl AtomDownloadMetadata {
                         .push(open_btn)
                         .push(delete_btn),
                 ),
-            scrollbars_visible,
+            settings.scrollbars_visible,
         ))
         .padding(15)
         .class(AtomStyleContainer::ListContainer)

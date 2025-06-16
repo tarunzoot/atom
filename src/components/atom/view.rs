@@ -11,7 +11,7 @@ use crate::{
 };
 use iced::{
     alignment::Vertical::Top,
-    widget::{column as col, container, horizontal_space, row, text, vertical_space},
+    widget::{column as col, container, horizontal_space, row, text, vertical_space, Container},
     window::Id,
     Alignment, Element,
     Length::{Fill, FillPortion, Shrink},
@@ -76,11 +76,7 @@ impl Atom<'_> {
                 count += 1;
                 column.push(
                     download
-                        .view(
-                            &self.settings.list_layout,
-                            self.settings.font_size,
-                            responsive,
-                        )
+                        .view(&self.settings, responsive)
                         .map(|message| Message::Download(message, *index)),
                 )
             },
@@ -92,13 +88,12 @@ impl Atom<'_> {
             && !matches!(self.filter_type, DownloadsListFilterMessage::Deleted)
         {
             self.download_form
-                .view(self.downloads.len(), None, self.settings.scrollbars_visible)
+                .view(&self.settings, self.downloads.len(), None)
                 .map(|message| Message::DownloadForm(message, None))
         } else {
             let download_state_filters_bar = self.download_state_filter_bar.view(
                 &self.sidebar.active,
                 &self.downloads,
-                &self.settings.list_layout,
                 responsive,
             );
 
@@ -133,7 +128,7 @@ impl Atom<'_> {
                                 .push(download_state_filters_bar)
                                 .push(container(vertical_space().height(1)).height(1).width(Fill))
                                 .push(col![
-                                    listview_header::view(responsive),
+                                    listview_header::view(&self.settings, responsive),
                                     // container(vertical_space().height(1))
                                     //     .height(1)
                                     //     .width(Fill)
@@ -171,41 +166,13 @@ impl Atom<'_> {
             if window.0 != "main" {
                 return window
                     .1
-                    .view(
-                        self.downloads.len(),
-                        Some(window_id),
-                        self.settings.scrollbars_visible,
-                    )
+                    .view(&self.settings, self.downloads.len(), Some(window_id))
                     .map(move |message| Message::DownloadForm(message, Some(window_id)));
             }
         }
 
         if !self.instance.as_ref().unwrap().is_single() {
-            let main_row = col!()
-                .width(Fill)
-                .height(Fill)
-                .padding(0)
-                .align_x(Alignment::Center)
-                .push(
-                    self.titlebar
-                        .view(&self.settings, false)
-                        .map(Message::TitleBar),
-                )
-                .push(
-                    container(
-                        row!()
-                            .align_y(Alignment::Center)
-                            .spacing(10)
-                            .push(icon('\u{ef4e}', crate::font::CustomFont::IcoFont))
-                            .push(text("Another instance of application is already running!")),
-                    )
-                    .padding(20)
-                    .center(Fill)
-                    .width(Fill)
-                    .height(Fill),
-                );
-
-            return container(main_row).width(Fill).into();
+            return self.get_another_instance_view().into();
         }
 
         let view = match self.view {
@@ -213,13 +180,13 @@ impl Atom<'_> {
             View::Downloads => self.filter_downloads_view(),
             View::NewDownloadForm => self
                 .download_form
-                .view(self.downloads.len(), None, self.settings.scrollbars_visible)
+                .view(&self.settings, self.downloads.len(), None)
                 .map(|message| Message::DownloadForm(message, None)),
             View::Settings => self
                 .phantom_settings
                 .view(&self.theme)
                 .map(Message::Settings),
-            View::Shortcuts => keybindings::view(self.settings.scrollbars_visible),
+            View::Shortcuts => keybindings::view(&self.settings),
         };
 
         let mut items_row = row!()
@@ -230,9 +197,9 @@ impl Atom<'_> {
                     container(
                         self.sidebar
                             .view(
+                                &self.settings,
                                 self.downloads.is_empty(),
                                 self.titlebar.search_text.is_empty(),
-                                self.settings.scrollbars_visible,
                             )
                             .map(Message::Sidebar),
                     )
@@ -255,17 +222,10 @@ impl Atom<'_> {
 
         if self.metadata.enabled || self.settings.metadata_always_enabled {
             items_row = items_row.push(
-                container(
-                    self.metadata
-                        .view(
-                            self.settings.metadata_always_enabled,
-                            self.settings.scrollbars_visible,
-                        )
-                        .map(Message::Metadata),
-                )
-                .padding(Padding::new(20.0).right(15).left(0))
-                .height(Fill)
-                .width(Shrink),
+                container(self.metadata.view(&self.settings).map(Message::Metadata))
+                    .padding(Padding::new(20.0).right(15).left(0))
+                    .height(Fill)
+                    .width(Shrink),
             );
         }
 
@@ -300,5 +260,33 @@ impl Atom<'_> {
             .class(AtomStyleContainer::HeaderContainer)
             .width(Fill)
             .into()
+    }
+
+    fn get_another_instance_view(&self) -> Container<Message, AtomTheme> {
+        let main_row = col!()
+            .width(Fill)
+            .height(Fill)
+            .padding(0)
+            .align_x(Alignment::Center)
+            .push(
+                self.titlebar
+                    .view(&self.settings, false)
+                    .map(Message::TitleBar),
+            )
+            .push(
+                container(
+                    row!()
+                        .align_y(Alignment::Center)
+                        .spacing(10)
+                        .push(icon('\u{ef4e}', crate::font::CustomFont::IcoFont))
+                        .push(text("Another instance of application is already running!")),
+                )
+                .padding(20)
+                .center(Fill)
+                .width(Fill)
+                .height(Fill),
+            );
+
+        container(main_row).width(Fill)
     }
 }

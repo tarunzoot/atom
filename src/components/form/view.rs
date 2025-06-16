@@ -1,5 +1,6 @@
 use super::AtomDownloadForm;
 use crate::{
+    components::settings::AtomSettings,
     elements::GuiElements,
     font::{icon, CustomFont, ICOFONT, SYMBOLS},
     messages::DownloadFormMessage,
@@ -161,9 +162,9 @@ impl AtomDownloadForm {
 
     pub fn view(
         &self,
+        settings: &AtomSettings,
         downloads_count: usize,
         window_id: Option<Id>,
-        scrollbars_visible: bool,
     ) -> Element<DownloadFormMessage, AtomTheme> {
         let mut download_btn = GuiElements::primary_button(vec![
             icon('\u{eee5}', CustomFont::IcoFont),
@@ -258,7 +259,7 @@ impl AtomDownloadForm {
                     .width(Fill)
                     .into()
             },
-            scrollbars_visible,
+            settings.scrollbars_visible,
         ))
         .padding(15)
         .width(Fill)

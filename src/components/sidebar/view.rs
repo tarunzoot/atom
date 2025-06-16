@@ -1,5 +1,6 @@
 use super::{AtomSidebar, SideBarActiveButton, SideBarState, SidebarButton};
 use crate::{
+    components::settings::AtomSettings,
     elements::GuiElements,
     font::{icon, CustomFont},
     messages::SidebarMessage,
@@ -147,9 +148,9 @@ impl AtomSidebar<'_> {
 
     pub fn view(
         &self,
+        settings: &AtomSettings,
         downloads_list_is_empty: bool,
         has_empty_search_bar: bool,
-        scrollbar_visible: bool,
     ) -> Element<SidebarMessage, AtomTheme, Renderer> {
         let primary = self.build_button_column(&self.buttons_primary, false);
         let secondary = self.build_button_column(&self.buttons_secondary, downloads_list_is_empty);
@@ -162,7 +163,7 @@ impl AtomSidebar<'_> {
                     .push(GuiElements::horizontal_separator())
                     .push(secondary)
                     .push(GuiElements::horizontal_separator()),
-                scrollbar_visible
+                settings.scrollbars_visible
             ),
             self.get_tertiary_button()
         ]

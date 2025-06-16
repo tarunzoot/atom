@@ -13,7 +13,7 @@ use iced::{
     Padding, Renderer,
 };
 
-use super::{download::AtomDownload, settings::ListLayout, sidebar::SideBarActiveButton};
+use super::{download::AtomDownload, sidebar::SideBarActiveButton};
 
 #[derive(Debug, Clone)]
 struct FilterButton<'a> {
@@ -94,7 +94,6 @@ impl AtomDownloadStatesFilterBar<'_> {
         &self,
         active: &SideBarActiveButton,
         downloads: &BTreeMap<usize, AtomDownload>,
-        layout: &ListLayout,
         icons_only: bool,
     ) -> Element<Message, AtomTheme, Renderer> {
         let mut count_downloading = 0;
@@ -106,16 +105,14 @@ impl AtomDownloadStatesFilterBar<'_> {
         downloads.iter().for_each(|f| {
             if f.1.deleted {
                 count_deleted += 1;
-            } else {
-                if f.1.downloading || f.1.joining {
-                    count_downloading += 1;
-                } else if !f.1.error.is_empty() {
-                    count_failed += 1;
-                } else if !f.1.is_downloaded() && !f.1.is_downloading() {
-                    count_paused += 1;
-                } else if f.1.is_downloaded() {
-                    count_finished += 1;
-                }
+            } else if f.1.downloading || f.1.joining {
+                count_downloading += 1;
+            } else if !f.1.error.is_empty() {
+                count_failed += 1;
+            } else if !f.1.is_downloaded() && !f.1.is_downloading() {
+                count_paused += 1;
+            } else if f.1.is_downloaded() {
+                count_finished += 1;
             }
         });
 
@@ -125,20 +122,11 @@ impl AtomDownloadStatesFilterBar<'_> {
                 .padding(0)
                 .align_y(iced::Alignment::Center),
             |row, dfb| {
-                let btn_icon = if dfb.text.is_empty() {
-                    match layout {
-                        ListLayout::ListExtended => '\u{efa2}',
-                        ListLayout::List => '\u{e90b}',
-                    }
-                } else {
-                    dfb.icon
-                };
-
                 let mut btn_content = row!()
                     .padding(Padding::from([10, 15]))
                     .align_y(Alignment::Center)
                     .spacing(5)
-                    .push(icon(btn_icon, dfb.icon_font.clone()).size(12));
+                    .push(icon(dfb.icon, dfb.icon_font.clone()).size(12));
 
                 if !dfb.text.is_empty() && !icons_only {
                     btn_content = btn_content.push(text(dfb.text).size(12).font(Font {

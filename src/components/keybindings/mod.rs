@@ -1,4 +1,5 @@
 use crate::{
+    components::settings::AtomSettings,
     elements::GuiElements,
     font::{icon, CustomFont, JOSEFIN},
     messages::Message,
@@ -11,7 +12,7 @@ use iced::{
     Padding,
 };
 
-pub fn view<'a>(scrollbars_visible: bool) -> Element<'a, Message, AtomTheme> {
+pub fn view<'a>(settings: &AtomSettings) -> Element<'a, Message, AtomTheme> {
     let shortcuts = vec![
         ("add new download", "N", '\u{efc0}'),
         ("open imports view", "I", '\u{ec84}'),
@@ -131,10 +132,13 @@ pub fn view<'a>(scrollbars_visible: bool) -> Element<'a, Message, AtomTheme> {
         },
     ));
 
-    container(main_col.push(GuiElements::scrollbar(shortcuts_col, scrollbars_visible)))
-        .class(AtomStyleContainer::ListContainer)
-        .padding(Padding::new(10.0).top(0))
-        .height(Fill)
-        .width(Fill)
-        .into()
+    container(main_col.push(GuiElements::scrollbar(
+        shortcuts_col,
+        settings.scrollbars_visible,
+    )))
+    .class(AtomStyleContainer::ListContainer)
+    .padding(Padding::new(10.0).top(0))
+    .height(Fill)
+    .width(Fill)
+    .into()
 }

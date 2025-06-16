@@ -1,4 +1,5 @@
 use crate::{
+    components::settings::AtomSettings,
     font::{icon, CustomFont},
     messages::Message,
     style::{container::AtomStyleContainer, AtomTheme},
@@ -10,9 +11,9 @@ use iced::{
     Length::Fill,
 };
 
-pub fn view<'a>(responsive: bool) -> Element<'a, Message, AtomTheme> {
-    let icon_size = 14;
-    let text_size = 14;
+pub fn view<'a>(settings: &AtomSettings, responsive: bool) -> Element<'a, Message, AtomTheme> {
+    let icon_size = (settings.font_size as u16 / 8) * 7;
+    let text_size = icon_size;
     let font = Font {
         family: iced::font::Family::Name("Lexend Deca"),
         weight: iced::font::Weight::Black,
