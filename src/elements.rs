@@ -1,12 +1,11 @@
 use crate::{
     components::modal::Modal,
-    font::{icon, CustomFont},
     style::{button::AtomStyleButton, container::AtomStyleContainer, AtomTheme},
 };
 use iced::{
     widget::{
         button, column as col, container, row, scrollable, scrollable::Scrollbar, text, text_input,
-        toggler, tooltip, vertical_space, Button, Scrollable, Toggler, Tooltip,
+        toggler, tooltip, vertical_space, Button, Scrollable, Text, Toggler, Tooltip,
     },
     Alignment, Element, Font,
     Length::{Fill, Shrink},
@@ -69,12 +68,12 @@ impl GuiElements {
         .padding(Padding::new(15.0).top(7).bottom(7))
     }
 
-    pub fn round_button<'a, T>(icon_code: char) -> Button<'a, T, AtomTheme>
+    pub fn round_button<'a, T>(icon: Text<'a, AtomTheme>) -> Button<'a, T, AtomTheme>
     where
         T: std::fmt::Debug + 'a,
     {
         button(
-            container(icon(icon_code, CustomFont::IcoFont).size(12))
+            container(icon.size(12))
                 .width(Shrink)
                 .class(AtomStyleContainer::ButtonContainer),
         )
@@ -190,13 +189,11 @@ impl GuiElements {
     {
         let width = if visible { 6 } else { 0 };
 
-        scrollable(content)
-            .height(Fill)
-            .direction(scrollable::Direction::Vertical(
-                Scrollbar::new()
-                    .margin(0)
-                    .scroller_width(width)
-                    .width(width),
-            ))
+        scrollable(content).direction(scrollable::Direction::Vertical(
+            Scrollbar::new()
+                .margin(0)
+                .scroller_width(width)
+                .width(width),
+        ))
     }
 }

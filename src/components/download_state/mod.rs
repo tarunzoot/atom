@@ -1,24 +1,22 @@
-use std::collections::BTreeMap;
-
 use crate::{
     elements::GuiElements,
-    font::{icon, CustomFont},
+    icons,
     messages::{DownloadsListFilterMessage, Message},
     style::{button::AtomStyleButton, container::AtomStyleContainer, AtomTheme},
 };
 use iced::{
-    widget::{button, column as col, container, row, text},
+    widget::{button, column as col, container, row, text, Text},
     Alignment, Element, Font,
     Length::{Fill, Shrink},
     Padding, Renderer,
 };
+use std::collections::BTreeMap;
 
 use super::{download::AtomDownload, sidebar::SideBarActiveButton};
 
 #[derive(Debug, Clone)]
 struct FilterButton<'a> {
-    icon: char,
-    icon_font: CustomFont,
+    icon: fn() -> Text<'a, AtomTheme>,
     text: &'a str,
     message: Message,
     state: SideBarActiveButton,
@@ -34,40 +32,35 @@ impl Default for AtomDownloadStatesFilterBar<'_> {
     fn default() -> Self {
         let df_buttons = vec![
             FilterButton {
-                icon: '\u{ef74}',
-                icon_font: CustomFont::IcoFont,
+                icon: icons::list_line_dots,
                 text: "All",
                 message: Message::GotoHomePage,
                 state: SideBarActiveButton::Overview,
                 tooltip: "All Downloads",
             },
             FilterButton {
-                icon: '\u{eee5}',
-                icon_font: CustomFont::IcoFont,
-                text: "Downloading",
+                icon: icons::cloud_download,
+                text: "Receiving",
                 message: Message::DownloadsListFilter(DownloadsListFilterMessage::Downloading),
                 state: SideBarActiveButton::Downloading,
                 tooltip: "Downloading",
             },
             FilterButton {
-                icon: '\u{eca5}',
-                icon_font: CustomFont::IcoFont,
+                icon: icons::pause_alt,
                 text: "Paused",
                 message: Message::DownloadsListFilter(DownloadsListFilterMessage::Paused),
                 state: SideBarActiveButton::Paused,
                 tooltip: "Paused",
             },
             FilterButton {
-                icon: '\u{f00d}',
-                icon_font: CustomFont::IcoFont,
+                icon: icons::tick_boxed,
                 text: "Finished",
                 message: Message::DownloadsListFilter(DownloadsListFilterMessage::Finished),
                 state: SideBarActiveButton::Finished,
                 tooltip: "Finished",
             },
             FilterButton {
-                icon: '\u{ec53}',
-                icon_font: CustomFont::IcoFont,
+                icon: icons::trash_bin_open,
                 text: "Trash",
                 message: Message::DownloadsListFilter(DownloadsListFilterMessage::Deleted),
                 state: SideBarActiveButton::Trash,
@@ -75,8 +68,7 @@ impl Default for AtomDownloadStatesFilterBar<'_> {
             },
             FilterButton {
                 text: "Failed",
-                icon_font: CustomFont::Symbols,
-                icon: '\u{f0164}',
+                icon: icons::failed,
                 message: Message::DownloadsListFilter(DownloadsListFilterMessage::Failed),
                 state: SideBarActiveButton::Failed,
                 tooltip: "Failed",
@@ -126,7 +118,7 @@ impl AtomDownloadStatesFilterBar<'_> {
                     .padding(Padding::from([10, 15]))
                     .align_y(Alignment::Center)
                     .spacing(5)
-                    .push(icon(dfb.icon, dfb.icon_font.clone()).size(12));
+                    .push((dfb.icon)().size(12));
 
                 if !dfb.text.is_empty() && !icons_only {
                     btn_content = btn_content.push(text(dfb.text).size(12).font(Font {

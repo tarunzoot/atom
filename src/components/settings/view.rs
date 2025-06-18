@@ -1,10 +1,7 @@
 use super::{AtomSettings, ListLayout};
 use crate::{
     elements::GuiElements,
-    font::{
-        icon,
-        CustomFont::{self, IcoFont},
-    },
+    icons,
     messages::SettingsMessage,
     style::{container::AtomStyleContainer, input::AtomStyleInput, AtomTheme},
     utils::helpers::ATOM_INPUT_DEFAULT_PADDING,
@@ -17,7 +14,11 @@ use iced::{
 };
 
 impl AtomSettings {
-    pub fn view(&self, theme: &AtomTheme) -> Element<SettingsMessage, AtomTheme, Renderer> {
+    pub fn view(
+        &self,
+        settings: &AtomSettings,
+        theme: &AtomTheme,
+    ) -> Element<SettingsMessage, AtomTheme, Renderer> {
         let config_dir_col = col!()
             .spacing(5)
             .push(text("Configuration Directory"))
@@ -32,7 +33,7 @@ impl AtomSettings {
                             .padding(ATOM_INPUT_DEFAULT_PADDING),
                     )
                     .push(
-                        GuiElements::primary_button(vec![icon('\u{ef36}', IcoFont), text("open")])
+                        GuiElements::primary_button(vec![icons::folder(), text("open")])
                             .on_press(SettingsMessage::OpenConfigDir),
                     ),
             );
@@ -66,27 +67,24 @@ impl AtomSettings {
                             .padding(ATOM_INPUT_DEFAULT_PADDING),
                     )
                     .push(
-                        GuiElements::primary_button(vec![
-                            icon('\u{ef13}', IcoFont),
-                            text("browse"),
-                        ])
-                        .on_press(SettingsMessage::BrowseDownloadsDirClicked),
+                        GuiElements::primary_button(vec![icons::envelope_open(), text("browse")])
+                            .on_press(SettingsMessage::BrowseDownloadsDirClicked),
                     ),
             );
 
         let buttons_row = row![
-            GuiElements::primary_button(vec![icon('\u{ef43}', IcoFont), text("save")])
+            GuiElements::primary_button(vec![icons::harddisk(), text("save")])
                 .on_press(SettingsMessage::SaveSettings(true)),
-            GuiElements::primary_button(vec![icon('\u{ec80}', IcoFont), text("reset")])
+            GuiElements::primary_button(vec![icons::rotation(), text("reset")])
                 .on_press(SettingsMessage::ResetSettings(false)),
-            GuiElements::primary_button(vec![icon('\u{ec53}', IcoFont), text("clear cache")])
+            GuiElements::primary_button(vec![icons::trash_bin_open(), text("clear cache")])
                 .on_press(SettingsMessage::ClearCacheClicked(false)),
-            GuiElements::primary_button(vec![icon('\u{eedd}', IcoFont), text("cancel")])
+            GuiElements::primary_button(vec![icons::close_circled(), text("cancel")])
                 .on_press(SettingsMessage::ClosePane),
         ]
         .spacing(20);
 
-        let toggles_text_size = self.font_size - 1.0;
+        let toggles_text_size = settings.font_size - 1.0;
 
         let notification_toggler = GuiElements::toggle(
             self.show_notifications,
@@ -282,7 +280,7 @@ impl AtomSettings {
                     .push(options_row)
                     .push(buttons_row)
                     .width(Fill),
-                self.scrollbars_visible,
+                settings.scrollbars_visible,
             ));
 
         let settings_container = container(settings_col)
@@ -292,27 +290,19 @@ impl AtomSettings {
 
         if self.show_confirm_dialog {
             let action_btn = if self.reset_settings {
-                GuiElements::primary_button(vec![
-                    icon('\u{ec80}', CustomFont::IcoFont),
-                    text("reset"),
-                ])
-                .width(Fixed(150.0))
-                .on_press(SettingsMessage::ResetSettings(true))
+                GuiElements::primary_button(vec![icons::rotation(), text("reset")])
+                    .width(Fixed(150.0))
+                    .on_press(SettingsMessage::ResetSettings(true))
             } else {
-                GuiElements::primary_button(vec![
-                    icon('\u{ec53}', CustomFont::IcoFont),
-                    text("delete"),
-                ])
-                .width(Fixed(150.0))
-                .on_press(SettingsMessage::ClearCacheClicked(true))
+                GuiElements::primary_button(vec![icons::trash_bin_open(), text("delete")])
+                    .width(Fixed(150.0))
+                    .on_press(SettingsMessage::ClearCacheClicked(true))
             };
 
-            let cancel_btn = GuiElements::primary_button(vec![
-                icon('\u{eedd}', CustomFont::IcoFont),
-                text("cancel"),
-            ])
-            .width(Fixed(150.0))
-            .on_press(SettingsMessage::HideDialog);
+            let cancel_btn =
+                GuiElements::primary_button(vec![icons::close_circled(), text("cancel")])
+                    .width(Fixed(150.0))
+                    .on_press(SettingsMessage::HideDialog);
 
             GuiElements::modal(
                 settings_container,

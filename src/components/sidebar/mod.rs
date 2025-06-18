@@ -1,5 +1,6 @@
 mod view;
-use crate::messages::SidebarMessage;
+use crate::{icons, messages::SidebarMessage, style::AtomTheme};
+use iced::widget::Text;
 
 #[derive(Debug, Clone, Default)]
 pub enum SideBarState {
@@ -41,7 +42,7 @@ impl From<SideBarActiveButton> for String {
 #[derive(Debug)]
 pub struct SidebarButton<'a> {
     text: &'a str,
-    icon: char,
+    icon: fn() -> Text<'a, AtomTheme>,
     message: SidebarMessage,
     tooltip: &'a str,
     name: SideBarActiveButton,
@@ -62,35 +63,35 @@ impl Default for AtomSidebar<'_> {
         let buttons_primary = vec![
             SidebarButton {
                 text: "Overview",
-                icon: '\u{e944}',
+                icon: icons::overview,
                 message: SidebarMessage::GotoHomePage,
                 tooltip: "Home",
                 name: SideBarActiveButton::Overview,
             },
             SidebarButton {
                 text: "Add Download",
-                icon: '\u{efc0}',
+                icon: icons::plus_circle,
                 message: SidebarMessage::NewDownloadForm,
                 tooltip: "Add new download",
                 name: SideBarActiveButton::AddDownload,
             },
             SidebarButton {
                 text: "Import",
-                icon: '\u{ec84}',
+                icon: icons::social_link,
                 message: SidebarMessage::Import,
                 tooltip: "Import file with links",
                 name: SideBarActiveButton::Import,
             },
             SidebarButton {
                 text: "Settings",
-                icon: '\u{ec83}',
+                icon: icons::settings,
                 message: SidebarMessage::Settings,
                 tooltip: "Settings",
                 name: SideBarActiveButton::Settings,
             },
             SidebarButton {
                 text: "Shortcuts",
-                icon: '\u{ea54}',
+                icon: icons::keyboard,
                 message: SidebarMessage::Shortcuts,
                 tooltip: "Shortcuts",
                 name: SideBarActiveButton::Shortcuts,
@@ -100,21 +101,21 @@ impl Default for AtomSidebar<'_> {
         let buttons_secondary = vec![
             SidebarButton {
                 text: "Pause All",
-                icon: '\u{eca5}',
+                icon: icons::pause_alt,
                 message: SidebarMessage::PauseAll,
                 tooltip: "Pause All Downloads",
                 name: SideBarActiveButton::Null,
             },
             SidebarButton {
                 text: "Resume All",
-                icon: '\u{eca8}',
+                icon: icons::play_alt,
                 message: SidebarMessage::ResumeAll,
                 tooltip: "Resume All Downloads",
                 name: SideBarActiveButton::Null,
             },
             SidebarButton {
                 text: "Delete All",
-                icon: '\u{edec}',
+                icon: icons::recycle_bin,
                 message: SidebarMessage::DeleteConfirm,
                 tooltip: "Delete All Downloads",
                 name: SideBarActiveButton::Null,
@@ -123,7 +124,7 @@ impl Default for AtomSidebar<'_> {
 
         let button_tertiary = SidebarButton {
             text: "Collapse",
-            icon: '\u{ef1e}',
+            icon: icons::expand,
             message: SidebarMessage::Expand,
             tooltip: "Expand sidebar",
             name: SideBarActiveButton::Null,

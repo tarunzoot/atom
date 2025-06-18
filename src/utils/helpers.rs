@@ -336,7 +336,7 @@ pub fn check_responsive_threshold(
     sidebar_collapsed: bool,
     metadata_panel_visible: bool,
 ) -> bool {
-    let threshold = 1150.0;
+    let threshold = 1050.0;
 
     if (width as f64) < threshold && (!sidebar_collapsed || metadata_panel_visible) {
         return true;

@@ -2,13 +2,16 @@ use super::AtomDownload;
 use crate::{
     components::settings::{AtomSettings, ListLayout},
     elements::GuiElements,
-    font::{file_type_icon, get_file_type, icon, CustomFont},
+    font::{file_type_icon, get_file_type},
+    icons,
     messages::DownloadMessage,
     style::{button::AtomStyleButton, container::AtomStyleContainer, AtomStyleText, AtomTheme},
     utils::helpers::{get_formatted_time, get_list_view_column_length, ListViewColumns},
 };
 use iced::{
-    widget::{button, column as col, container, progress_bar, row, text, tooltip, vertical_space},
+    widget::{
+        button, column as col, container, progress_bar, row, text, tooltip, vertical_space, Text,
+    },
     Alignment, Element,
     Length::{self, FillPortion, Fixed, Shrink},
     Padding, Renderer,
@@ -66,13 +69,13 @@ impl AtomDownload {
         }
     }
 
-    fn get_download_state_icon(&self) -> char {
+    fn get_download_state_icon<'a>(&self) -> Text<'a, AtomTheme> {
         if self.downloading {
-            '\u{ec72}'
+            icons::pause()
         } else if self.is_downloaded() {
-            '\u{ec7f}'
+            icons::reply()
         } else {
-            '\u{ec74}'
+            icons::play()
         }
     }
 
@@ -89,30 +92,6 @@ impl AtomDownload {
             self.file_name.clone()
         };
 
-        // row![
-        //     file_type_icon(self.file_name.split('.').last().unwrap()).size(text_size * 2.0),
-        //     col![
-        //         text(file_name).size(text_size),
-        //         row![
-        //             icon('\u{ee57}', CustomFont::Symbols)
-        //                 .size(text_size - 4.0)
-        //                 .class(AtomStyleText::Dimmed),
-        //             text(get_file_type(&extension))
-        //                 .size(text_size - 4.0)
-        //                 .class(AtomStyleText::Dimmed),
-        //         ]
-        //         .align_y(iced::Alignment::Center)
-        //         .spacing(5)
-        //     ]
-        //     .align_y(iced::Alignment::Start)
-        //     .spacing(5)
-        // ]
-        // .align_y(iced::Alignment::Center)
-        // .spacing(10)
-        // .width(Length::FillPortion(5))
-        // .align_y(iced::Alignment::Start)
-        // .into()
-
         col![
             row![
                 file_type_icon(self.file_name.split('.').next_back().unwrap())
@@ -123,7 +102,7 @@ impl AtomDownload {
             .align_y(iced::Alignment::Center)
             .spacing(5),
             row![
-                icon('\u{ed68}', CustomFont::IcoFont)
+                icons::hash()
                     .size(text_size - 4.0)
                     .class(AtomStyleText::Dimmed),
                 text(get_file_type(&extension))
@@ -145,7 +124,7 @@ impl AtomDownload {
 
         let text_col = col![col![
             row![
-                icon('\u{f019}', CustomFont::Symbols).size(text_size),
+                icons::download_alt().size(text_size),
                 text(format!("{0:0>6.2} {1}", downloaded.0, downloaded.1))
                     .width(Shrink)
                     .size(text_size),
@@ -153,7 +132,7 @@ impl AtomDownload {
             .align_y(Alignment::Center)
             .spacing(5),
             row![
-                icon('\u{ed95}', CustomFont::Symbols).size(text_size),
+                icons::box_open().size(text_size),
                 text(format!("{0:0>6.2} {1}", size.0, size.1)).size(text_size)
             ]
             .align_y(Alignment::Center)
@@ -178,7 +157,7 @@ impl AtomDownload {
             .push(
                 container(
                     row![
-                        icon('\u{eedd}', CustomFont::IcoFont).size(text_size),
+                        icons::close_circled().size(text_size),
                         text("Failed").size(text_size - 2.0)
                     ]
                     .spacing(5)
@@ -198,7 +177,7 @@ impl AtomDownload {
     ) -> Element<DownloadMessage, AtomTheme, Renderer> {
         row![container(
             row![
-                icon('\u{eed7}', CustomFont::IcoFont).size(text_size),
+                icons::check_circled().size(text_size),
                 text("Completed").size(text_size - 2.0)
             ]
             .spacing(5)
@@ -217,7 +196,7 @@ impl AtomDownload {
     ) -> Element<DownloadMessage, AtomTheme, Renderer> {
         row![container(
             row![
-                icon('\u{e984}', CustomFont::IcoFont).size(text_size),
+                icons::joining().size(text_size),
                 text("Joining").size(text_size - 2.0)
             ]
             .spacing(5)
@@ -287,7 +266,7 @@ impl AtomDownload {
         match layout {
             ListLayout::ListExtended => {
                 progress_row = progress_row
-                    .push(icon('\u{eff4}', CustomFont::IcoFont).size(text_size))
+                    .push(icons::spinner().size(text_size))
                     .push(progress_bar_el)
                     .push(percent_el);
                 return progress_row.into();
@@ -345,11 +324,14 @@ impl AtomDownload {
             actions_row = actions_row
                 .push(start_pause_btn)
                 // .push(edit_btn)
-                .push(GuiElements::round_button('\u{ee09}').on_press(DownloadMessage::MarkDeleted));
+                .push(
+                    GuiElements::round_button(icons::trash_bin_closed())
+                        .on_press(DownloadMessage::MarkDeleted),
+                );
         } else {
             actions_row = actions_row.push(
                 tooltip(
-                    GuiElements::round_button('\u{ee09}')
+                    GuiElements::round_button(icons::trash_bin_closed())
                         .on_press(DownloadMessage::RemoveDownload(true)),
                     text("Will remove all the cached/incomplete files from the disk as well.")
                         .size(10),
@@ -433,14 +415,14 @@ impl AtomDownload {
             .spacing(5)
             .align_y(iced::Alignment::Center),
             row![
-                icon('\u{ed68}', CustomFont::IcoFont)
+                icons::hash()
                     .size(text_icon_size)
                     .class(AtomStyleText::Dimmed),
                 text(get_file_type(&extension))
                     .size(text_icon_size)
                     .class(AtomStyleText::Dimmed),
                 text("•").class(AtomStyleText::Dimmed),
-                icon('\u{ec45}', CustomFont::IcoFont)
+                icons::calendar()
                     .size(text_icon_size)
                     .class(AtomStyleText::Dimmed),
                 text(&self.added)
@@ -469,7 +451,7 @@ impl AtomDownload {
 
         col![col![
             row![
-                icon('\u{e90b}', CustomFont::IcoFont)
+                icons::file_size()
                     .size(icon_size)
                     .class(AtomStyleText::Dimmed),
                 text("Size")
@@ -509,7 +491,7 @@ impl AtomDownload {
 
         col![col![
             row![
-                icon('\u{eff3}', CustomFont::IcoFont)
+                icons::speedmeter()
                     .size(icon_size + 2.0)
                     .class(AtomStyleText::Dimmed),
                 text("Speed")
@@ -545,9 +527,7 @@ impl AtomDownload {
 
         col![col![
             row![
-                icon('\u{f022}', CustomFont::IcoFont)
-                    .size(icon_size)
-                    .class(AtomStyleText::Dimmed),
+                icons::clock().size(icon_size).class(AtomStyleText::Dimmed),
                 text("E.T.A")
                     .font(iced::Font {
                         family: iced::font::Family::Name("Lexend Deca"),
@@ -581,7 +561,7 @@ impl AtomDownload {
 
         col![col![
             row![
-                icon('\u{e982}', CustomFont::IcoFont)
+                icons::chart_alt()
                     .size(icon_size)
                     .class(AtomStyleText::Dimmed),
                 text("Status")
@@ -672,7 +652,7 @@ impl AtomDownload {
         if self.show_delete_confirm_dialog {
             let move2trash_btn = tooltip(
                 GuiElements::primary_button(vec![
-                    icon('\u{ec53}', CustomFont::IcoFont),
+                    icons::trash_bin_open(),
                     text("trash"),
                 ])
                 .width(Length::Fixed(150.0))
@@ -686,7 +666,7 @@ impl AtomDownload {
 
             let force_delete_btn = tooltip(
                 GuiElements::primary_button(vec![
-                    icon('\u{edec}', CustomFont::IcoFont),
+                    icons::recycle_bin(),
                     text("delete"),
                 ])
                 .width(Length::Fixed(200.0))
@@ -698,12 +678,10 @@ impl AtomDownload {
             .gap(10)
             .padding(10);
 
-            let cancel_btn = GuiElements::primary_button(vec![
-                icon('\u{eede}', CustomFont::IcoFont),
-                text("cancel"),
-            ])
-            .width(Length::Fixed(150.0))
-            .on_press(DownloadMessage::HideDialog);
+            let cancel_btn =
+                GuiElements::primary_button(vec![icons::close_line_circled(), text("cancel")])
+                    .width(Length::Fixed(150.0))
+                    .on_press(DownloadMessage::HideDialog);
 
             GuiElements::modal(
                 download_container,

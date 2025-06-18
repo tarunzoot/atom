@@ -76,7 +76,6 @@ pub enum CustomFont {
 pub fn icon<'a>(unicode: char, custom_font: CustomFont) -> Text<'a, AtomTheme> {
     match custom_font {
         CustomFont::IcoFont => text(unicode).font(ICOFONT).center().size(16),
-
         CustomFont::Symbols => text(unicode).font(SYMBOLS).center().size(30),
     }
 }

@@ -4,7 +4,7 @@ use crate::{
         download::AtomDownload, keybindings, listview_header, sidebar::SideBarActiveButton,
     },
     elements::GuiElements,
-    font::icon,
+    icons,
     messages::{DownloadsListFilterMessage, Message},
     style::{container::AtomStyleContainer, AtomTheme},
     utils::helpers::check_responsive_threshold,
@@ -184,7 +184,7 @@ impl Atom<'_> {
                 .map(|message| Message::DownloadForm(message, None)),
             View::Settings => self
                 .phantom_settings
-                .view(&self.theme)
+                .view(&self.settings, &self.theme)
                 .map(Message::Settings),
             View::Shortcuts => keybindings::view(&self.settings),
         };
@@ -239,8 +239,7 @@ impl Atom<'_> {
             items_row,
             container(
                 row![
-                    icon('\u{ebf5}', crate::font::CustomFont::Symbols)
-                        .size(status_bar_text_icon_size),
+                    icons::layout_statusbar().size(status_bar_text_icon_size),
                     text(&self.status_bar_message).size(status_bar_text_icon_size),
                     horizontal_space().width(Fill),
                 ]
@@ -278,7 +277,7 @@ impl Atom<'_> {
                     row!()
                         .align_y(Alignment::Center)
                         .spacing(10)
-                        .push(icon('\u{ef4e}', crate::font::CustomFont::IcoFont))
+                        .push(icons::info_circle())
                         .push(text("Another instance of application is already running!")),
                 )
                 .padding(20)

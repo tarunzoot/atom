@@ -2,7 +2,8 @@ use super::AtomDownloadMetadata;
 use crate::{
     components::settings::AtomSettings,
     elements::GuiElements,
-    font::{file_type_icon, icon, CustomFont},
+    font::file_type_icon,
+    icons,
     messages::MetadataMessage,
     style::{container::AtomStyleContainer, AtomStyleText, AtomTheme},
     utils::helpers::{
@@ -21,14 +22,14 @@ impl AtomDownloadMetadata {
     pub fn view(&self, settings: &AtomSettings) -> Element<MetadataMessage, AtomTheme> {
         let file_path = Path::new(&self.file_path);
         let mut open_btn = GuiElements::primary_button(vec![
-            icon('\u{ef13}', CustomFont::IcoFont).size(12),
+            icons::envelope_open().size(12),
             text("open").size(14),
         ])
         .padding(7)
         .width(Fill);
 
         let mut delete_btn = GuiElements::primary_button(vec![
-            icon('\u{ec53}', CustomFont::IcoFont).size(12),
+            icons::trash_bin_open().size(12),
             text("delete").size(14),
         ])
         .padding(7)
@@ -123,7 +124,8 @@ impl AtomDownloadMetadata {
                 (String::default(), String::default(), String::default())
             };
 
-        let mut checksum_btn = GuiElements::round_button('\u{ec05}').padding(Padding::from([4, 6]));
+        let mut checksum_btn =
+            GuiElements::round_button(icons::calculator()).padding(Padding::from([4, 6]));
 
         if !self.is_calculating_checksum && self.finished && file_path.exists() {
             checksum_btn = checksum_btn.on_press(MetadataMessage::CalculateChecksum);
@@ -194,7 +196,7 @@ impl AtomDownloadMetadata {
         };
 
         let mut pane_close_button =
-            GuiElements::round_button('\u{eee1}').padding(Padding::from([2, 4]));
+            GuiElements::round_button(icons::close_line()).padding(Padding::from([2, 4]));
         if !settings.metadata_always_enabled {
             pane_close_button = pane_close_button.on_press(MetadataMessage::ClosePane);
         }

@@ -2,32 +2,30 @@ use super::{AtomSidebar, SideBarActiveButton, SideBarState, SidebarButton};
 use crate::{
     components::settings::AtomSettings,
     elements::GuiElements,
-    font::{icon, CustomFont},
+    icons,
     messages::SidebarMessage,
     style::{button::AtomStyleButton, container::AtomStyleContainer, AtomTheme},
     utils::helpers::SIDEBAR_WIDTH,
 };
 use iced::{
-    widget::{button, column as col, container, row, text, tooltip, Column},
+    widget::{button, column as col, container, row, text, tooltip, Column, Text},
     Alignment, Element,
     Length::{Fill, Fixed, Shrink},
-    Padding, Renderer,
+    Padding,
 };
 
 impl AtomSidebar<'_> {
-    fn render_icon_container<'a>(
-        icon_char: char,
+    fn render_icon_container(
+        icon_char: Text<'_, AtomTheme>,
         size: f32,
-    ) -> Element<'a, SidebarMessage, AtomTheme, Renderer> {
-        container(icon(icon_char, CustomFont::IcoFont).size(size))
+    ) -> Element<'_, SidebarMessage, AtomTheme> {
+        container(icon_char.size(size))
             .padding(Padding::new(15.0).right(20))
             .class(AtomStyleContainer::ButtonContainer)
             .into()
     }
 
-    fn render_vertical_bar<'a>(
-        is_active: bool,
-    ) -> Element<'a, SidebarMessage, AtomTheme, Renderer> {
+    fn render_vertical_bar<'a>(is_active: bool) -> Element<'a, SidebarMessage, AtomTheme> {
         container(text("").width(Fixed(0.0)))
             .padding(0)
             .height(Fixed(25.0))
@@ -41,14 +39,14 @@ impl AtomSidebar<'_> {
     }
 
     fn build_sidebar_button<'a>(
-        &'a self,
+        &self,
         is_active: bool,
-        icon_char: char,
+        icon_char: Text<'a, AtomTheme>,
         label: &'a str,
         tooltip_text: &'a str,
         on_press_msg: SidebarMessage,
         downloads_list_is_empty: bool,
-    ) -> Element<'a, SidebarMessage, AtomTheme, Renderer> {
+    ) -> Element<'a, SidebarMessage, AtomTheme> {
         let content_row = row![
             Self::render_vertical_bar(is_active),
             Self::render_icon_container(icon_char, 20.0),
@@ -86,10 +84,10 @@ impl AtomSidebar<'_> {
     }
 
     fn get_button<'a>(
-        &'a self,
-        data: &SidebarButton<'a>,
+        &self,
+        data: &'a SidebarButton<'_>,
         downloads_list_is_empty: bool,
-    ) -> Element<'a, SidebarMessage, AtomTheme, Renderer> {
+    ) -> Element<'a, SidebarMessage, AtomTheme> {
         let is_active = self.active == data.name;
         let label = if matches!(self.state, SideBarState::Expanded) {
             data.text
@@ -98,7 +96,7 @@ impl AtomSidebar<'_> {
         };
         self.build_sidebar_button(
             is_active,
-            data.icon,
+            (data.icon)(),
             label,
             data.tooltip,
             data.message.clone(),
@@ -106,14 +104,14 @@ impl AtomSidebar<'_> {
         )
     }
 
-    fn get_tertiary_button<'a>(&'a self) -> Element<'a, SidebarMessage, AtomTheme, Renderer> {
+    fn get_tertiary_button(&'_ self) -> Element<'_, SidebarMessage, AtomTheme> {
         let (icon_char, tooltip, msg) = if matches!(self.state, SideBarState::Expanded)
             && self.button_tertiary.text == "Collapse"
         {
-            ('\u{eabf}', "Collapse sidebar", SidebarMessage::Collapse)
+            (icons::left(), "Collapse sidebar", SidebarMessage::Collapse)
         } else {
             (
-                self.button_tertiary.icon,
+                (self.button_tertiary.icon)(),
                 self.button_tertiary.tooltip,
                 self.button_tertiary.message.clone(),
             )
@@ -135,10 +133,10 @@ impl AtomSidebar<'_> {
     }
 
     fn build_button_column<'a>(
-        &'a self,
-        buttons: &'a [SidebarButton<'a>],
+        &self,
+        buttons: &'a [SidebarButton<'_>],
         downloads_list_is_empty: bool,
-    ) -> Column<'a, SidebarMessage, AtomTheme, Renderer> {
+    ) -> Column<'a, SidebarMessage, AtomTheme> {
         buttons
             .iter()
             .fold(col!().spacing(10).height(Shrink), |col, b| {
@@ -147,11 +145,11 @@ impl AtomSidebar<'_> {
     }
 
     pub fn view(
-        &self,
+        &'_ self,
         settings: &AtomSettings,
         downloads_list_is_empty: bool,
         has_empty_search_bar: bool,
-    ) -> Element<SidebarMessage, AtomTheme, Renderer> {
+    ) -> Element<'_, SidebarMessage, AtomTheme> {
         let primary = self.build_button_column(&self.buttons_primary, false);
         let secondary = self.build_button_column(&self.buttons_secondary, downloads_list_is_empty);
 
@@ -164,7 +162,8 @@ impl AtomSidebar<'_> {
                     .push(secondary)
                     .push(GuiElements::horizontal_separator()),
                 settings.scrollbars_visible
-            ),
+            )
+            .height(Fill),
             self.get_tertiary_button()
         ]
         .spacing(10)
@@ -196,18 +195,12 @@ impl AtomSidebar<'_> {
                 sidebar_container,
                 text(delete_msg).size(24),
                 row![
-                    GuiElements::primary_button(vec![
-                        icon('\u{ec53}', CustomFont::IcoFont),
-                        text("delete")
-                    ])
-                    .width(Fixed(170.0))
-                    .on_press(SidebarMessage::DeleteAll),
-                    GuiElements::primary_button(vec![
-                        icon('\u{eedd}', CustomFont::IcoFont),
-                        text("cancel")
-                    ])
-                    .width(Fixed(170.0))
-                    .on_press(SidebarMessage::HideDialog),
+                    GuiElements::primary_button(vec![icons::trash_bin_open(), text("delete")])
+                        .width(Fixed(170.0))
+                        .on_press(SidebarMessage::DeleteAll),
+                    GuiElements::primary_button(vec![icons::close_circled(), text("cancel")])
+                        .width(Fixed(170.0))
+                        .on_press(SidebarMessage::HideDialog),
                 ]
                 .spacing(10)
                 .align_y(Alignment::Center),

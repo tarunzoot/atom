@@ -1,6 +1,6 @@
 use crate::{
     components::settings::AtomSettings,
-    font::{icon, CustomFont},
+    icons,
     messages::Message,
     style::{container::AtomStyleContainer, AtomTheme},
     utils::helpers::{get_list_view_column_length, ListViewColumns},
@@ -24,7 +24,7 @@ pub fn view<'a>(settings: &AtomSettings, responsive: bool) -> Element<'a, Messag
         row!()
             .spacing(7)
             .align_y(Alignment::Center)
-            .push(icon('\u{eb08}', CustomFont::IcoFont).size(icon_size))
+            .push(icons::file_alt().size(icon_size))
             .push(text("File Name").size(text_size).font(font)),
     )
     .class(AtomStyleContainer::Transparent)
@@ -35,7 +35,7 @@ pub fn view<'a>(settings: &AtomSettings, responsive: bool) -> Element<'a, Messag
         row!()
             .spacing(7)
             .align_y(Alignment::Center)
-            .push(icon('\u{e90b}', CustomFont::IcoFont).size(icon_size - 2))
+            .push(icons::file_size().size(icon_size - 2))
             .push(text("Size").size(text_size).font(font)),
     )
     .class(AtomStyleContainer::Transparent)
@@ -46,7 +46,7 @@ pub fn view<'a>(settings: &AtomSettings, responsive: bool) -> Element<'a, Messag
         row!()
             .spacing(7)
             .align_y(Alignment::Center)
-            .push(icon('\u{f022}', CustomFont::IcoFont).size(icon_size))
+            .push(icons::clock().size(icon_size))
             .push(text("E.T.A").size(text_size).font(font)),
     )
     .class(AtomStyleContainer::Transparent)
@@ -57,7 +57,7 @@ pub fn view<'a>(settings: &AtomSettings, responsive: bool) -> Element<'a, Messag
         row!()
             .spacing(7)
             .align_y(Alignment::Center)
-            .push(icon('\u{eed7}', CustomFont::IcoFont).size(icon_size))
+            .push(icons::check_circled().size(icon_size))
             .push(text("Status").size(text_size).font(font)),
     )
     .class(AtomStyleContainer::Transparent)
@@ -68,7 +68,7 @@ pub fn view<'a>(settings: &AtomSettings, responsive: bool) -> Element<'a, Messag
         row!()
             .spacing(7)
             .align_y(Alignment::Center)
-            .push(icon('\u{eff3}', CustomFont::IcoFont).size(icon_size))
+            .push(icons::speedmeter().size(icon_size))
             .push(text("Speed").size(text_size).font(font)),
     )
     .class(AtomStyleContainer::Transparent)
@@ -79,7 +79,7 @@ pub fn view<'a>(settings: &AtomSettings, responsive: bool) -> Element<'a, Messag
         row!()
             .spacing(7)
             .align_y(iced::Alignment::Center)
-            .push(icon('\u{ec45}', CustomFont::IcoFont).size(icon_size))
+            .push(icons::calendar().size(icon_size))
             .push(text("Added").size(text_size).font(font)),
     )
     .class(AtomStyleContainer::Transparent)
@@ -90,7 +90,7 @@ pub fn view<'a>(settings: &AtomSettings, responsive: bool) -> Element<'a, Messag
         row!()
             .spacing(7)
             .align_y(iced::Alignment::Center)
-            .push(icon('\u{eecb}', CustomFont::IcoFont).size(icon_size))
+            .push(icons::bullhorn().size(icon_size))
             .push(text("Actions").size(text_size).font(font)),
     )
     .class(AtomStyleContainer::Transparent)

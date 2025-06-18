@@ -10,6 +10,7 @@ mod app;
 mod components;
 mod elements;
 mod font;
+mod icons;
 mod messages;
 mod style;
 mod utils;

@@ -1,35 +1,36 @@
 use crate::{
     components::settings::AtomSettings,
     elements::GuiElements,
-    font::{icon, CustomFont, JOSEFIN},
+    font::JOSEFIN,
+    icons,
     messages::Message,
     style::{button::AtomStyleButton, container::AtomStyleContainer, AtomStyleText, AtomTheme},
 };
 use iced::{
-    widget::{button, column as col, container, horizontal_space, row, text, vertical_space},
+    widget::{button, column as col, container, horizontal_space, row, text, vertical_space, Text},
     Alignment, Element,
     Length::{Fill, FillPortion, Fixed, Shrink},
     Padding,
 };
 
 pub fn view<'a>(settings: &AtomSettings) -> Element<'a, Message, AtomTheme> {
-    let shortcuts = vec![
-        ("add new download", "N", '\u{efc0}'),
-        ("open imports view", "I", '\u{ec84}'),
-        ("resume all downloads", "R", '\u{eca8}'),
-        ("pause all downloads", "P", '\u{eca5}'),
-        ("delete all downloads", "D", '\u{edec}'),
-        ("show all downloads", "H", '\u{e944}'),
-        ("open settings", ",", '\u{ec83}'),
-        ("open keyboard shortcuts", "K", '\u{ea54}'),
-        ("search downloads", "F", '\u{ed11}'),
-        ("cycle through themes", "T", '\u{ec88}'),
-        ("toggle list layout", "L", '\u{ef72}'),
-        ("clear search", "G", '\u{eedd}'),
-        ("decrease scaling by 0.10", "-", '\u{ef9a}'),
-        ("increase scaling by 0.10", "=", '\u{efc2}'),
-        ("reset scaling", "0", '\u{ec7f}'),
-        ("quit app", "Q", '\u{ef1d}'),
+    let shortcuts: Vec<(&'static str, &'static str, fn() -> Text<'a, AtomTheme>)> = vec![
+        ("add new download", "N", icons::plus_circle),
+        ("open imports view", "I", icons::social_link),
+        ("resume all downloads", "R", icons::play_alt),
+        ("pause all downloads", "P", icons::pause_alt),
+        ("delete all downloads", "D", icons::recycle_bin),
+        ("show all downloads", "H", icons::overview),
+        ("open settings", ",", icons::settings),
+        ("open keyboard shortcuts", "K", icons::keyboard),
+        ("search downloads", "F", icons::search),
+        ("cycle through themes", "T", icons::theme),
+        ("toggle list layout", "L", icons::list),
+        ("clear search", "G", icons::close_circled),
+        ("decrease scaling by 0.10", "-", icons::minus),
+        ("increase scaling by 0.10", "=", icons::plus),
+        ("reset scaling", "0", icons::reply),
+        ("quit app", "Q", icons::exit),
     ];
 
     let main_col = col![GuiElements::panel_title("Keyboard Shortcuts").into()]
@@ -40,15 +41,14 @@ pub fn view<'a>(settings: &AtomSettings) -> Element<'a, Message, AtomTheme> {
 
     let text_size = 12;
     let chunk_len = 3;
+
     let mut shortcuts_col = col![].spacing(20).align_x(Alignment::Center);
+
     shortcuts_col = shortcuts_col.push(shortcuts.chunks(chunk_len).fold(
         col![].spacing(20).align_x(Alignment::Center),
         |column, chunk| {
-            let mut row = chunk.iter().fold(
-                row![]
-                    .spacing(20)
-                    .align_y(iced::Alignment::Center)
-                    .width(Shrink),
+            let mut row = chunk.into_iter().fold(
+                row![].spacing(20).align_y(Alignment::Center).width(Shrink),
                 |row, shortcut| {
                     row.push(
                         container(
@@ -60,7 +60,7 @@ pub fn view<'a>(settings: &AtomSettings) -> Element<'a, Message, AtomTheme> {
                                         ..Default::default()
                                     }),
                                     row![
-                                        icon(shortcut.2, CustomFont::IcoFont)
+                                        shortcut.2()
                                             .class(AtomStyleText::Dimmed)
                                             .size(text_size - 2),
                                         text(shortcut.0.to_string())
@@ -89,14 +89,11 @@ pub fn view<'a>(settings: &AtomSettings) -> Element<'a, Message, AtomTheme> {
                                     }),
                                     row![
                                         button(
-                                            icon(
-                                                if cfg!(target_os = "macos") {
-                                                    '\u{f0633}'
-                                                } else {
-                                                    '\u{f0634}'
-                                                },
-                                                CustomFont::Symbols
-                                            )
+                                            if cfg!(target_os = "macos") {
+                                                icons::command()
+                                            } else {
+                                                icons::ctrl()
+                                            }
                                             .size(12)
                                         )
                                         .class(AtomStyleButton::ShortcutKeyButton)

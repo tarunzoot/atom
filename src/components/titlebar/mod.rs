@@ -1,6 +1,6 @@
 use crate::{
     components::settings::AtomSettings,
-    font::{icon, CustomFont},
+    icons,
     messages::TitleBarMessage,
     style::{
         button::AtomStyleButton, container::AtomStyleContainer, input::AtomStyleInput, AtomTheme,
@@ -10,7 +10,7 @@ use iced::{
     widget::{button, column as col, container, mouse_area, row, text, text_input},
     Alignment, Element, Font,
     Length::{Fill, Fixed},
-    Padding, Renderer,
+    Padding,
 };
 
 #[derive(Debug, Default)]
@@ -23,7 +23,7 @@ impl AtomTitleBar {
         &self,
         settings: &AtomSettings,
         is_homepage_active: bool,
-    ) -> Element<TitleBarMessage, AtomTheme, Renderer> {
+    ) -> Element<TitleBarMessage, AtomTheme> {
         let mut search_input = text_input("search downloads...", &self.search_text)
             .id(iced::widget::text_input::Id::new("search"))
             .padding(Padding::new(20.0).top(8).bottom(8))
@@ -52,7 +52,7 @@ impl AtomTitleBar {
                                 row!()
                                     .align_y(Alignment::Center)
                                     .spacing(10)
-                                    .push(icon('\u{ead8}', CustomFont::IcoFont).size(20))
+                                    .push(icons::electron().size(20))
                                     .push(
                                         text("A.T.O.M")
                                             // text("a.t.o.m")
@@ -85,19 +85,19 @@ impl AtomTitleBar {
                                         container(
                                             row!()
                                                 .push(
-                                                    button(icon('\u{ef9a}', CustomFont::IcoFont))
+                                                    button(icons::minus())
                                                         .padding(14)
                                                         .class(AtomStyleButton::HeaderButtons)
                                                         .on_press(TitleBarMessage::AppMinimize),
                                                 )
                                                 .push(
-                                                    button(icon('\u{ef52}', CustomFont::IcoFont))
+                                                    button(icons::maximize())
                                                         .padding(14)
                                                         .class(AtomStyleButton::HeaderButtons)
                                                         .on_press(TitleBarMessage::AppMaximize),
                                                 )
                                                 .push(
-                                                    button(icon('\u{eee1}', CustomFont::IcoFont))
+                                                    button(icons::close_line())
                                                         .padding(14)
                                                         .class(AtomStyleButton::HeaderButtons)
                                                         .on_press(if !settings.minimize_to_tray {
