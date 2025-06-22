@@ -1,12 +1,15 @@
 use super::AtomDownload;
 use crate::{
-    components::settings::{AtomSettings, ListLayout},
+    components::{
+        listview_header::get_list_view_header_column_length,
+        settings::{AtomSettings, ListLayout},
+    },
     elements::GuiElements,
     font::{file_type_icon, get_file_type},
     icons,
     messages::DownloadMessage,
     style::{button::AtomStyleButton, container::AtomStyleContainer, AtomStyleText, AtomTheme},
-    utils::helpers::{get_formatted_time, get_list_view_column_length, ListViewColumns},
+    utils::helpers::{get_formatted_time, ListViewColumns},
 };
 use iced::{
     widget::{
@@ -113,7 +116,9 @@ impl AtomDownload {
             .spacing(5)
         ]
         .spacing(10)
-        .width(get_list_view_column_length(ListViewColumns::FileName))
+        .width(get_list_view_header_column_length(
+            ListViewColumns::FileName,
+        ))
         .align_x(iced::Alignment::Start)
         .into()
     }
@@ -144,7 +149,9 @@ impl AtomDownload {
         .align_x(Alignment::Start);
 
         text_col
-            .width(get_list_view_column_length(ListViewColumns::FileSize))
+            .width(get_list_view_header_column_length(
+                ListViewColumns::FileSize,
+            ))
             .into()
     }
 
@@ -236,7 +243,7 @@ impl AtomDownload {
     ) -> Element<DownloadMessage, AtomTheme, Renderer> {
         let (length, progress_bar_length) = if matches!(layout, ListLayout::List) {
             (
-                get_list_view_column_length(ListViewColumns::Status),
+                get_list_view_header_column_length(ListViewColumns::Status),
                 Length::Fixed(50.0),
             )
         } else {
@@ -302,7 +309,7 @@ impl AtomDownload {
         text_size: f32,
     ) -> Element<DownloadMessage, AtomTheme, Renderer> {
         col![text(self.get_formatted_transfer_rate()).size(text_size)]
-            .width(get_list_view_column_length(ListViewColumns::Speed))
+            .width(get_list_view_header_column_length(ListViewColumns::Speed))
             .align_x(Alignment::Start)
             .into()
     }
@@ -362,7 +369,7 @@ impl AtomDownload {
         let status_col = self.get_status_view(ListLayout::List, text_size, responsive);
         let transfer_rate_col = self.get_transfer_rate_view(text_size);
         let actions_col =
-            self.get_actions_view(get_list_view_column_length(ListViewColumns::Actions));
+            self.get_actions_view(get_list_view_header_column_length(ListViewColumns::Actions));
 
         let mut main_row = row!()
             .align_y(iced::Alignment::Center)
@@ -374,7 +381,7 @@ impl AtomDownload {
             .push(transfer_rate_col)
             .push(
                 text(self.get_formatted_eta())
-                    .width(get_list_view_column_length(ListViewColumns::Eta))
+                    .width(get_list_view_header_column_length(ListViewColumns::Eta))
                     .size(text_size),
             );
 
@@ -382,7 +389,7 @@ impl AtomDownload {
             main_row = main_row.push(
                 text(&self.added)
                     .size(text_size)
-                    .width(get_list_view_column_length(ListViewColumns::Added)),
+                    .width(get_list_view_header_column_length(ListViewColumns::Added)),
             );
         }
 
@@ -651,10 +658,10 @@ impl AtomDownload {
 
         if self.show_delete_confirm_dialog {
             let move2trash_btn = tooltip(
-                GuiElements::primary_button(vec![
+                GuiElements::primary_button(
                     icons::trash_bin_open(),
-                    text("trash"),
-                ])
+                    "trash",
+                )
                 .width(Length::Fixed(150.0))
                 .on_press(DownloadMessage::RemoveDownload(false)),
                 text("Without erasing the cached or unfinished files, will transfer the download from the main list to the garbage list.").size(10),
@@ -665,10 +672,10 @@ impl AtomDownload {
             .padding(10);
 
             let force_delete_btn = tooltip(
-                GuiElements::primary_button(vec![
+                GuiElements::primary_button(
                     icons::recycle_bin(),
-                    text("delete"),
-                ])
+                    "delete",
+                )
                 .width(Length::Fixed(200.0))
                 .on_press(DownloadMessage::RemoveDownload(true)),
                 text("Deletes the cached or partial files from the disc and the download from the list.").size(10),
@@ -678,10 +685,9 @@ impl AtomDownload {
             .gap(10)
             .padding(10);
 
-            let cancel_btn =
-                GuiElements::primary_button(vec![icons::close_line_circled(), text("cancel")])
-                    .width(Length::Fixed(150.0))
-                    .on_press(DownloadMessage::HideDialog);
+            let cancel_btn = GuiElements::primary_button(icons::close_line_circled(), "cancel")
+                .width(Length::Fixed(150.0))
+                .on_press(DownloadMessage::HideDialog);
 
             GuiElements::modal(
                 download_container,

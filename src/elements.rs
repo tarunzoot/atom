@@ -47,15 +47,12 @@ impl GuiElements {
         .into()
     }
 
-    pub fn primary_button<'a, T>(
-        contents: Vec<impl Into<Element<'a, T, AtomTheme>>>,
-    ) -> Button<'a, T, AtomTheme>
+    pub fn primary_button<'a, T, U>(icon: Text<'a, AtomTheme>, label: U) -> Button<'a, T, AtomTheme>
     where
         T: std::fmt::Debug + 'a,
+        U: Into<Text<'a, AtomTheme>>,
     {
-        let content_row = contents
-            .into_iter()
-            .fold(row!(), |row, child| row.push(child))
+        let content_row = row![icon, label.into()]
             .align_y(Alignment::Center)
             .spacing(5);
 

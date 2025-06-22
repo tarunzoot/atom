@@ -5,7 +5,6 @@ use crate::{
     },
     messages::DownloadProperties,
 };
-use iced::Length;
 use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue, ACCEPT_RANGES, CONTENT_LENGTH, USER_AGENT},
     Client, Method,
@@ -43,19 +42,6 @@ pub enum ListViewColumns {
     Eta,
     Added,
     Actions,
-}
-
-pub fn get_list_view_column_length(view: ListViewColumns) -> Length {
-    match view {
-        ListViewColumns::FileName => Length::FillPortion(5),
-        ListViewColumns::FileSize => Length::FillPortion(2),
-        ListViewColumns::Status => Length::FillPortion(2),
-        ListViewColumns::Speed => Length::FillPortion(2),
-        ListViewColumns::Eta => Length::FillPortion(2),
-        ListViewColumns::Added => Length::FillPortion(2),
-        ListViewColumns::Actions => Length::Fixed(75.0),
-        // _ => Length::Fill,
-    }
 }
 
 pub fn get_current_time_in_millis() -> usize {

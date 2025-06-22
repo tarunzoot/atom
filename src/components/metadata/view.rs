@@ -21,19 +21,15 @@ use std::{path::Path, time::Duration};
 impl AtomDownloadMetadata {
     pub fn view(&self, settings: &AtomSettings) -> Element<MetadataMessage, AtomTheme> {
         let file_path = Path::new(&self.file_path);
-        let mut open_btn = GuiElements::primary_button(vec![
-            icons::envelope_open().size(12),
-            text("open").size(14),
-        ])
-        .padding(7)
-        .width(Fill);
+        let mut open_btn =
+            GuiElements::primary_button(icons::envelope_open().size(12), text("open").size(14))
+                .padding(7)
+                .width(Fill);
 
-        let mut delete_btn = GuiElements::primary_button(vec![
-            icons::trash_bin_open().size(12),
-            text("delete").size(14),
-        ])
-        .padding(7)
-        .width(Fill);
+        let mut delete_btn =
+            GuiElements::primary_button(icons::trash_bin_open().size(12), text("delete").size(14))
+                .padding(7)
+                .width(Fill);
 
         if file_path.exists() {
             open_btn = open_btn.on_press(MetadataMessage::PreviewFile);

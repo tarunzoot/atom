@@ -47,7 +47,7 @@ pub fn view<'a>(settings: &AtomSettings) -> Element<'a, Message, AtomTheme> {
     shortcuts_col = shortcuts_col.push(shortcuts.chunks(chunk_len).fold(
         col![].spacing(20).align_x(Alignment::Center),
         |column, chunk| {
-            let mut row = chunk.into_iter().fold(
+            let mut row = chunk.iter().fold(
                 row![].spacing(20).align_y(Alignment::Center).width(Shrink),
                 |row, shortcut| {
                     row.push(

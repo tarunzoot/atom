@@ -33,7 +33,7 @@ impl AtomSettings {
                             .padding(ATOM_INPUT_DEFAULT_PADDING),
                     )
                     .push(
-                        GuiElements::primary_button(vec![icons::folder(), text("open")])
+                        GuiElements::primary_button(icons::folder(), "open")
                             .on_press(SettingsMessage::OpenConfigDir),
                     ),
             );
@@ -67,19 +67,19 @@ impl AtomSettings {
                             .padding(ATOM_INPUT_DEFAULT_PADDING),
                     )
                     .push(
-                        GuiElements::primary_button(vec![icons::envelope_open(), text("browse")])
+                        GuiElements::primary_button(icons::envelope_open(), "browse")
                             .on_press(SettingsMessage::BrowseDownloadsDirClicked),
                     ),
             );
 
         let buttons_row = row![
-            GuiElements::primary_button(vec![icons::harddisk(), text("save")])
+            GuiElements::primary_button(icons::harddisk(), "save")
                 .on_press(SettingsMessage::SaveSettings(true)),
-            GuiElements::primary_button(vec![icons::rotation(), text("reset")])
+            GuiElements::primary_button(icons::rotation(), "reset")
                 .on_press(SettingsMessage::ResetSettings(false)),
-            GuiElements::primary_button(vec![icons::trash_bin_open(), text("clear cache")])
+            GuiElements::primary_button(icons::trash_bin_open(), "clear cache")
                 .on_press(SettingsMessage::ClearCacheClicked(false)),
-            GuiElements::primary_button(vec![icons::close_circled(), text("cancel")])
+            GuiElements::primary_button(icons::close_circled(), "cancel")
                 .on_press(SettingsMessage::ClosePane),
         ]
         .spacing(20);
@@ -290,19 +290,18 @@ impl AtomSettings {
 
         if self.show_confirm_dialog {
             let action_btn = if self.reset_settings {
-                GuiElements::primary_button(vec![icons::rotation(), text("reset")])
+                GuiElements::primary_button(icons::rotation(), "reset")
                     .width(Fixed(150.0))
                     .on_press(SettingsMessage::ResetSettings(true))
             } else {
-                GuiElements::primary_button(vec![icons::trash_bin_open(), text("delete")])
+                GuiElements::primary_button(icons::trash_bin_open(), "delete")
                     .width(Fixed(150.0))
                     .on_press(SettingsMessage::ClearCacheClicked(true))
             };
 
-            let cancel_btn =
-                GuiElements::primary_button(vec![icons::close_circled(), text("cancel")])
-                    .width(Fixed(150.0))
-                    .on_press(SettingsMessage::HideDialog);
+            let cancel_btn = GuiElements::primary_button(icons::close_circled(), "cancel")
+                .width(Fixed(150.0))
+                .on_press(SettingsMessage::HideDialog);
 
             GuiElements::modal(
                 settings_container,

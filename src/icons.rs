@@ -244,3 +244,7 @@ pub fn ctrl<'a>() -> Text<'a, AtomTheme> {
 pub fn failed<'a>() -> Text<'a, AtomTheme> {
     icon_symbols('\u{f0164}')
 }
+
+pub fn harddisk_alt<'a>() -> Text<'a, AtomTheme> {
+    icon_symbols('\u{f0193}')
+}

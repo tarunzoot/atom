@@ -166,8 +166,7 @@ impl AtomDownloadForm {
         downloads_count: usize,
         window_id: Option<Id>,
     ) -> Element<DownloadFormMessage, AtomTheme> {
-        let mut download_btn =
-            GuiElements::primary_button(vec![icons::cloud_download(), text("download")]);
+        let mut download_btn = GuiElements::primary_button(icons::cloud_download(), "download");
 
         if self.is_valid_url && !self.file_name.is_empty() {
             download_btn = download_btn.on_press(DownloadFormMessage::AddNewDownload);
@@ -180,7 +179,7 @@ impl AtomDownloadForm {
 
         if downloads_count > 0 || window_id.is_some() {
             buttons_row = buttons_row.push(
-                GuiElements::primary_button(vec![icons::close_circled(), text("cancel")])
+                GuiElements::primary_button(icons::close_circled(), "cancel")
                     .on_press(DownloadFormMessage::ClosePane),
             );
         }
@@ -197,7 +196,7 @@ impl AtomDownloadForm {
                 text_input("e.g: file.mp4", &self.file_name)
                     .class(AtomStyleInput::Disabled)
                     .padding(ATOM_INPUT_DEFAULT_PADDING),
-                GuiElements::primary_button(vec![icons::harddisk(), text("save as")])
+                GuiElements::primary_button(icons::harddisk(), "save as")
                     .on_press(DownloadFormMessage::BrowseSaveAsFolder)
                     .padding(Padding::from([7, 15]))
             ]
@@ -207,7 +206,7 @@ impl AtomDownloadForm {
 
         let import_tooltip_text = "Import headers from a file.\nFile format is: HeaderName: HeaderValue\nFor e.g.:\nContent-Type: text/html\nContent-Length: 123456789";
         let import_headers_tooltip = GuiElements::tooltip_top(
-            GuiElements::primary_button(vec![icons::down_zigzag(), text("import headers")])
+            GuiElements::primary_button(icons::down_zigzag(), "import headers")
                 .on_press(DownloadFormMessage::ImportHeaders),
             import_tooltip_text,
         );
@@ -219,7 +218,7 @@ impl AtomDownloadForm {
             text_input("header value here ...", &self.header_value)
                 .on_input(DownloadFormMessage::AddHeaderValue)
                 .padding(ATOM_INPUT_DEFAULT_PADDING),
-            GuiElements::primary_button(vec![icons::plus(), text("Add")])
+            GuiElements::primary_button(icons::plus(), "Add")
                 .on_press(DownloadFormMessage::AddHeader)
                 .padding(Padding::from([7, 15])),
             self.vertical_line(),

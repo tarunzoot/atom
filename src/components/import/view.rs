@@ -16,7 +16,7 @@ use iced::{
 impl AtomImport {
     pub fn view(&self) -> Element<ImportMessage, AtomTheme> {
         let mut start_download_btn =
-            GuiElements::primary_button(vec![icons::cloud_download(), text("start download")]);
+            GuiElements::primary_button(icons::cloud_download(), "start download");
 
         if !self.import_file.is_empty() {
             start_download_btn = start_download_btn.on_press(ImportMessage::StartImportDownload);
@@ -39,11 +39,8 @@ impl AtomImport {
                                     .padding(ATOM_INPUT_DEFAULT_PADDING),
                             )
                             .push(
-                                GuiElements::primary_button(vec![
-                                    icons::envelope_open(),
-                                    text("browse"),
-                                ])
-                                .on_press(ImportMessage::ImportFileClicked),
+                                GuiElements::primary_button(icons::envelope_open(), "browse")
+                                    .on_press(ImportMessage::ImportFileClicked),
                             ),
                     ),
                 )
@@ -60,11 +57,8 @@ impl AtomImport {
                                     .padding(ATOM_INPUT_DEFAULT_PADDING),
                             )
                             .push(
-                                GuiElements::primary_button(vec![
-                                    icons::envelope_open(),
-                                    text("browse"),
-                                ])
-                                .on_press(ImportMessage::DownloadFolderSelectClicked),
+                                GuiElements::primary_button(icons::envelope_open(), "browse")
+                                    .on_press(ImportMessage::DownloadFolderSelectClicked),
                             ),
                     ),
                 )
@@ -86,7 +80,7 @@ impl AtomImport {
                 )
                 .push(
                     row!().spacing(20).push(start_download_btn).push(
-                        GuiElements::primary_button(vec![icons::close_circled(), text("cancel")])
+                        GuiElements::primary_button(icons::close_circled(), "cancel")
                             .on_press(ImportMessage::ClosePane),
                     ),
                 )

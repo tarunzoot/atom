@@ -195,10 +195,10 @@ impl AtomSidebar<'_> {
                 sidebar_container,
                 text(delete_msg).size(24),
                 row![
-                    GuiElements::primary_button(vec![icons::trash_bin_open(), text("delete")])
+                    GuiElements::primary_button(icons::trash_bin_open(), "delete")
                         .width(Fixed(170.0))
                         .on_press(SidebarMessage::DeleteAll),
-                    GuiElements::primary_button(vec![icons::close_circled(), text("cancel")])
+                    GuiElements::primary_button(icons::close_circled(), "cancel")
                         .width(Fixed(170.0))
                         .on_press(SidebarMessage::HideDialog),
                 ]
