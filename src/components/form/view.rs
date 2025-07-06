@@ -122,7 +122,7 @@ impl AtomDownloadForm {
             "Automatically moves the download entry from the list to trash upon completion of the download.",
         );
 
-        if self.is_valid_url {
+        if self.is_valid_url && !self.file_name.is_empty() {
             toggles = toggles
                 .push(
                     col![auto_open_toggle]
