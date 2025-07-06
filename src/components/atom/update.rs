@@ -401,14 +401,14 @@ impl Atom<'_> {
                 DownloadMessage::RemoveDownload(force) => {
                     if force {
                         if let Some(download) = self.downloads.remove(&index) {
-                            if !download.is_downloaded() || download.deleted {
-                                if download.sequential {
-                                    let path =
-                                        PathBuf::from(download.file_path).join(download.file_name);
-                                    if let Err(e) = std::fs::remove_file(&path) {
-                                        warn!("Error deleting file {path:#?} : {e:#?}");
-                                    }
-                                } else {
+                            if (download.downloaded < download.size) || download.deleted {
+                                if !download.sequential {
+                                    // let path =
+                                    //     PathBuf::from(download.file_path).join(download.file_name);
+                                    // if let Err(e) = std::fs::remove_file(&path) {
+                                    //     warn!("Error deleting file {path:#?} : {e:#?}");
+                                    // }
+
                                     let path = PathBuf::from(&self.settings.cache_dir)
                                         .join(&download.file_name);
                                     for i in 1..=download.threads {
@@ -429,18 +429,24 @@ impl Atom<'_> {
                         }
                         return Command::done(Message::SaveDownloads);
                     } else if let Some(download) = self.downloads.get_mut(&index) {
-                        download.update(state, &self.settings);
+                        return download
+                            .update(state, &self.settings)
+                            .map(move |message| Message::Download(message, index));
                     }
                 }
                 DownloadMessage::Finished => {
                     if let Some(download) = self.downloads.get_mut(&index) {
-                        download.update(state, &self.settings);
+                        return download
+                            .update(state, &self.settings)
+                            .map(move |message| Message::Download(message, index));
                     }
                     return Command::done(Message::SaveDownloads);
                 }
                 _ => {
                     if let Some(download) = self.downloads.get_mut(&index) {
-                        download.update(state, &self.settings);
+                        return download
+                            .update(state, &self.settings)
+                            .map(move |message| Message::Download(message, index));
                     }
                 }
             },
@@ -647,7 +653,7 @@ impl Atom<'_> {
                 SidebarMessage::ResumeAll => {
                     self.downloads.iter_mut().for_each(|(&_, download)| {
                         if !download.is_downloaded() && !download.downloading {
-                            download.update(DownloadMessage::Downloading, &self.settings);
+                            let _ = download.update(DownloadMessage::Downloading, &self.settings);
                         }
                     });
                     self.sidebar.active = SideBarActiveButton::Overview;
@@ -706,7 +712,7 @@ impl Atom<'_> {
                 }
                 SidebarMessage::PauseAll => {
                     self.downloads.iter_mut().for_each(|(&_, download)| {
-                        download.update(DownloadMessage::Paused, &self.settings);
+                        let _ = download.update(DownloadMessage::Paused, &self.settings);
                     });
                     self.metadata.enabled = false;
                     self.sidebar.active = SideBarActiveButton::Overview;

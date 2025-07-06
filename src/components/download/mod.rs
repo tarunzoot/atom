@@ -38,6 +38,7 @@ pub struct AtomDownload {
     pub transfer_rate: f64,
     pub eta: f64,
     pub auto_open: bool,
+    pub auto_remove: bool,
     #[serde(skip_deserializing, skip_serializing)]
     pub joined_bytes: usize,
     #[serde(skip_deserializing, skip_serializing)]
@@ -73,6 +74,7 @@ impl Default for AtomDownload {
             joining: false,
             show_delete_confirm_dialog: false,
             auto_open: false,
+            auto_remove: false,
         }
     }
 }
@@ -94,6 +96,11 @@ impl AtomDownload {
 
     pub fn auto_open(mut self, open: bool) -> Self {
         self.auto_open = open;
+        self
+    }
+
+    pub fn auto_remove(mut self, open: bool) -> Self {
+        self.auto_remove = open;
         self
     }
 

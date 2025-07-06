@@ -113,6 +113,15 @@ impl AtomDownloadForm {
             "Automatically includes the Referer header in the request.",
         );
 
+        let auto_remove_toggle = GuiElements::tooltip_top(
+            GuiElements::toggle(
+                self.auto_remove,
+                DownloadFormMessage::AutoRemove,
+                "Auto Remove",
+            ),
+            "Automatically moves the download entry from the list to trash upon completion of the download.",
+        );
+
         if self.is_valid_url {
             toggles = toggles
                 .push(
@@ -123,8 +132,9 @@ impl AtomDownloadForm {
                 .push(
                     col![auto_referer_toggle]
                         .width(Fill)
-                        .align_x(Alignment::End),
+                        .align_x(Alignment::Center),
                 )
+                .push(col![auto_remove_toggle].width(Fill).align_x(Alignment::End));
         }
 
         toggles.into()

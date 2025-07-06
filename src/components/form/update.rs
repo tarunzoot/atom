@@ -49,6 +49,7 @@ impl AtomDownloadForm {
                 self.headers.remove(&header_name);
             }
             DownloadFormMessage::AutoOpen(open) => self.auto_open = open,
+            DownloadFormMessage::AutoRemove(remove) => self.auto_remove = remove,
             DownloadFormMessage::AutoReferer(checked) => {
                 if !self.url.is_empty() {
                     self.auto_referer = checked;

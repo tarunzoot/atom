@@ -3,11 +3,16 @@ use crate::{
     components::settings::AtomSettings,
     utils::helpers::{open_file, show_notification},
 };
+use iced::Task;
 use std::{path::PathBuf, time::SystemTime};
 use tracing::warn;
 
 impl AtomDownload {
-    pub fn update(&mut self, state: DownloadMessage, settings: &AtomSettings) {
+    pub fn update(
+        &mut self,
+        state: DownloadMessage,
+        settings: &AtomSettings,
+    ) -> Task<DownloadMessage> {
         match state {
             DownloadMessage::SetFileSize(size, file_size) => {
                 self.size = size;
@@ -52,6 +57,10 @@ impl AtomDownload {
                         .to_string_lossy()
                         .to_string();
                     open_file(&path);
+                }
+
+                if self.auto_remove {
+                    return Task::done(DownloadMessage::RemoveDownload(false));
                 }
             }
             DownloadMessage::DownloadProgress(downloaded) => {
@@ -105,5 +114,7 @@ impl AtomDownload {
             DownloadMessage::HideDialog => self.show_delete_confirm_dialog = false,
             _ => {}
         }
+
+        Task::none()
     }
 }

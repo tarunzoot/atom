@@ -15,6 +15,7 @@ pub struct AtomDownloadForm {
     pub header_value: String,
     pub auto_referer: bool,
     pub auto_open: bool,
+    pub auto_remove: bool,
     pub is_mouse_over_heading: bool,
 }
 
@@ -30,6 +31,7 @@ impl AtomDownloadForm {
             headers: download.headers,
             sequential: download.size == 0 || download.sequential,
             is_valid_url: true,
+            auto_remove: false,
             is_mouse_over_heading: false,
             ..Default::default()
         }
@@ -43,6 +45,7 @@ impl AtomDownloadForm {
             .headers(self.headers.clone())
             .download_type(self.sequential)
             .auto_open(self.auto_open)
+            .auto_remove(self.auto_remove)
             .build()
     }
 

@@ -46,6 +46,7 @@ pub enum DownloadFormMessage {
     ImportHeaders,
     AutoReferer(bool),
     AutoOpen(bool),
+    AutoRemove(bool),
     AddNewDownload,
     DownloadLater,
     Minimize,
