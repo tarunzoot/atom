@@ -85,6 +85,10 @@ pub fn clock<'a>() -> Text<'a, AtomTheme> {
     icon_icofont('\u{f022}')
 }
 
+pub fn clock_alt<'a>() -> Text<'a, AtomTheme> {
+    icon_icofont('\u{e819}')
+}
+
 pub fn check_circled<'a>() -> Text<'a, AtomTheme> {
     icon_icofont('\u{eed7}')
 }

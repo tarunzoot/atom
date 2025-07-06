@@ -47,6 +47,7 @@ pub enum DownloadFormMessage {
     AutoReferer(bool),
     AutoOpen(bool),
     AddNewDownload,
+    DownloadLater,
     Minimize,
     MouseOverHeading,
     MouseAwayFromHeading,

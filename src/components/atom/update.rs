@@ -570,10 +570,17 @@ impl Atom<'_> {
                             crate::messages::DownloadFormMessage::Minimize => {
                                 return window::minimize(window_id.unwrap(), true);
                             }
-                            crate::messages::DownloadFormMessage::AddNewDownload => {
+                            crate::messages::DownloadFormMessage::AddNewDownload
+                            | crate::messages::DownloadFormMessage::DownloadLater => {
                                 let window_id = window_id.unwrap();
                                 if let Some(window) = self.windows.get_mut(&window_id) {
-                                    if let Ok(download) = window.1.make_download() {
+                                    if let Ok(mut download) = window.1.make_download() {
+                                        if matches!(
+                                            message,
+                                            crate::messages::DownloadFormMessage::DownloadLater
+                                        ) {
+                                            download.downloading = false;
+                                        }
                                         return Command::batch([
                                             Command::done(Message::AddNewDownload(download)),
                                             Command::done(Message::WindowClosed(window_id)),
@@ -596,8 +603,15 @@ impl Atom<'_> {
                     }
                 } else {
                     match message {
-                        crate::messages::DownloadFormMessage::AddNewDownload => {
-                            if let Ok(download) = self.download_form.make_download() {
+                        crate::messages::DownloadFormMessage::AddNewDownload
+                        | crate::messages::DownloadFormMessage::DownloadLater => {
+                            if let Ok(mut download) = self.download_form.make_download() {
+                                if matches!(
+                                    message,
+                                    crate::messages::DownloadFormMessage::DownloadLater
+                                ) {
+                                    download.downloading = false;
+                                }
                                 return Command::done(Message::AddNewDownload(download));
                             }
                         }

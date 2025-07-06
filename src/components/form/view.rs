@@ -14,7 +14,7 @@ use crate::{
 use iced::{
     widget::{
         button, column as col, container, horizontal_space, mouse_area, row, text, text_input,
-        toggler, tooltip, tooltip::Position, vertical_space,
+        vertical_space,
     },
     window::Id,
     Alignment, Element,
@@ -74,25 +74,20 @@ impl AtomDownloadForm {
     fn toggles_view(&self) -> Element<DownloadFormMessage, AtomTheme> {
         let sequential_tooltip_text = "Switch modes only if you are certain that the server supports the selected download method; otherwise, the download may fail.";
 
-        let sequential_toggler = toggler(self.sequential)
-            .label("Download Sequentially".to_string())
-            .spacing(10)
-            .text_alignment(iced::alignment::Horizontal::Left)
-            .width(Shrink)
-            .on_toggle(DownloadFormMessage::DownloadSequentially);
+        let sequential_toggler = GuiElements::toggle(
+            self.sequential,
+            DownloadFormMessage::DownloadSequentially,
+            "Download Sequentially",
+        );
 
         let mut toggles = row!().spacing(20).width(Fill).align_y(Alignment::Center);
 
         if self.sequential {
             toggles = toggles.push(
-                col![tooltip(
+                col![GuiElements::tooltip_top(
                     sequential_toggler,
-                    text(sequential_tooltip_text).size(12),
-                    Position::Top,
-                )
-                .gap(10)
-                .padding(10)
-                .class(AtomStyleContainer::ToolTipContainer)]
+                    sequential_tooltip_text,
+                )]
                 .width(Fill)
                 .align_x(Alignment::Start),
             );
@@ -104,33 +99,19 @@ impl AtomDownloadForm {
             );
         }
 
-        let auto_open_toggle = tooltip(
-            toggler(self.auto_open)
-                .label("Auto Open".to_string())
-                .on_toggle(DownloadFormMessage::AutoOpen)
-                .spacing(10)
-                .text_alignment(iced::alignment::Horizontal::Left)
-                .width(Shrink),
-            text("Automatically opens the file upon completion of the download.").size(12),
-            Position::Top,
-        )
-        .gap(10)
-        .padding(10)
-        .class(AtomStyleContainer::ToolTipContainer);
+        let auto_open_toggle = GuiElements::tooltip_top(
+            GuiElements::toggle(self.auto_open, DownloadFormMessage::AutoOpen, "Auto Open"),
+            "Automatically opens the file upon completion of the download.",
+        );
 
-        let auto_referer_toggle = tooltip(
-            toggler(self.auto_referer)
-                .label("Auto Referer".to_string())
-                .on_toggle(DownloadFormMessage::AutoReferer)
-                .spacing(10)
-                .text_alignment(iced::alignment::Horizontal::Left)
-                .width(Shrink),
-            text("Automatically includes the Referer header in the request.").size(12),
-            Position::Top,
-        )
-        .gap(10)
-        .padding(10)
-        .class(AtomStyleContainer::ToolTipContainer);
+        let auto_referer_toggle = GuiElements::tooltip_top(
+            GuiElements::toggle(
+                self.auto_referer,
+                DownloadFormMessage::AutoReferer,
+                "Auto Referer",
+            ),
+            "Automatically includes the Referer header in the request.",
+        );
 
         if self.is_valid_url {
             toggles = toggles
@@ -167,15 +148,22 @@ impl AtomDownloadForm {
         window_id: Option<Id>,
     ) -> Element<DownloadFormMessage, AtomTheme> {
         let mut download_btn = GuiElements::primary_button(icons::cloud_download(), "download");
+        let mut download_later_btn =
+            GuiElements::primary_button(icons::clock_alt(), "download later");
 
         if self.is_valid_url && !self.file_name.is_empty() {
             download_btn = download_btn.on_press(DownloadFormMessage::AddNewDownload);
+            download_later_btn = download_later_btn.on_press(DownloadFormMessage::DownloadLater);
         }
 
         let headers = self.headers_view();
         let toggles = self.toggles_view();
 
-        let mut buttons_row = row!().spacing(20).width(Fill).push(download_btn);
+        let mut buttons_row = row!()
+            .spacing(20)
+            .width(Fill)
+            .push(download_btn)
+            .push(download_later_btn);
 
         if downloads_count > 0 || window_id.is_some() {
             buttons_row = buttons_row.push(
