@@ -81,7 +81,13 @@ impl text_input::Catalog for AtomTheme {
 
                 text_input::Style {
                     background: Background::Color(appearance.background),
-                    icon: appearance.accent,
+                    icon: match class {
+                        AtomStyleInput::Search => Color {
+                            a: 0.1,
+                            ..appearance.placeholder
+                        },
+                        _ => appearance.accent,
+                    },
                     border: Border {
                         color: match self {
                             AtomTheme::Tangerine => Color::TRANSPARENT,
@@ -133,7 +139,7 @@ impl text_input::Catalog for AtomTheme {
                     selection: appearance.accent,
                 }
             }
-            text_input::Status::Focused => {
+            text_input::Status::Focused { is_hovered: _ } => {
                 let appearance = class.appearance(self);
 
                 text_input::Style {
@@ -141,6 +147,7 @@ impl text_input::Catalog for AtomTheme {
                         color: appearance.accent,
                         ..self.style(class, text_input::Status::Active).border
                     },
+                    icon: appearance.accent,
                     ..self.style(class, text_input::Status::Active)
                 }
             }
@@ -151,7 +158,13 @@ impl text_input::Catalog for AtomTheme {
                         color: appearance.disabled_border,
                         ..self.style(class, text_input::Status::Active).border
                     },
-                    icon: appearance.accent,
+                    icon: match class {
+                        AtomStyleInput::Search => Color {
+                            a: 0.1,
+                            ..appearance.placeholder
+                        },
+                        _ => appearance.accent,
+                    },
                     background: Background::Color(appearance.background),
                     placeholder: appearance.placeholder,
                     value: appearance.placeholder,

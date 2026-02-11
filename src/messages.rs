@@ -26,9 +26,9 @@ pub enum DownloadMessage {
     Error(String),
     DownloadSelected,
     MarkDeleted,
+    Restore,
     RemoveDownload(bool), // force delete is true (for trash)
     HideDialog,
-    Ignore,
 }
 
 #[derive(Debug, Clone)]
@@ -75,13 +75,12 @@ pub enum SettingsMessage {
     QuitActionToggle(bool),
     MaximizedActionToggle(bool),
     AutoStartDownloadToggle(bool),
-    ListBackgroundToggle(bool),
     AlwaysShowPreviewPaneToggle(bool),
     ScrollbarsVisible(bool),
     ThemeChanged(String),
     ListLayoutChanged(String),
     NewDownloadPositionChanged(String),
-    ScalingChanged(f64),
+    ScalingChanged(f32),
     TextSizeChanged(f32),
     DownloadDirSelected(Option<PathBuf>),
     // BrowseCacheDirClicked,
@@ -174,5 +173,6 @@ pub enum Message {
     MainWindow(Id),
     WindowClosed(Id),
     WindowOpened(Id, Option<AtomDownload>),
+    ListenerActive((bool, String)), // bool for checking active state and string for message
     Ignore,
 }

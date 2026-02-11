@@ -1,19 +1,40 @@
 use super::{AtomDownload, DownloadType};
 use crate::{
-    messages::{DownloadMessage, DownloadProperties, Message},
+    messages::{DownloadMessage, DownloadProperties},
     utils::helpers::{get_content_length, hashmap2headermap, split_file_name, ATOM_USER_AGENT},
 };
-use iced::{futures::stream::unfold, Subscription};
+use iced::{
+    futures::stream::{self, Stream},
+    Subscription,
+};
 use reqwest::{
     header::{RANGE, USER_AGENT},
     Client, Method, Response,
 };
 use std::{
+    collections::VecDeque,
     fs::File,
     io::{BufReader, BufWriter, Read, Write},
     path::{Path, PathBuf},
 };
 use tracing::{debug, error, warn};
+
+const BUFFER_SIZE: usize = 1024 * 1000;
+
+#[derive(Debug, Clone)]
+struct DownloadSubData {
+    index: usize,
+    client: Client,
+    download: AtomDownload,
+    cache_dir: String,
+}
+
+impl std::hash::Hash for DownloadSubData {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.index.hash(state);
+        self.download.url.hash(state);
+    }
+}
 
 #[derive(Debug)]
 struct SubDownloads {
@@ -27,7 +48,7 @@ enum State {
     ThreadedStarting(Client, AtomDownload, String, Vec<String>),
     SequentialDownloading(Response, BufWriter<File>, usize),
     ThreadedDownloading(AtomDownload, Vec<SubDownloads>, String, Vec<String>, usize),
-    FileJoining(BufWriter<File>, Vec<BufReader<File>>, usize, usize),
+    FileJoining(BufWriter<File>, VecDeque<String>, BufReader<File>, Vec<u8>),
     SequentialFinished,
     ThreadedFinished(String, Vec<String>),
     Wait,
@@ -40,81 +61,90 @@ impl AtomDownload {
         index: usize,
         cache_dir: &Path,
         client: Client,
-    ) -> Subscription<Message> {
+    ) -> Subscription<DownloadMessage> {
         if !self.downloading && (self.sequential || !self.joining) {
             return Subscription::none();
         }
 
-        let file_path = PathBuf::from(&self.file_path).join(&self.file_name);
-
-        if self.is_downloaded() && file_path.exists() {
-            return self.unfold_subscription(State::SequentialFinished, index);
-        }
-
-        let state = State::Starting(
-            client,
-            self.clone(),
-            cache_dir.to_string_lossy().to_string(),
-        );
-
         debug!(download=?self);
-
-        self.unfold_subscription(state, index)
+        self.unfold_subscription(client, cache_dir.to_string_lossy().to_string(), index)
     }
 
-    fn unfold_subscription(&self, state: State, index: usize) -> Subscription<Message> {
-        Subscription::run_with_id(
-            index,
-            unfold(state, move |state| async move {
-                match state {
-                    State::Wait => iced::futures::future::pending().await,
-                    State::SequentialFinished => Some((
-                        Message::Download(DownloadMessage::Finished, index),
-                        State::Wait,
-                    )),
-                    State::ThreadedFinished(destination_file, files) => Some(
-                        handle_threaded_download_finish(&destination_file, &files, index),
-                    ),
-                    State::ThreadedDownloading(
+    #[tracing::instrument]
+    fn download_stream(data: &DownloadSubData) -> impl Stream<Item = DownloadMessage> {
+        let state = State::Starting(
+            data.client.clone(),
+            data.download.clone(),
+            data.cache_dir.clone(),
+        );
+
+        stream::unfold(state, move |state| async move {
+            match state {
+                // State::Wait => iced::futures::future::pending().await,
+                State::Wait => None,
+                // State::SequentialFinished => Some((DownloadMessage::Ignore, State::Wait)),
+                State::SequentialFinished => None,
+
+                State::ThreadedFinished(destination_file, files) => {
+                    Some(handle_threaded_download_finish(&destination_file, files))
+                }
+
+                State::ThreadedDownloading(
+                    download,
+                    sub_downloads,
+                    destination_file,
+                    chunk_files,
+                    downloaded,
+                ) => Some(
+                    handle_threaded_downloading(
                         download,
                         sub_downloads,
                         destination_file,
                         chunk_files,
                         downloaded,
-                    ) => Some(
-                        handle_threaded_downloading(
-                            download,
-                            sub_downloads,
-                            destination_file,
-                            chunk_files,
-                            downloaded,
-                            index,
-                        )
-                        .await,
-                    ),
-                    State::ThreadedStarting(client, download, destination_file, chunk_files) => {
-                        Some(
-                            handle_threaded_download_starting(
-                                download,
-                                destination_file,
-                                chunk_files,
-                                client,
-                                index,
-                            )
-                            .await,
-                        )
-                    }
-                    State::SequentialDownloading(response, file, downloaded) => {
-                        Some(handle_sequential_downloading(response, file, downloaded, index).await)
-                    }
-                    State::Starting(client, download, cache_dir) => {
-                        Some(handle_download_starting(download, client, cache_dir, index).await)
-                    }
-                    State::FileJoining(bw, chunk_files, current_index, index) => {
-                        Some(handle_joining_progress(bw, chunk_files, current_index, index).await)
-                    }
+                    )
+                    .await,
+                ),
+
+                State::ThreadedStarting(client, download, destination_file, chunk_files) => Some(
+                    handle_threaded_download_starting(
+                        download,
+                        destination_file,
+                        chunk_files,
+                        client,
+                    )
+                    .await,
+                ),
+
+                State::SequentialDownloading(response, file, downloaded) => {
+                    Some(handle_sequential_downloading(response, file, downloaded).await)
                 }
-            }),
+
+                State::Starting(client, download, cache_dir) => {
+                    Some(handle_download_starting(download, client, cache_dir).await)
+                }
+
+                State::FileJoining(bw, chunk_files, chunk_files_reader, buffer) => {
+                    Some(handle_joining_progress(bw, chunk_files, chunk_files_reader, buffer).await)
+                }
+            }
+        })
+    }
+
+    fn unfold_subscription(
+        &self,
+        client: Client,
+        cache_dir: String,
+        index: usize,
+    ) -> Subscription<DownloadMessage> {
+        Subscription::run_with(
+            DownloadSubData {
+                index,
+                download: self.clone(),
+                client,
+                cache_dir,
+            },
+            AtomDownload::download_stream,
         )
     }
 }
@@ -123,8 +153,7 @@ async fn handle_download_starting(
     mut download: AtomDownload,
     client: Client,
     cache_dir: String,
-    index: usize,
-) -> (Message, State) {
+) -> (DownloadMessage, State) {
     let file_path = Path::new(&download.file_path)
         .join(&download.file_name)
         .to_str()
@@ -146,10 +175,7 @@ async fn handle_download_starting(
     }
 
     if !options.error.is_empty() {
-        return (
-            Message::Download(DownloadMessage::Error(options.error), index),
-            State::Wait,
-        );
+        return (DownloadMessage::Error(options.error), State::Wait);
     }
 
     match (options.download_type, download.sequential) {
@@ -174,13 +200,7 @@ async fn handle_download_starting(
 
             download.size = options.content_length;
             (
-                Message::Download(
-                    DownloadMessage::SetFileSize(
-                        options.content_length,
-                        downloaded_bytes_len as usize,
-                    ),
-                    index,
-                ),
+                DownloadMessage::SetFileSize(options.content_length, downloaded_bytes_len as usize),
                 State::ThreadedStarting(client, download, file_path, files),
             )
         }
@@ -210,6 +230,9 @@ async fn handle_download_starting(
 
                 if options.content_length != 0 {
                     file_size = file.metadata().unwrap().len() as usize;
+                    if file_size >= download.size {
+                        return (DownloadMessage::Finished, State::Wait);
+                    }
                     client = client.header(
                         RANGE,
                         format!("bytes={}-{}", file_size, options.content_length),
@@ -218,27 +241,21 @@ async fn handle_download_starting(
 
                 if let Ok(response) = client.send().await {
                     (
-                        Message::Download(
-                            DownloadMessage::SetFileSize(options.content_length, file_size),
-                            index,
-                        ),
+                        DownloadMessage::SetFileSize(options.content_length, file_size),
                         State::SequentialDownloading(response, BufWriter::new(file), file_size),
                     )
                 } else {
                     (
-                        Message::Download(
-                            DownloadMessage::Error("failed to create download client!".to_string()),
-                            index,
-                        ),
+                        DownloadMessage::Error("Failed to initialize download client.".to_string()),
                         State::Wait,
                     )
                 }
             } else {
                 (
-                    Message::Download(
-                        DownloadMessage::Error(format!("failed to create {}!", download.file_name)),
-                        index,
-                    ),
+                    DownloadMessage::Error(format!(
+                        "Failed to create download file {}.",
+                        download.file_name
+                    )),
                     State::Wait,
                 )
             }
@@ -250,19 +267,15 @@ async fn handle_sequential_downloading(
     mut response: Response,
     mut file: BufWriter<File>,
     mut downloaded: usize,
-    index: usize,
-) -> (Message, State) {
+) -> (DownloadMessage, State) {
     let chunk = response.chunk().await;
 
     if !response.status().is_success() {
         return (
-            Message::Download(
-                DownloadMessage::Error(format!(
-                    "The server responded with an {} status code",
-                    response.status()
-                )),
-                index,
-            ),
+            DownloadMessage::Error(format!(
+                "The server returned a non-success({}) status code.",
+                response.status()
+            )),
             State::Wait,
         );
     }
@@ -271,29 +284,23 @@ async fn handle_sequential_downloading(
         Ok(Some(chunk)) => {
             if file.write_all(&chunk[..]).is_err() {
                 return (
-                    Message::Download(
-                        DownloadMessage::Error("error occurred while downloading!".to_string()),
-                        index,
-                    ),
+                    DownloadMessage::Error("error occurred while downloading!".to_string()),
                     State::Wait,
                 );
             }
             downloaded += chunk.len();
 
             (
-                Message::Download(DownloadMessage::DownloadProgress(downloaded), index),
+                DownloadMessage::DownloadProgress(downloaded),
                 State::SequentialDownloading(response, file, downloaded),
             )
         }
-        Ok(None) => (
-            Message::Download(DownloadMessage::Finished, index),
-            State::Wait,
-        ),
+        Ok(None) => (DownloadMessage::Finished, State::Wait),
         Err(error) => (
-            Message::Download(
-                DownloadMessage::Error(format!("download error : {:?}", error)),
-                index,
-            ),
+            DownloadMessage::Error(format!(
+                "Failed to retrieve chunk from the server: {:?}.",
+                error
+            )),
             State::Wait,
         ),
     }
@@ -305,8 +312,7 @@ async fn handle_threaded_download_starting(
     destination_file: String,
     chunk_files: Vec<String>,
     client: Client,
-    index: usize,
-) -> (Message, State) {
+) -> (DownloadMessage, State) {
     let mut sub_downloads: Vec<SubDownloads> = vec![];
     let mut downloaded = 0;
     let chunk_size = download.size / (download.threads as usize);
@@ -327,8 +333,6 @@ async fn handle_threaded_download_starting(
                 file_len = meta.len() as usize;
             }
             downloaded += file_len;
-
-            debug!("file_len: {file_len}, chunk_len: {chunk_size}, previous_chunk_start: {previous_chunk_start}");
 
             if file_len >= chunk_size || (previous_chunk_start + file_len) >= download.size {
                 continue;
@@ -364,59 +368,44 @@ async fn handle_threaded_download_starting(
             );
             open_chunk_files.push(file);
 
-            debug!(client=?client);
-
             responses.push(client.send());
         } else {
             return (
-                Message::Download(
-                    DownloadMessage::Error(format!(
-                        "Error: failed to create {}!",
-                        download.file_name
-                    )),
-                    index,
-                ),
+                DownloadMessage::Error(format!("Failed to create {} file.", download.file_name)),
                 State::Wait,
             );
         }
     }
 
     for (response, file) in responses.into_iter().zip(open_chunk_files) {
-        if let Ok(response) = response.await {
-            debug!("response = {response:#?}");
-            if response.status().is_success() {
-                sub_downloads.push(SubDownloads {
-                    response,
-                    file: BufWriter::new(file),
-                });
-            } else {
-                return (
-                    Message::Download(
+        match response.await {
+            Ok(response) => {
+                if response.status().is_success() {
+                    sub_downloads.push(SubDownloads {
+                        response,
+                        file: BufWriter::new(file),
+                    });
+                } else {
+                    return (
                         DownloadMessage::Error(format!(
-                            "The server has returned an error status code for {}!",
-                            download.file_name
+                            "The server returned an error status code ({}) for the requested resource.",
+                            response.status()
                         )),
-                        index,
-                    ),
+                        State::Wait,
+                    );
+                }
+            }
+            Err(e) => {
+                return (
+                    DownloadMessage::Error(format!("Request failed with error : {}.", e)),
                     State::Wait,
                 );
             }
-        } else {
-            return (
-                Message::Download(
-                    DownloadMessage::Error(format!(
-                        "failed to create request for {}!",
-                        download.file_name
-                    )),
-                    index,
-                ),
-                State::Wait,
-            );
         }
     }
 
     (
-        Message::Download(DownloadMessage::DownloadProgress(downloaded), index),
+        DownloadMessage::DownloadProgress(downloaded),
         State::ThreadedDownloading(
             download,
             sub_downloads,
@@ -434,8 +423,7 @@ async fn handle_threaded_downloading(
     destination_file: String,
     chunk_files: Vec<String>,
     mut downloaded: usize,
-    index: usize,
-) -> (Message, State) {
+) -> (DownloadMessage, State) {
     let mut filtered_sub_downloads = vec![];
 
     for mut sub_download in sub_downloads.into_iter() {
@@ -443,10 +431,7 @@ async fn handle_threaded_downloading(
             Ok(Some(chunk)) => {
                 if sub_download.file.write_all(&chunk[..]).is_err() {
                     return (
-                        Message::Download(
-                            DownloadMessage::Error("writing to chunk file failed!".to_string()),
-                            index,
-                        ),
+                        DownloadMessage::Error("Failed to write to chunk file.".to_string()),
                         State::Wait,
                     );
                 }
@@ -456,26 +441,21 @@ async fn handle_threaded_downloading(
             Ok(None) => {}
             Err(error) => {
                 return (
-                    Message::Download(
-                        DownloadMessage::Error(format!("download error : {:?}", error)),
-                        index,
-                    ),
+                    DownloadMessage::Error(format!("Download failed : {:?}", error)),
                     State::Wait,
                 )
             }
         }
     }
 
-    debug!(filtered_downloads = ?filtered_sub_downloads);
-
     if filtered_sub_downloads.is_empty() {
         (
-            Message::Download(DownloadMessage::DownloadDoneJoining, index),
+            DownloadMessage::DownloadDoneJoining,
             State::ThreadedFinished(destination_file, chunk_files),
         )
     } else {
         (
-            Message::Download(DownloadMessage::DownloadProgress(downloaded), index),
+            DownloadMessage::DownloadProgress(downloaded),
             State::ThreadedDownloading(
                 download,
                 filtered_sub_downloads,
@@ -490,34 +470,38 @@ async fn handle_threaded_downloading(
 #[tracing::instrument]
 fn handle_threaded_download_finish(
     destination_file: &str,
-    chunk_files: &Vec<String>,
-    index: usize,
-) -> (Message, State) {
+    chunk_files: Vec<String>,
+) -> (DownloadMessage, State) {
     let error_msg = (
-        Message::Download(
-            DownloadMessage::Error("Error in joining file!".to_string()),
-            index,
-        ),
+        DownloadMessage::Error("Failed to join downloaded file segments.".to_string()),
         State::Wait,
     );
+
+    let mut chunk_file_names = VecDeque::from(chunk_files);
+
     match File::create(destination_file) {
         Ok(out) => {
-            let mut chunk_file_handles = vec![];
-            for file in chunk_files {
-                if let Ok(f) = File::open(file) {
-                    chunk_file_handles.push(BufReader::new(f));
+            if let Some(file) = chunk_file_names.pop_front() {
+                if let Ok(f) = File::open(&file) {
+                    let chunk_file_reader = BufReader::with_capacity(BUFFER_SIZE, f);
+                    let buffer = vec![0; BUFFER_SIZE];
+                    (
+                        DownloadMessage::JoiningProgress(0),
+                        State::FileJoining(
+                            BufWriter::with_capacity(BUFFER_SIZE, out),
+                            chunk_file_names,
+                            chunk_file_reader,
+                            buffer,
+                        ),
+                    )
                 } else {
-                    error!("[ATOM] : opening {} failed!", file);
-                    return error_msg;
+                    error!("[ATOM] failed to open : '{file:#?}'");
+                    error_msg
                 }
+            } else {
+                error!("ATOM: pop_front from the chunk file names vector returned None");
+                error_msg
             }
-
-            debug!(chunk_files=?chunk_files);
-
-            (
-                Message::Download(DownloadMessage::JoiningProgress(0), index),
-                State::FileJoining(BufWriter::new(out), chunk_file_handles, 0, 0),
-            )
         }
         Err(error) => {
             error!("[ATOM] : {}", error);
@@ -526,46 +510,42 @@ fn handle_threaded_download_finish(
     }
 }
 
-#[tracing::instrument]
+#[tracing::instrument(name = "HandleJoiningProgress", skip(buffer))]
 async fn handle_joining_progress(
     mut bw: BufWriter<File>,
-    mut chunk_files: Vec<BufReader<File>>,
-    mut current_index: usize,
-    index: usize,
-) -> (Message, State) {
+    mut chunk_files: VecDeque<String>,
+    mut chunk_files_reader: BufReader<File>,
+    mut buffer: Vec<u8>,
+) -> (DownloadMessage, State) {
     let error_msg = (
-        Message::Download(
-            DownloadMessage::Error("Error in joining file!".to_string()),
-            index,
-        ),
+        DownloadMessage::Error("Failed to join downloaded file segments.".to_string()),
         State::Wait,
     );
-
-    let buffer_len = 102400;
+    let finished_msg = (DownloadMessage::Finished, State::SequentialFinished);
     let mut copied = 0;
 
-    debug!(chunk_files=?chunk_files);
-    if chunk_files.is_empty() || current_index >= chunk_files.len() {
-        return (
-            Message::Download(DownloadMessage::Finished, index),
-            State::SequentialFinished,
-        );
-    }
-
-    let mut buffer = vec![0; buffer_len];
-    if let Ok(_read) = chunk_files[current_index].read(&mut buffer) {
+    if let Ok(_read) = chunk_files_reader.read(&mut buffer) {
         if bw.write_all(&buffer[.._read]).is_err() {
             return error_msg;
         }
+
         copied += _read;
 
-        if _read < buffer_len {
-            current_index += 1;
+        if _read < BUFFER_SIZE {
+            if let Some(first) = chunk_files.pop_front() {
+                if let Ok(file) = File::open(&first) {
+                    chunk_files_reader = BufReader::with_capacity(BUFFER_SIZE, file);
+                } else {
+                    return error_msg;
+                }
+            } else if _read == 0 {
+                return finished_msg;
+            }
         }
     }
 
     (
-        Message::Download(DownloadMessage::JoiningProgress(copied), index),
-        State::FileJoining(bw, chunk_files, current_index, index),
+        DownloadMessage::JoiningProgress(copied),
+        State::FileJoining(bw, chunk_files, chunk_files_reader, buffer),
     )
 }

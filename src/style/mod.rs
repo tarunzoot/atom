@@ -6,15 +6,15 @@ pub mod slider;
 pub mod toggle;
 
 use iced::{
-    application,
     border::Radius,
     overlay::menu,
+    theme::{Base, Mode, Palette, Style},
     widget::{
         pick_list,
-        scrollable::{self, Rail, Scroller},
+        scrollable::{self, AutoScroll, Rail, Scroller},
         text,
     },
-    Background, Border, Color,
+    Background, Border, Color, Shadow, Vector,
 };
 
 #[macro_export]
@@ -58,6 +58,51 @@ pub enum AtomTheme {
     Tangerine,
     Light,
     Hari,
+}
+
+impl Base for AtomTheme {
+    fn default(_preference: Mode) -> Self {
+        AtomTheme::Default
+    }
+
+    fn mode(&self) -> Mode {
+        match self {
+            AtomTheme::Default => Mode::Dark,
+            AtomTheme::Tangerine => Mode::Dark,
+            AtomTheme::Light => Mode::Light,
+            AtomTheme::Hari => Mode::Dark,
+        }
+    }
+
+    fn base(&self) -> Style {
+        let palette = self.palette();
+        Style {
+            background_color: palette.background,
+            text_color: palette._text,
+        }
+    }
+
+    fn palette(&self) -> Option<Palette> {
+        None
+        // let palette = self.palette();
+        // Some(Palette {
+        //     background: palette.background,
+        //     text: palette._text,
+        //     primary: palette.background,
+        //     success: palette.background,
+        //     warning: palette.background,
+        //     danger: palette.background,
+        // })
+    }
+
+    fn name(&self) -> &str {
+        match self {
+            AtomTheme::Default => "Default",
+            AtomTheme::Tangerine => "Tangerine",
+            AtomTheme::Light => "Light",
+            AtomTheme::Hari => "Hari",
+        }
+    }
 }
 
 impl AtomTheme {
@@ -126,24 +171,24 @@ impl From<AtomTheme> for String {
     }
 }
 
-impl application::DefaultStyle for AtomTheme {
-    fn default_style(&self) -> application::Appearance {
-        match self {
-            AtomTheme::Default => application::Appearance {
-                background_color: Color::TRANSPARENT,
-                text_color: Color::WHITE,
-            },
-            AtomTheme::Tangerine => application::Appearance {
-                background_color: color!(0x262e34),
-                text_color: color!(0xffffff),
-            },
-            _ => application::Appearance {
-                background_color: color!(0x262e34),
-                text_color: color!(0x000000),
-            },
-        }
-    }
-}
+// impl application::DefaultStyle for AtomTheme {
+//     fn default_style(&self) -> application::Appearance {
+//         match self {
+//             AtomTheme::Default => application::Appearance {
+//                 background_color: Color::TRANSPARENT,
+//                 text_color: Color::WHITE,
+//             },
+//             AtomTheme::Tangerine => application::Appearance {
+//                 background_color: color!(0x262e34),
+//                 text_color: color!(0xffffff),
+//             },
+//             _ => application::Appearance {
+//                 background_color: color!(0x262e34),
+//                 text_color: color!(0x000000),
+//             },
+//         }
+//     }
+// }
 
 #[derive(Debug, Clone, Copy, Default)]
 pub enum AtomStyleText {
@@ -194,6 +239,12 @@ impl scrollable::Catalog for AtomTheme {
         scrollable::Style {
             container: Default::default(),
             gap: Default::default(),
+            auto_scroll: AutoScroll {
+                background: Background::Color(accent.inverse()),
+                border: Border::default(),
+                shadow: Shadow::default(),
+                icon: accent,
+            },
             vertical_rail: Rail {
                 background: Some(Background::Color(accent.scale_alpha(0.01))),
                 border: Border {
@@ -202,12 +253,12 @@ impl scrollable::Catalog for AtomTheme {
                     color: Color::TRANSPARENT,
                 },
                 scroller: Scroller {
-                    color: accent.scale_alpha(0.6),
                     border: Border {
                         radius: Radius::from(5.0),
                         width: 3.0,
                         color: accent.scale_alpha(0.6),
                     },
+                    background: Background::Color(accent.scale_alpha(0.6)),
                 },
             },
             horizontal_rail: Rail {
@@ -218,7 +269,7 @@ impl scrollable::Catalog for AtomTheme {
                     color: Color::TRANSPARENT,
                 },
                 scroller: Scroller {
-                    color: accent.scale_alpha(0.6),
+                    background: Background::Color(accent.scale_alpha(0.6)),
                     border: Border {
                         radius: Radius::from(5.0),
                         width: 3.0,
@@ -289,7 +340,9 @@ impl pick_list::Catalog for AtomTheme {
                     ..active_style
                 }
             }
-            pick_list::Status::Opened => self.style(_class, pick_list::Status::Active),
+            pick_list::Status::Opened { is_hovered: _ } => {
+                self.style(_class, pick_list::Status::Active)
+            }
         }
     }
 }
@@ -327,6 +380,11 @@ impl menu::Catalog for AtomTheme {
                 _ => Color::BLACK,
             },
             selected_background: Background::Color(accent),
+            shadow: Shadow {
+                color: Color::BLACK,
+                offset: Vector::new(0.0, 0.0),
+                blur_radius: 2.0,
+            },
         }
     }
 }
@@ -347,9 +405,9 @@ impl iced::widget::rule::Catalog for AtomTheme {
     fn style(&self, _class: &Self::Class<'_>) -> iced::widget::rule::Style {
         iced::widget::rule::Style {
             color: self.accent(),
-            width: 5,
             radius: 5.0.into(),
             fill_mode: iced::widget::rule::FillMode::Full,
+            snap: true,
         }
     }
 }

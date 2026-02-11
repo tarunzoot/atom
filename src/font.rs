@@ -8,10 +8,30 @@ pub const MONOSPACED_FONT_BYTES: &[u8] =
     // include_bytes!("../resources/fonts/Google-Sans-Mono-Regular.ttf");
     include_bytes!("../resources/fonts/DMMono-Regular.ttf");
 pub const LEXEND_BYTES: &[u8] = include_bytes!("../resources/fonts/LexendDeca-Black.ttf");
+// pub const LEXEND_MEDIUM_BYTES: &[u8] = include_bytes!("../resources/fonts/LexendDeca-Medium.ttf");
+pub const LEXEND_REGULAR_BYTES: &[u8] = include_bytes!("../resources/fonts/LexendDeca-Regular.ttf");
 pub const JOSEFIN_BYTES: &[u8] = include_bytes!("../resources/fonts/JosefinSans-Regular.ttf");
 pub const ICOFONT_BYTES: &[u8] = include_bytes!("../resources/fonts/icofont.ttf");
 pub const SYMBOLS_BYTES: &[u8] =
     include_bytes!("../resources/fonts/SymbolsNerdFontMono-Regular.ttf");
+pub const LEXEND_BLACK: iced::Font = iced::Font {
+    family: iced::font::Family::Name("Lexend Deca"),
+    weight: iced::font::Weight::Black,
+    stretch: iced::font::Stretch::Normal,
+    style: iced::font::Style::Normal,
+};
+// pub const LEXEND_MEDIUM: iced::Font = iced::Font {
+//     family: iced::font::Family::Name("Lexend Deca"),
+//     weight: iced::font::Weight::Medium,
+//     stretch: iced::font::Stretch::Normal,
+//     style: iced::font::Style::Normal,
+// };
+pub const LEXEND_REGULAR: iced::Font = iced::Font {
+    family: iced::font::Family::Name("Lexend Deca"),
+    weight: iced::font::Weight::Normal,
+    stretch: iced::font::Stretch::Normal,
+    style: iced::font::Style::Normal,
+};
 pub const ICOFONT: iced::Font = iced::Font::with_name("IcoFont");
 pub const JOSEFIN: iced::Font = iced::Font::with_name("Josefin Sans");
 pub const SYMBOLS: iced::Font = iced::Font::with_name("Symbols Nerd Font Mono");

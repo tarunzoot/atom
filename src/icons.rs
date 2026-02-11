@@ -17,6 +17,10 @@ pub fn electron<'a>() -> Text<'a, AtomTheme> {
     icon_icofont('\u{ead8}')
 }
 
+pub fn navigation<'a>() -> Text<'a, AtomTheme> {
+    icon_icofont('\u{efa2}')
+}
+
 pub fn right_alt<'a>() -> Text<'a, AtomTheme> {
     icon_icofont('\u{ea79}')
 }
@@ -79,6 +83,14 @@ pub fn file_alt<'a>() -> Text<'a, AtomTheme> {
 
 pub fn file_size<'a>() -> Text<'a, AtomTheme> {
     icon_icofont('\u{e90b}')
+}
+
+pub fn file_downloaded<'a>() -> Text<'a, AtomTheme> {
+    icon_icofont('\u{e8d5}')
+}
+
+pub fn delicious<'a>() -> Text<'a, AtomTheme> {
+    icon_icofont('\u{ed28}')
 }
 
 pub fn clock<'a>() -> Text<'a, AtomTheme> {
@@ -195,6 +207,10 @@ pub fn play<'a>() -> Text<'a, AtomTheme> {
 
 pub fn rotation<'a>() -> Text<'a, AtomTheme> {
     icon_icofont('\u{ec80}')
+}
+
+pub fn spinner_alt<'a>() -> Text<'a, AtomTheme> {
+    icon_icofont('\u{eff8}')
 }
 
 pub fn folder<'a>() -> Text<'a, AtomTheme> {

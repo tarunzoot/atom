@@ -8,7 +8,7 @@ use iced::{
     widget::{button, column as col, container, row, text, Text},
     Alignment, Element, Font,
     Length::{Fill, Shrink},
-    Padding, Renderer,
+    Padding,
 };
 use std::collections::BTreeMap;
 
@@ -87,7 +87,7 @@ impl AtomDownloadStatesFilterBar<'_> {
         active: &SideBarActiveButton,
         downloads: &BTreeMap<usize, AtomDownload>,
         icons_only: bool,
-    ) -> Element<Message, AtomTheme, Renderer> {
+    ) -> Element<'_, Message, AtomTheme> {
         let mut count_downloading = 0;
         let mut count_paused = 0;
         let mut count_deleted = 0;
@@ -137,7 +137,7 @@ impl AtomDownloadStatesFilterBar<'_> {
                     _ => downloads.len(),
                 }));
 
-                let active_bar = container(text(".").width(1))
+                let active_bar = container(text("").width(1))
                     .padding(0)
                     .height(3)
                     .width(30)

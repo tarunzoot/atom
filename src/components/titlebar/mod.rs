@@ -1,5 +1,7 @@
 use crate::{
     components::settings::AtomSettings,
+    elements::GuiElements,
+    font::ICOFONT,
     icons,
     messages::TitleBarMessage,
     style::{
@@ -23,10 +25,11 @@ impl AtomTitleBar {
         &self,
         settings: &AtomSettings,
         is_homepage_active: bool,
-    ) -> Element<TitleBarMessage, AtomTheme> {
+    ) -> Element<'_, TitleBarMessage, AtomTheme> {
         let mut search_input = text_input("search downloads...", &self.search_text)
-            .id(iced::widget::text_input::Id::new("search"))
+            .id(iced::widget::Id::new("search"))
             .padding(Padding::new(20.0).top(8).bottom(8))
+            .icon(GuiElements::text_input_icon('\u{ed12}', ICOFONT, 12))
             .class(AtomStyleInput::Search);
 
         if is_homepage_active {

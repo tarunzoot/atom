@@ -13,8 +13,9 @@ use crate::{
 };
 use iced::{
     widget::{
-        button, column as col, container, horizontal_space, mouse_area, row, text, text_input,
-        vertical_space,
+        button, column as col, container, mouse_area, row,
+        space::{horizontal, vertical},
+        text, text_input,
     },
     window::Id,
     Alignment, Element,
@@ -23,7 +24,7 @@ use iced::{
 };
 
 impl AtomDownloadForm {
-    fn headers_view(&self) -> Element<DownloadFormMessage, AtomTheme> {
+    fn headers_view(&self) -> Element<'_, DownloadFormMessage, AtomTheme> {
         let text_size = 12;
         self.headers
             .iter()
@@ -71,7 +72,7 @@ impl AtomDownloadForm {
             .into()
     }
 
-    fn toggles_view(&self) -> Element<DownloadFormMessage, AtomTheme> {
+    fn toggles_view(&self) -> Element<'_, DownloadFormMessage, AtomTheme> {
         let sequential_tooltip_text = "Switch modes only if you are certain that the server supports the selected download method; otherwise, the download may fail.";
 
         let sequential_toggler = GuiElements::toggle(
@@ -104,12 +105,23 @@ impl AtomDownloadForm {
             "Automatically opens the file upon completion of the download.",
         );
 
-        let auto_referer_toggle = GuiElements::tooltip_top(
+        let toggle_content = if self
+            .headers
+            .keys()
+            .into_iter()
+            .any(|k| k.eq_ignore_ascii_case("referer"))
+        {
+            GuiElements::toggle_disabled(self.auto_referer, "Auto Referer")
+        } else {
             GuiElements::toggle(
                 self.auto_referer,
                 DownloadFormMessage::AutoReferer,
                 "Auto Referer",
-            ),
+            )
+        };
+
+        let auto_referer_toggle = GuiElements::tooltip_top(
+            toggle_content,
             "Automatically includes the Referer header in the request.",
         );
 
@@ -125,12 +137,12 @@ impl AtomDownloadForm {
         if self.is_valid_url && !self.file_name.is_empty() {
             toggles = toggles
                 .push(
-                    col![auto_open_toggle]
+                    col![auto_referer_toggle]
                         .width(Fill)
                         .align_x(Alignment::Center),
                 )
                 .push(
-                    col![auto_referer_toggle]
+                    col![auto_open_toggle]
                         .width(Fill)
                         .align_x(Alignment::Center),
                 )
@@ -140,12 +152,10 @@ impl AtomDownloadForm {
         toggles.into()
     }
 
-    fn vertical_line(&self) -> Element<DownloadFormMessage, AtomTheme> {
-        col![
-            container(vertical_space().height(Fixed(30.0)).width(Fixed(1.0)),)
-                .class(AtomStyleContainer::ListItemContainer)
-                .width(Fixed(2.0))
-        ]
+    fn vertical_line(&self) -> Element<'_, DownloadFormMessage, AtomTheme> {
+        col![container(vertical().height(Fixed(30.0)).width(Fixed(1.0)),)
+            .class(AtomStyleContainer::ListItemContainer)
+            .width(Fixed(2.0))]
         .align_x(iced::Alignment::Center)
         .width(Shrink)
         .into()
@@ -156,7 +166,7 @@ impl AtomDownloadForm {
         settings: &AtomSettings,
         downloads_count: usize,
         window_id: Option<Id>,
-    ) -> Element<DownloadFormMessage, AtomTheme> {
+    ) -> Element<'_, DownloadFormMessage, AtomTheme> {
         let mut download_btn = GuiElements::primary_button(icons::cloud_download(), "download");
         let mut download_later_btn =
             GuiElements::primary_button(icons::clock_alt(), "download later");
@@ -217,7 +227,11 @@ impl AtomDownloadForm {
                 .on_input(DownloadFormMessage::AddHeaderValue)
                 .padding(ATOM_INPUT_DEFAULT_PADDING),
             GuiElements::primary_button(icons::plus(), "Add")
-                .on_press(DownloadFormMessage::AddHeader)
+                .on_press_maybe(if self.header_name.is_empty() {
+                    None
+                } else {
+                    Some(DownloadFormMessage::AddHeader)
+                })
                 .padding(Padding::from([7, 15])),
             self.vertical_line(),
             import_headers_tooltip
@@ -253,7 +267,7 @@ impl AtomDownloadForm {
 
         let mut page_title = row![GuiElements::panel_title("Add New Download").into()];
         if window_id.is_some() {
-            page_title = page_title.push(horizontal_space().width(Fill)).push(
+            page_title = page_title.push(horizontal().width(Fill)).push(
                 button(icons::minus())
                     .padding(14)
                     .class(AtomStyleButton::HeaderButtons)

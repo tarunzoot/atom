@@ -11,7 +11,7 @@ use crate::{
     },
 };
 use iced::{
-    widget::{column as col, container, image, row, text, text_input, vertical_space},
+    widget::{column as col, container, image, row, space::vertical, text, text_input},
     Alignment, Element,
     Length::{Fill, FillPortion},
     Padding,
@@ -19,7 +19,7 @@ use iced::{
 use std::{path::Path, time::Duration};
 
 impl AtomDownloadMetadata {
-    pub fn view(&self, settings: &AtomSettings) -> Element<MetadataMessage, AtomTheme> {
+    pub fn view(&self, settings: &AtomSettings) -> Element<'_, MetadataMessage, AtomTheme> {
         let file_path = Path::new(&self.file_path);
         let mut open_btn =
             GuiElements::primary_button(icons::envelope_open().size(12), text("open").size(14))
@@ -54,7 +54,8 @@ impl AtomDownloadMetadata {
                 preview_column.push(
                     image(&self.file_path)
                         .height(Fill)
-                        .content_fit(iced::ContentFit::Cover),
+                        .content_fit(iced::ContentFit::Cover)
+                        .border_radius(8.0),
                 )
             }
             _ => preview_column.push(
@@ -164,7 +165,7 @@ impl AtomDownloadMetadata {
                         .size(14)
                         .on_input(|_| MetadataMessage::Ignore),
                 )
-                .push(vertical_space().height(5))
+                .push(vertical().height(5))
                 .push(checksum_col)
         } else {
             download_info_col
@@ -174,9 +175,9 @@ impl AtomDownloadMetadata {
                         .size(14)
                         .on_input(|_| MetadataMessage::Ignore),
                 )
-                .push(vertical_space().height(5))
+                .push(vertical().height(5))
                 .push(checksum_col)
-                .push(vertical_space().height(5))
+                .push(vertical().height(5))
                 .push(
                     col![
                         text("ERROR").width(Fill),
@@ -282,7 +283,7 @@ impl AtomDownloadMetadata {
         ))
         .padding(15)
         .class(AtomStyleContainer::ListContainer)
-        .width(METADATA_PANEL_WIDTH)
+        .width(METADATA_PANEL_WIDTH as u32)
         .height(Fill)
         .into()
     }

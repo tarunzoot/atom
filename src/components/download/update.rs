@@ -29,6 +29,17 @@ impl AtomDownload {
                         6000,
                     );
                 }
+
+                if self.sequential {
+                    let file_path = PathBuf::from(&self.file_path).join(&self.file_name);
+                    if file_path.exists() && file_path.metadata().unwrap().len() == 0 {
+                        std::fs::remove_file(&file_path).unwrap_or_else(|e| {
+                            tracing::warn!(
+                                "Failed to remove zero byte length file: {file_path:#?}, error: {e:#?}"
+                            );
+                        });
+                    }
+                }
             }
             DownloadMessage::DownloadDoneJoining => {
                 self.joining = true;
@@ -37,6 +48,7 @@ impl AtomDownload {
             DownloadMessage::Finished => {
                 self.downloading = false;
                 self.joining = false;
+                self.joined_bytes = 0;
                 self.download_this_session = 0;
                 if self.size < 1 {
                     self.size = self.downloaded;
@@ -85,10 +97,10 @@ impl AtomDownload {
             }
             DownloadMessage::JoiningProgress(bytes) => {
                 self.joined_bytes += bytes;
-                self.joining = true;
             }
             DownloadMessage::Downloading => {
                 self.downloading = true;
+                self.joining = false;
                 self.error = String::default();
                 self.elapsed_time = Some(SystemTime::now());
                 self.download_this_session = 0;
@@ -104,6 +116,9 @@ impl AtomDownload {
             DownloadMessage::MarkDeleted => {
                 self.show_delete_confirm_dialog = true;
             }
+            DownloadMessage::Restore => {
+                self.deleted = false;
+            }
             DownloadMessage::RemoveDownload(force) => {
                 if !force {
                     self.deleted = true;
@@ -112,7 +127,6 @@ impl AtomDownload {
                 }
             }
             DownloadMessage::HideDialog => self.show_delete_confirm_dialog = false,
-            _ => {}
         }
 
         Task::none()

@@ -193,6 +193,7 @@ impl container::Catalog for AtomTheme {
                     _ => class.color_offset(appearance.background, 20.0),
                 },
             },
+            snap: true,
         }
     }
 }

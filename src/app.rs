@@ -1,6 +1,9 @@
 use crate::{
     components::atom::Atom,
-    font::{ICOFONT_BYTES, JOSEFIN_BYTES, LEXEND_BYTES, MONOSPACED_FONT_BYTES, SYMBOLS_BYTES},
+    font::{
+        ICOFONT_BYTES, JOSEFIN_BYTES, LEXEND_BYTES, LEXEND_REGULAR_BYTES, MONOSPACED_FONT_BYTES,
+        SYMBOLS_BYTES,
+    },
     messages::Message,
     style::AtomTheme,
     utils::{
@@ -27,7 +30,7 @@ use tray_icon::menu::MenuEvent;
 
 pub enum App<'a> {
     Loading,
-    Loaded(Atom<'a>),
+    Loaded(Box<Atom<'a>>),
 }
 
 impl App<'_> {
@@ -61,18 +64,17 @@ impl App<'_> {
             ..Default::default()
         });
 
-        (
-            App::Loading,
-            Command::batch(vec![
-                iced::font::load(MONOSPACED_FONT_BYTES).map(Message::FontLoaded),
-                iced::font::load(LEXEND_BYTES).map(Message::FontLoaded),
-                iced::font::load(JOSEFIN_BYTES).map(Message::FontLoaded),
-                iced::font::load(ICOFONT_BYTES).map(Message::FontLoaded),
-                iced::font::load(SYMBOLS_BYTES).map(Message::FontLoaded),
-                open.map(Message::MainWindow),
-                Command::done(Message::LoadingComplete),
-            ]),
-        )
+        let tasks = open
+            .map(Message::MainWindow)
+            .chain(iced::font::load(LEXEND_BYTES).map(Message::FontLoaded))
+            .chain(iced::font::load(LEXEND_REGULAR_BYTES).map(Message::FontLoaded))
+            .chain(iced::font::load(JOSEFIN_BYTES).map(Message::FontLoaded))
+            .chain(iced::font::load(ICOFONT_BYTES).map(Message::FontLoaded))
+            .chain(iced::font::load(SYMBOLS_BYTES).map(Message::FontLoaded))
+            .chain(iced::font::load(MONOSPACED_FONT_BYTES).map(Message::FontLoaded))
+            .chain(Command::done(Message::LoadingComplete));
+
+        (App::Loading, tasks)
     }
 
     pub fn title(&self, _: Id) -> String {
@@ -86,7 +88,7 @@ impl App<'_> {
         }
     }
 
-    pub fn scale_factor(&self, window_id: Id) -> f64 {
+    pub fn scale_factor(&self, window_id: Id) -> f32 {
         match self {
             App::Loading => 1.0,
             App::Loaded(atom) => {
@@ -108,7 +110,10 @@ impl App<'_> {
                     .downloads
                     .iter()
                     .map(|(&index, download)| {
-                        download.subscription(index, &atom.settings.cache_dir, atom.client.clone())
+                        download
+                            .subscription(index, &atom.settings.cache_dir, atom.client.clone())
+                            .with(index)
+                            .map(move |(index, message)| Message::Download(message, index))
                     })
                     .collect();
 
@@ -148,31 +153,24 @@ impl App<'_> {
         match self {
             App::Loading => {
                 let mut command = Command::none();
-                if let Message::LoadingComplete = message {
+                if let Message::MainWindow(_) = message {
                     let mut atom = Atom::new();
-                    if atom.settings.maximized {
-                        if let Some(entry) = atom.windows.first_entry() {
-                            let window_id = *entry.key();
-                            command = window::get_oldest()
-                                .and_then(iced::window::toggle_maximize)
-                                .chain(
-                                    iced::window::get_size(window_id)
-                                        .map(move |size| Message::WindowResized((window_id, size))),
-                                );
-                        } else {
-                            command = window::get_oldest().and_then(iced::window::toggle_maximize);
-                        }
-                    }
-                    *self = App::Loaded(atom);
+                    command = atom.update(message);
+                    *self = App::Loaded(Box::new(atom));
                 }
 
                 command
             }
-            App::Loaded(atom) => atom.update(message),
+            App::Loaded(atom) => {
+                if let Message::LoadingComplete = message {
+                    atom.loaded = true;
+                }
+                atom.update(message)
+            }
         }
     }
 
-    pub fn view(&self, window_id: Id) -> Element<Message, AtomTheme> {
+    pub fn view(&self, window_id: Id) -> Element<'_, Message, AtomTheme> {
         match self {
             App::Loading => container(
                 text("loading...")
@@ -184,7 +182,22 @@ impl App<'_> {
             .center_x(Fill)
             .center_y(Fill)
             .into(),
-            App::Loaded(atom) => atom.view(window_id),
+            App::Loaded(atom) => {
+                if atom.loaded {
+                    atom.view(window_id)
+                } else {
+                    container(
+                        text("loading...")
+                            .size(50)
+                            .align_x(iced::alignment::Horizontal::Center),
+                    )
+                    .width(Fill)
+                    .height(Fill)
+                    .center_x(Fill)
+                    .center_y(Fill)
+                    .into()
+                }
+            }
         }
     }
 }
@@ -207,18 +220,22 @@ impl App<'_> {
         std::thread::spawn(move || {
             let listener = TcpListener::bind(ATOM_SOCKET_ADDRESS);
 
-            if listener.is_err() {
-                warn!("Error: {}", listener.unwrap_err());
+            if let Err(e) = listener {
+                warn!("Error: {}", e);
                 sender
-                    .try_send(Message::StatusBar(
-                        "Download Capture: OFF(ERROR)".to_string(),
-                    ))
+                    .try_send(Message::ListenerActive((
+                        false,
+                        "Download Capture : OFF(ERROR)".to_string(),
+                    )))
                     .ok();
                 return;
             } else {
                 debug!("TCP listener started on {}", ATOM_SOCKET_ADDRESS);
                 sender
-                    .try_send(Message::StatusBar("Download Capture: ON".to_string()))
+                    .try_send(Message::ListenerActive((
+                        true,
+                        "Download Capture : ON".to_string(),
+                    )))
                     .ok();
             }
 
@@ -239,6 +256,13 @@ impl App<'_> {
                 if http_request.is_empty() {
                     warn!("HTTP request from the browser is empty, maybe the app is exiting//");
                     continue;
+                }
+
+                debug!("HTTP_REQUEST_BODY: {http_request:#?}");
+
+                if http_request.len() == 1 && http_request[0] == "EXIT" {
+                    debug!("Received exit request, exiting//");
+                    break;
                 }
 
                 let json = http_request.last().unwrap();

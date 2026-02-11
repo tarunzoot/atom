@@ -134,6 +134,7 @@ impl button::Catalog for AtomTheme {
                         },
                         _ => Shadow::default(),
                     },
+                    snap: true,
                 }
             }
             button::Status::Hovered => {
@@ -242,6 +243,7 @@ impl button::Catalog for AtomTheme {
                         },
                         ..Default::default()
                     },
+                    snap: true,
                 }
             }
             button::Status::Pressed => button::Style {

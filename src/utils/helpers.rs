@@ -19,7 +19,7 @@ use tracing::debug;
 
 pub const ATOM_USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.72 Safari/537.36";
 pub const ATOM_INPUT_DEFAULT_PADDING: u16 = 6;
-pub const ATOM_SOCKET_ADDRESS: &str = "127.0.0.1:6682";
+pub const ATOM_SOCKET_ADDRESS: &str = "127.0.0.1:7500";
 pub const ATOM_ICON: &[u8] = include_bytes!("../../resources/images/icon.ico");
 pub const METADATA_PANEL_WIDTH: u16 = 210;
 pub const SIDEBAR_WIDTH: u16 = 210;
@@ -138,7 +138,8 @@ pub async fn get_content_length(
     {
         Ok(response) => {
             if !response.status().is_success() {
-                size.error = "Error, unable to get content length!".to_string();
+                size.error =
+                    "Failed to obtain content length from the server response.".to_string();
             } else {
                 let headers = response.headers();
                 match (headers.get(ACCEPT_RANGES), headers.get(CONTENT_LENGTH)) {

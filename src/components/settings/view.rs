@@ -10,7 +10,7 @@ use iced::{
     widget::{column as col, container, pick_list, row, slider, text, text_input},
     Alignment, Element,
     Length::{Fill, Fixed, Shrink},
-    Padding, Renderer,
+    Padding,
 };
 
 impl AtomSettings {
@@ -18,7 +18,7 @@ impl AtomSettings {
         &self,
         settings: &AtomSettings,
         theme: &AtomTheme,
-    ) -> Element<SettingsMessage, AtomTheme, Renderer> {
+    ) -> Element<'_, SettingsMessage, AtomTheme> {
         let config_dir_col = col!()
             .spacing(5)
             .push(text("Configuration Directory"))
@@ -89,7 +89,7 @@ impl AtomSettings {
         let notification_toggler = GuiElements::toggle(
             self.show_notifications,
             SettingsMessage::NotificationToggle,
-            "Download complete notification",
+            "Show Download Complete Notification",
         )
         .text_size(toggles_text_size);
 
@@ -98,7 +98,7 @@ impl AtomSettings {
             GuiElements::toggle(
                 self.auto_start_download,
                 SettingsMessage::AutoStartDownloadToggle,
-                "Auto start download",
+                "Auto Start Download",
             )
             .text_size(toggles_text_size),
             label,
@@ -107,7 +107,7 @@ impl AtomSettings {
         let close_btn_toggler = GuiElements::toggle(
             self.minimize_to_tray,
             SettingsMessage::QuitActionToggle,
-            "Minimize to tray",
+            "Minimize to Tray",
         )
         .text_size(toggles_text_size);
 
@@ -117,17 +117,6 @@ impl AtomSettings {
             "Start Maximized ",
         )
         .text_size(toggles_text_size);
-
-        let label = "Stretch the list view container to fill the available space(applies a background color)";
-        let stretch_list_toggler = GuiElements::tooltip_top(
-            GuiElements::toggle(
-                self.stretch_list_view,
-                SettingsMessage::ListBackgroundToggle,
-                "Stretch List Background  ",
-            )
-            .text_size(toggles_text_size),
-            label,
-        );
 
         let always_show_metadata_toggler = GuiElements::tooltip_top(
             GuiElements::toggle(
@@ -142,13 +131,13 @@ impl AtomSettings {
         let scrollbar_toggler = GuiElements::toggle(
             self.scrollbars_visible,
             SettingsMessage::ScrollbarsVisible,
-            "Scrollbars Visible",
+            "Show Scrollbars          ",
         )
         .text_size(toggles_text_size);
 
         let options_row = container(
             col![row![
-                col![notification_toggler, auto_start_toggler, scrollbar_toggler]
+                col![notification_toggler, auto_start_toggler]
                     .spacing(10)
                     .width(Fill)
                     .align_x(Alignment::Start),
@@ -156,7 +145,7 @@ impl AtomSettings {
                     .spacing(10)
                     .width(Fill)
                     .align_x(Alignment::Center),
-                col![stretch_list_toggler, always_show_metadata_toggler]
+                col![always_show_metadata_toggler, scrollbar_toggler]
                     .spacing(10)
                     .width(Fill)
                     .align_x(Alignment::End),

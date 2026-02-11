@@ -2,12 +2,14 @@ use super::{AtomSidebar, SideBarActiveButton, SideBarState, SidebarButton};
 use crate::{
     components::settings::AtomSettings,
     elements::GuiElements,
+    font::LEXEND_REGULAR,
     icons,
     messages::SidebarMessage,
     style::{button::AtomStyleButton, container::AtomStyleContainer, AtomTheme},
     utils::helpers::SIDEBAR_WIDTH,
 };
 use iced::{
+    alignment::Vertical,
     widget::{button, column as col, container, row, text, tooltip, Column, Text},
     Alignment, Element,
     Length::{Fill, Fixed, Shrink},
@@ -46,22 +48,29 @@ impl AtomSidebar<'_> {
         tooltip_text: &'a str,
         on_press_msg: SidebarMessage,
         downloads_list_is_empty: bool,
+        font_size: f32,
     ) -> Element<'a, SidebarMessage, AtomTheme> {
-        let content_row = row![
+        let content_row = row![col![row![
             Self::render_vertical_bar(is_active),
             Self::render_icon_container(icon_char, 20.0),
-            text(label).width(Fill),
+            text(label)
+                .size(font_size - 2.0)
+                .align_y(Vertical::Center)
+                .font(LEXEND_REGULAR)
+                .width(Fill),
         ]
+        .align_y(Alignment::Center)]
+        .align_x(Alignment::Center)]
         .align_y(Alignment::Center)
         .spacing(0);
 
         let mut btn = button(
             container(content_row)
                 .class(AtomStyleContainer::ButtonContainer)
-                .center(Shrink)
+                .center(Fill)
                 .padding(0),
         )
-        .width(Shrink)
+        .width(Fill)
         .padding(1);
 
         if downloads_list_is_empty {
@@ -87,6 +96,7 @@ impl AtomSidebar<'_> {
         &self,
         data: &'a SidebarButton<'_>,
         downloads_list_is_empty: bool,
+        font_size: f32,
     ) -> Element<'a, SidebarMessage, AtomTheme> {
         let is_active = self.active == data.name;
         let label = if matches!(self.state, SideBarState::Expanded) {
@@ -101,10 +111,11 @@ impl AtomSidebar<'_> {
             data.tooltip,
             data.message.clone(),
             downloads_list_is_empty,
+            font_size,
         )
     }
 
-    fn get_tertiary_button(&'_ self) -> Element<'_, SidebarMessage, AtomTheme> {
+    fn get_tertiary_button(&'_ self, font_size: f32) -> Element<'_, SidebarMessage, AtomTheme> {
         let (icon_char, tooltip, msg) = if matches!(self.state, SideBarState::Expanded)
             && self.button_tertiary.text == "Collapse"
         {
@@ -125,7 +136,7 @@ impl AtomSidebar<'_> {
             "Expand"
         };
 
-        col![self.build_sidebar_button(false, icon_char, label, tooltip, msg, false)]
+        col![self.build_sidebar_button(false, icon_char, label, tooltip, msg, false, font_size)]
             .spacing(10)
             .height(Shrink)
             .align_x(Alignment::Center)
@@ -136,11 +147,12 @@ impl AtomSidebar<'_> {
         &self,
         buttons: &'a [SidebarButton<'_>],
         downloads_list_is_empty: bool,
+        font_size: f32,
     ) -> Column<'a, SidebarMessage, AtomTheme> {
         buttons
             .iter()
             .fold(col!().spacing(10).height(Shrink), |col, b| {
-                col.push(self.get_button(b, downloads_list_is_empty))
+                col.push(self.get_button(b, downloads_list_is_empty, font_size))
             })
     }
 
@@ -150,8 +162,12 @@ impl AtomSidebar<'_> {
         downloads_list_is_empty: bool,
         has_empty_search_bar: bool,
     ) -> Element<'_, SidebarMessage, AtomTheme> {
-        let primary = self.build_button_column(&self.buttons_primary, false);
-        let secondary = self.build_button_column(&self.buttons_secondary, downloads_list_is_empty);
+        let primary = self.build_button_column(&self.buttons_primary, false, settings.font_size);
+        let secondary = self.build_button_column(
+            &self.buttons_secondary,
+            downloads_list_is_empty,
+            settings.font_size,
+        );
 
         let sidebar_content = col![
             GuiElements::scrollbar(
@@ -164,7 +180,7 @@ impl AtomSidebar<'_> {
                 settings.scrollbars_visible
             )
             .height(Fill),
-            self.get_tertiary_button()
+            self.get_tertiary_button(settings.font_size)
         ]
         .spacing(10)
         .height(Fill);
@@ -173,11 +189,10 @@ impl AtomSidebar<'_> {
             .center(Shrink)
             .padding(0)
             .height(Fill)
-            .width(Fill)
-            .max_width(if matches!(self.state, SideBarState::Collapsed) {
-                60
+            .width(if matches!(self.state, SideBarState::Collapsed) {
+                60.0
             } else {
-                SIDEBAR_WIDTH
+                SIDEBAR_WIDTH as f32
             })
             .class(AtomStyleContainer::ListContainer);
 

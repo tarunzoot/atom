@@ -11,76 +11,74 @@ use crate::{
 };
 use iced::{
     alignment::Vertical::Top,
-    widget::{column as col, container, horizontal_space, row, text, vertical_space, Container},
+    widget::{
+        column as col, container, row,
+        space::{horizontal, vertical},
+        text, Container,
+    },
     window::Id,
     Alignment, Element,
     Length::{Fill, FillPortion, Shrink},
     Padding,
 };
 
-type DownloadTuple<'a> = (&'a usize, &'a AtomDownload);
+type FilterFn = fn(&AtomDownload, &str) -> bool;
 
 impl Atom<'_> {
-    fn filter_downloads_view(&self) -> Element<Message, AtomTheme> {
-        let failed_filter: Box<dyn Fn(&DownloadTuple) -> bool> =
-            Box::new(|f: &(&usize, &AtomDownload)| !f.1.error.is_empty() && !f.1.deleted);
-        let deleted_filter: Box<dyn Fn(&DownloadTuple) -> bool> =
-            Box::new(|f: &(&usize, &AtomDownload)| f.1.deleted);
-        let all_filter: Box<dyn Fn(&DownloadTuple) -> bool> =
-            Box::new(|f: &(&usize, &AtomDownload)| {
-                if self.titlebar.search_text.is_empty() {
-                    !f.1.deleted
-                } else {
-                    !f.1.deleted
-                        && f.1
-                            .get_file_name()
-                            .to_lowercase()
-                            .contains(&self.titlebar.search_text)
-                }
-            });
-        let downloading_filter: Box<dyn Fn(&DownloadTuple) -> bool> =
-            Box::new(|f: &(&usize, &AtomDownload)| f.1.downloading && !f.1.deleted);
-        let paused_filter: Box<dyn Fn(&DownloadTuple) -> bool> =
-            Box::new(|f: &(&usize, &AtomDownload)| {
-                !f.1.is_downloading() && !f.1.is_downloaded() && !f.1.deleted
-            });
-        let finished_filter: Box<dyn Fn(&DownloadTuple) -> bool> =
-            Box::new(|f: &(&usize, &AtomDownload)| f.1.is_downloaded() && !f.1.deleted);
+    fn filter_downloads_view(&self) -> Element<'_, Message, AtomTheme> {
+        let search_text = self.titlebar.search_text.to_lowercase();
 
-        let filtered_downloads = match &self.filter_type {
+        let filter_fn: FilterFn = match self.filter_type {
             DownloadsListFilterMessage::Downloading => {
-                self.downloads.iter().filter(downloading_filter)
+                |d, _| (d.downloading || d.joining) && !d.deleted
             }
-            DownloadsListFilterMessage::Paused => self.downloads.iter().filter(paused_filter),
-            DownloadsListFilterMessage::Finished => self.downloads.iter().filter(finished_filter),
-            DownloadsListFilterMessage::Deleted => self.downloads.iter().filter(deleted_filter),
-            DownloadsListFilterMessage::All => self.downloads.iter().filter(all_filter),
-            DownloadsListFilterMessage::Failed => self.downloads.iter().filter(failed_filter),
+
+            DownloadsListFilterMessage::Paused => {
+                |d, _| !d.is_downloading() && !d.is_downloaded() && !d.deleted && d.error.is_empty()
+            }
+
+            DownloadsListFilterMessage::Finished => |d, _| d.is_downloaded() && !d.deleted,
+
+            DownloadsListFilterMessage::Deleted => |d, _| d.deleted,
+
+            DownloadsListFilterMessage::Failed => |d, _| !d.error.is_empty() && !d.deleted,
+
+            DownloadsListFilterMessage::All => |d, search| {
+                if d.deleted {
+                    return false;
+                }
+
+                if search.is_empty() {
+                    return true;
+                }
+
+                d.get_file_name().to_lowercase().contains(search)
+            },
         };
+
+        let filtered_downloads = self
+            .downloads
+            .iter()
+            .filter(|(_, d)| filter_fn(d, &search_text));
 
         let responsive = check_responsive_threshold(
             self.window_dimensions.0,
-            self.settings.scaling,
+            self.settings.scaling as f64,
             self.settings.sidebar_collapsed,
             self.settings.metadata_always_enabled || self.metadata.enabled,
         );
 
         let mut count = 0;
 
-        let downloads = filtered_downloads.fold(
-            col!().spacing(0).padding(match self.settings.list_layout {
-                crate::components::settings::ListLayout::ListExtended => Padding::new(0.0),
-                crate::components::settings::ListLayout::List => Padding::new(2.0).left(1).right(1),
-            }),
-            |column, (index, download)| {
+        let downloads =
+            filtered_downloads.fold(col!().spacing(0).padding(0), |column, (index, download)| {
                 count += 1;
                 column.push(
                     download
                         .view(&self.settings, responsive)
                         .map(|message| Message::Download(message, *index)),
                 )
-            },
-        );
+            });
 
         let filtered_content = GuiElements::scrollbar(downloads, self.settings.scrollbars_visible);
 
@@ -103,20 +101,13 @@ impl Atom<'_> {
                     .align_x(Alignment::Center)
                     .push(download_state_filters_bar)
                     .push(
-                        container(filtered_content.height(if self.settings.stretch_list_view {
-                            Fill
-                        } else {
-                            Shrink
-                        }))
-                        .center(Fill)
-                        .height(Shrink)
-                        .width(Fill)
-                        .padding(if self.settings.stretch_list_view || count > 0 {
-                            1
-                        } else {
-                            0
-                        })
-                        .class(AtomStyleContainer::ListHeaderContainer),
+                        container(filtered_content.height(Fill))
+                            .clip(true)
+                            .center(Fill)
+                            .height(Shrink)
+                            .width(Fill)
+                            .padding(if count > 0 { 1 } else { 0 })
+                            .class(AtomStyleContainer::ListHeaderContainer),
                     ),
                 crate::components::settings::ListLayout::List => col!()
                     .spacing(10)
@@ -126,22 +117,17 @@ impl Atom<'_> {
                             col!()
                                 .spacing(0)
                                 .push(download_state_filters_bar)
-                                .push(container(vertical_space().height(1)).height(1).width(Fill))
+                                .push(container(vertical().height(1)).height(1).width(Fill))
                                 .push(col![
                                     listview_header::view(&self.settings, responsive),
-                                    // container(vertical_space().height(1))
+                                    // container(vertical().height(1))
                                     //     .height(1)
                                     //     .width(Fill)
                                     //     .class(AtomStyleContainer::LogoContainer),
                                 ])
-                                .push(filtered_content.height(
-                                    if self.settings.stretch_list_view {
-                                        Fill
-                                    } else {
-                                        Shrink
-                                    },
-                                )),
+                                .push(col![filtered_content.height(Fill)].padding(1)),
                         )
+                        .clip(true)
                         .padding(0)
                         .center(Fill)
                         .height(Shrink)
@@ -159,7 +145,7 @@ impl Atom<'_> {
         }
     }
 
-    pub fn view(&self, window_id: Id) -> Element<Message, AtomTheme> {
+    pub fn view(&self, window_id: Id) -> Element<'_, Message, AtomTheme> {
         let status_bar_text_icon_size = 10;
 
         if let Some(window) = self.windows.get(&window_id) {
@@ -211,14 +197,14 @@ impl Atom<'_> {
             .push(
                 container(
                     container(col!().push(view).height(Fill).width(FillPortion(1)))
-                        .width(Shrink)
-                        .height(Shrink),
+                        .width(Fill)
+                        .height(Fill),
                 )
                 .padding(Padding::new(20.0).right(0).left(0))
                 .width(Fill)
-                .height(Shrink),
+                .height(Fill),
             )
-            .push(container(vertical_space()).width(15).padding(0));
+            .push(container(vertical()).width(15).padding(0));
 
         if self.metadata.enabled || self.settings.metadata_always_enabled {
             items_row = items_row.push(
@@ -241,7 +227,7 @@ impl Atom<'_> {
                 row![
                     icons::layout_statusbar().size(status_bar_text_icon_size),
                     text(&self.status_bar_message).size(status_bar_text_icon_size),
-                    horizontal_space().width(Fill),
+                    horizontal().width(Fill),
                 ]
                 .align_y(Alignment::Center)
                 .spacing(10)
@@ -261,7 +247,7 @@ impl Atom<'_> {
             .into()
     }
 
-    fn get_another_instance_view(&self) -> Container<Message, AtomTheme> {
+    fn get_another_instance_view(&self) -> Container<'_, Message, AtomTheme> {
         let main_row = col!()
             .width(Fill)
             .height(Fill)

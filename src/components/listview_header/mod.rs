@@ -25,8 +25,8 @@ pub fn get_list_view_header_column_length(view: ListViewColumns) -> Length {
 }
 
 pub fn view<'a>(settings: &AtomSettings, responsive: bool) -> Element<'a, Message, AtomTheme> {
-    let icon_size = (settings.font_size as u16 / 8) * 7;
-    let text_size = icon_size;
+    let icon_size: u32 = (settings.font_size as u32 / 8) * 7;
+    let text_size: u32 = icon_size;
     let font = Font {
         family: iced::font::Family::Name("Lexend Deca"),
         weight: iced::font::Weight::Black,

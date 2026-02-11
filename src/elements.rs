@@ -4,8 +4,8 @@ use crate::{
 };
 use iced::{
     widget::{
-        button, column as col, container, row, scrollable, scrollable::Scrollbar, text, text_input,
-        toggler, tooltip, vertical_space, Button, Scrollable, Text, Toggler, Tooltip,
+        button, column as col, container, row, scrollable, scrollable::Scrollbar, space::vertical,
+        text, text_input, toggler, tooltip, Button, Scrollable, Text, Toggler, Tooltip,
     },
     Alignment, Element, Font,
     Length::{Fill, Shrink},
@@ -93,7 +93,7 @@ impl GuiElements {
         .class(AtomStyleButton::RoundButton)
     }
 
-    pub fn panel_title<M>(panel_title: &str) -> impl Into<Element<M, AtomTheme>>
+    pub fn panel_title<M>(panel_title: &str) -> impl Into<Element<'_, M, AtomTheme>>
     where
         M: Clone + std::fmt::Debug + 'static,
     {
@@ -102,11 +102,11 @@ impl GuiElements {
             .padding(Padding::new(30.0).top(10).bottom(10))
     }
 
-    pub fn text_input_icon<Font>(icon: char, font: Font, text_size: u16) -> text_input::Icon<Font> {
+    pub fn text_input_icon<Font>(icon: char, font: Font, text_size: u32) -> text_input::Icon<Font> {
         text_input::Icon {
             font,
             code_point: icon,
-            size: Some(iced::Pixels(text_size.into())),
+            size: Some(iced::Pixels::from(text_size)),
             spacing: 5.0,
             side: text_input::Side::Right,
         }
@@ -116,7 +116,7 @@ impl GuiElements {
     where
         M: Clone + std::fmt::Debug + 'static,
     {
-        col![container(vertical_space().height(1))
+        col![container(vertical().height(1))
             .center(Fill)
             .height(1)
             .class(AtomStyleContainer::ListContainer)]
@@ -130,7 +130,7 @@ impl GuiElements {
     where
         M: Clone + std::fmt::Debug + 'static,
     {
-        col![container(vertical_space().height(30).width(1))
+        col![container(vertical().height(30).width(1))
             .class(AtomStyleContainer::ListItemContainer)
             .width(1)]
         .align_x(iced::Alignment::Center)
@@ -174,6 +174,17 @@ impl GuiElements {
         toggler(is_checked)
             .label(label)
             .on_toggle(message)
+            .spacing(10)
+            .text_alignment(iced::alignment::Horizontal::Left)
+            .width(Shrink)
+    }
+
+    pub fn toggle_disabled<'a, M>(is_checked: bool, label: &'a str) -> Toggler<'a, M, AtomTheme>
+    where
+        M: Clone + std::fmt::Debug + 'static,
+    {
+        toggler(is_checked)
+            .label(label)
             .spacing(10)
             .text_alignment(iced::alignment::Horizontal::Left)
             .width(Shrink)

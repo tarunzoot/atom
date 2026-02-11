@@ -14,7 +14,7 @@ use iced::{
 };
 
 impl AtomImport {
-    pub fn view(&self) -> Element<ImportMessage, AtomTheme> {
+    pub fn view(&self) -> Element<'_, ImportMessage, AtomTheme> {
         let mut start_download_btn =
             GuiElements::primary_button(icons::cloud_download(), "start download");
 

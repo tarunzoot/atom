@@ -38,11 +38,12 @@ fn main() -> iced::Result {
     }
 
     // run app
-    iced::daemon(App::title, App::update, App::view)
+    iced::daemon(App::new, App::update, App::view)
         .theme(App::theme)
         .scale_factor(App::scale_factor)
         .subscription(App::subscription)
         .antialiasing(true)
+        .title(App::title)
         .default_font(Font {
             // family: iced::font::Family::Name("Google Sans Mono"),
             family: iced::font::Family::Name("DM Mono"),
@@ -50,5 +51,5 @@ fn main() -> iced::Result {
             ..Default::default()
         })
         .font(MONOSPACED_FONT_BYTES)
-        .run_with(App::new)
+        .run()
 }

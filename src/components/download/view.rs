@@ -13,11 +13,12 @@ use crate::{
 };
 use iced::{
     widget::{
-        button, column as col, container, progress_bar, row, text, tooltip, vertical_space, Text,
+        button, column as col, container, progress_bar, row, space::vertical, text, tooltip, Text,
     },
-    Alignment, Element,
+    Alignment::{self},
+    Element,
     Length::{self, FillPortion, Fixed, Shrink},
-    Padding, Renderer,
+    Padding,
 };
 use std::path::PathBuf;
 
@@ -25,7 +26,7 @@ impl AtomDownload {
     fn get_formatted_size(&self, size: usize) -> (f64, &str) {
         let suffix: [&str; 4] = ["By", "KB", "MB", "GB"];
         let size_len = size.to_string().len();
-        let size_len = if size_len % 3 == 0 {
+        let size_len = if size_len.is_multiple_of(3) {
             (size_len / 3) - 1
         } else {
             size_len / 3
@@ -82,38 +83,53 @@ impl AtomDownload {
         }
     }
 
-    fn get_file_name_view(&self, text_size: f32) -> Element<DownloadMessage, AtomTheme, Renderer> {
+    fn get_file_name_view(&self, text_size: f32) -> Element<'_, DownloadMessage, AtomTheme> {
         let path_buf = PathBuf::from(&self.file_name);
         let extension = path_buf
             .extension()
             .map(|extension| extension.to_string_lossy().to_string())
             .unwrap_or_else(String::default);
 
-        let file_name = if self.file_name.len() > 50 {
-            format!("{}....{}", &self.file_name[0..41], extension)
-        } else {
-            self.file_name.clone()
-        };
+        let downloaded = self.get_formatted_size(self.downloaded);
 
         col![
             row![
                 file_type_icon(self.file_name.split('.').next_back().unwrap())
                     .size(text_size)
                     .class(AtomStyleText::Accented),
-                text(file_name).size(text_size)
+                text(&self.file_name)
+                    .size(text_size)
+                    .wrapping(text::Wrapping::WordOrGlyph)
             ]
             .align_y(iced::Alignment::Center)
             .spacing(5),
             row![
-                icons::hash()
-                    .size(text_size - 4.0)
-                    .class(AtomStyleText::Dimmed),
-                text(get_file_type(&extension))
-                    .size(text_size - 2.0)
-                    .class(AtomStyleText::Dimmed),
+                row![
+                    icons::hash()
+                        .size(text_size - 4.0)
+                        .class(AtomStyleText::Dimmed),
+                    text(get_file_type(&extension))
+                        .size(text_size - 2.0)
+                        .class(AtomStyleText::Dimmed)
+                ]
+                .align_y(iced::Alignment::Center)
+                .spacing(5),
+                row![text("●").size(text_size - 2.0).class(AtomStyleText::Dimmed)]
+                    .align_y(iced::Alignment::Center),
+                row![
+                    icons::delicious()
+                        .size(text_size - 4.0)
+                        .class(AtomStyleText::Dimmed),
+                    text(format!("{0:>3.2} {1}", downloaded.0, downloaded.1))
+                        .width(Shrink)
+                        .size(text_size - 2.0)
+                        .class(AtomStyleText::Dimmed),
+                ]
+                .align_y(iced::Alignment::Center)
+                .spacing(5)
             ]
             .align_y(iced::Alignment::Center)
-            .spacing(5)
+            .spacing(10),
         ]
         .spacing(10)
         .width(get_list_view_header_column_length(
@@ -123,30 +139,12 @@ impl AtomDownload {
         .into()
     }
 
-    fn get_file_size_view(&self, text_size: f32) -> Element<DownloadMessage, AtomTheme, Renderer> {
-        let downloaded = self.get_formatted_size(self.downloaded);
+    fn get_file_size_view(&self, text_size: f32) -> Element<'_, DownloadMessage, AtomTheme> {
         let size = self.get_formatted_size(self.size);
 
-        let text_col = col![col![
-            row![
-                icons::download_alt().size(text_size),
-                text(format!("{0:0>6.2} {1}", downloaded.0, downloaded.1))
-                    .width(Shrink)
-                    .size(text_size),
-            ]
-            .align_y(Alignment::Center)
-            .spacing(5),
-            row![
-                icons::box_open().size(text_size),
-                text(format!("{0:0>6.2} {1}", size.0, size.1)).size(text_size)
-            ]
-            .align_y(Alignment::Center)
+        let text_col = col![text(format!("{0:>3.2} {1}", size.0, size.1)).size(text_size)]
             .spacing(5)
-        ]
-        .align_x(Alignment::Start)
-        .spacing(5)]
-        .spacing(5)
-        .align_x(Alignment::Start);
+            .align_x(Alignment::Start);
 
         text_col
             .width(get_list_view_header_column_length(
@@ -159,9 +157,10 @@ impl AtomDownload {
         &self,
         text_size: f32,
         length: Length,
-    ) -> Element<DownloadMessage, AtomTheme, Renderer> {
-        row!()
-            .push(
+        align: Alignment,
+    ) -> Element<'_, DownloadMessage, AtomTheme> {
+        col!()
+            .push(GuiElements::tooltip_top(
                 container(
                     row![
                         icons::close_circled().size(text_size),
@@ -172,8 +171,10 @@ impl AtomDownload {
                 )
                 .class(AtomStyleContainer::PillError)
                 .padding(Padding::from([3, 10])),
-            )
+                &self.error,
+            ))
             .width(length)
+            .align_x(align)
             .into()
     }
 
@@ -181,8 +182,9 @@ impl AtomDownload {
         &self,
         text_size: f32,
         length: Length,
-    ) -> Element<DownloadMessage, AtomTheme, Renderer> {
-        row![container(
+        align: Alignment,
+    ) -> Element<'_, DownloadMessage, AtomTheme> {
+        col![container(
             row![
                 icons::check_circled().size(text_size),
                 text("Completed").size(text_size - 2.0)
@@ -192,6 +194,7 @@ impl AtomDownload {
         )
         .class(AtomStyleContainer::PillSuccess)
         .padding(Padding::from([3, 10]))]
+        .align_x(align)
         .width(length)
         .into()
     }
@@ -200,8 +203,9 @@ impl AtomDownload {
         &self,
         text_size: f32,
         length: Length,
-    ) -> Element<DownloadMessage, AtomTheme, Renderer> {
-        row![container(
+        align: Alignment,
+    ) -> Element<'_, DownloadMessage, AtomTheme> {
+        col![container(
             row![
                 icons::joining().size(text_size),
                 text("Joining").size(text_size - 2.0)
@@ -211,6 +215,7 @@ impl AtomDownload {
         )
         .class(AtomStyleContainer::PillSuccess)
         .padding(Padding::from([3, 10])),]
+        .align_x(align)
         .width(length)
         .into()
     }
@@ -219,15 +224,15 @@ impl AtomDownload {
         &self,
         text_size: f32,
         length: Length,
-    ) -> Element<DownloadMessage, AtomTheme, Renderer> {
-        let status = ((100 * self.joined_bytes) / self.size) as f32;
+        progress_bar_length: Length,
+    ) -> Element<'_, DownloadMessage, AtomTheme> {
+        let mut status = ((100 * self.joined_bytes) / self.size) as f32;
+        status = if status.is_nan() { 0.0 } else { status };
         row![
-            progress_bar(0.0..=100.0, status).height(iced::Length::Fixed(5.0)),
-            text(format!(
-                "{0:>4.2} %",
-                if status.is_nan() { 0.0 } else { status }
-            ))
-            .size(text_size),
+            progress_bar(0.0..=100.0, status)
+                .girth(iced::Length::Fixed(5.0))
+                .length(progress_bar_length),
+            text(format!("{0:>4.2} %", status)).size(text_size - 2.0),
         ]
         .spacing(5)
         .align_y(iced::Alignment::Center)
@@ -240,31 +245,32 @@ impl AtomDownload {
         layout: ListLayout,
         text_size: f32,
         _responsive: bool,
-    ) -> Element<DownloadMessage, AtomTheme, Renderer> {
-        let (length, progress_bar_length) = if matches!(layout, ListLayout::List) {
+    ) -> Element<'_, DownloadMessage, AtomTheme> {
+        let (length, progress_bar_length, align) = if matches!(layout, ListLayout::List) {
             (
                 get_list_view_header_column_length(ListViewColumns::Status),
                 Length::Fixed(50.0),
+                Alignment::Start,
             )
         } else {
-            (Length::Shrink, Length::Fill)
+            (Length::Fill, Length::Fill, Alignment::Center)
         };
 
         if !self.error.is_empty() {
-            return self.get_failed_view(text_size, length);
-        } else if self.joined_bytes > 0 {
-            return self.get_joining_progress_view(text_size, length);
-        } else if self.size != 0 && self.downloaded >= self.size && !self.joining {
-            return self.get_completed_view(text_size, length);
+            return self.get_failed_view(text_size, length, align);
+        } else if self.joining && self.joined_bytes > 0 {
+            return self.get_joining_progress_view(text_size, length, progress_bar_length);
         } else if self.joining {
-            return self.get_joining_view(text_size, length);
+            return self.get_joining_view(text_size, length, align);
+        } else if self.size != 0 && self.downloaded >= self.size && !self.joining {
+            return self.get_completed_view(text_size, length, align);
         }
 
         let progress = self.get_progress_percent();
         let percent_el = text(self.get_formatted_progress_percent(true)).size(text_size - 2.0);
         let progress_bar_el = progress_bar(0.0..=100.0, progress)
-            .height(iced::Length::Fixed(5.0))
-            .width(progress_bar_length);
+            .girth(iced::Length::Fixed(5.0))
+            .length(progress_bar_length);
         let mut progress_row = row!()
             .spacing(5)
             .align_y(iced::Alignment::Center)
@@ -304,50 +310,54 @@ impl AtomDownload {
         progress_row.into()
     }
 
-    fn get_transfer_rate_view(
-        &self,
-        text_size: f32,
-    ) -> Element<DownloadMessage, AtomTheme, Renderer> {
+    fn get_transfer_rate_view(&self, text_size: f32) -> Element<'_, DownloadMessage, AtomTheme> {
         col![text(self.get_formatted_transfer_rate()).size(text_size)]
             .width(get_list_view_header_column_length(ListViewColumns::Speed))
             .align_x(Alignment::Start)
             .into()
     }
 
-    fn get_actions_view(&self, length: Length) -> Element<DownloadMessage, AtomTheme, Renderer> {
+    fn get_actions_view(&self, length: Length) -> Element<'_, DownloadMessage, AtomTheme> {
         let mut actions_row = row!().spacing(5);
         if !self.deleted {
             let mut start_pause_btn = GuiElements::round_button(self.get_download_state_icon());
-            // let mut edit_btn = GuiElements::round_button('\u{ec55}');
 
             if self.downloading && self.downloaded <= self.size {
                 start_pause_btn = start_pause_btn.on_press(DownloadMessage::Paused);
             } else if self.joining || (self.downloaded > self.size && self.downloading) {
             } else {
                 start_pause_btn = start_pause_btn.on_press(DownloadMessage::Downloading);
-                // edit_btn = edit_btn.on_press(DownloadMessage::MarkDeleted);
             }
 
-            actions_row = actions_row
-                .push(start_pause_btn)
-                // .push(edit_btn)
-                .push(
-                    GuiElements::round_button(icons::trash_bin_closed())
-                        .on_press(DownloadMessage::MarkDeleted),
-                );
-        } else {
-            actions_row = actions_row.push(
-                tooltip(
-                    GuiElements::round_button(icons::trash_bin_closed())
-                        .on_press(DownloadMessage::RemoveDownload(true)),
-                    text("Will remove all the cached/incomplete files from the disk as well.")
-                        .size(10),
-                    tooltip::Position::Top,
-                )
-                .class(AtomStyleContainer::ToolTipContainer)
-                .gap(10)
-                .padding(10),
+            actions_row = actions_row.push(start_pause_btn).push(
+                GuiElements::round_button(icons::trash_bin_closed())
+                    .on_press(DownloadMessage::MarkDeleted),
             );
+        } else {
+            actions_row = actions_row
+                .push(
+                    tooltip(
+                        GuiElements::round_button(icons::rotation())
+                            .on_press(DownloadMessage::Restore),
+                        text("Restore").size(10),
+                        tooltip::Position::Top,
+                    )
+                    .class(AtomStyleContainer::ToolTipContainer)
+                    .gap(10)
+                    .padding(10),
+                )
+                .push(
+                    tooltip(
+                        GuiElements::round_button(icons::trash_bin_closed())
+                            .on_press(DownloadMessage::RemoveDownload(true)),
+                        text("Will remove all the cached/incomplete files from the disk as well.")
+                            .size(10),
+                        tooltip::Position::Top,
+                    )
+                    .class(AtomStyleContainer::ToolTipContainer)
+                    .gap(10)
+                    .padding(10),
+                );
         }
         container(actions_row)
             .width(length)
@@ -362,7 +372,7 @@ impl AtomDownload {
         &self,
         responsive: bool,
         text_size: f32,
-    ) -> Element<DownloadMessage, AtomTheme, Renderer> {
+    ) -> Element<'_, DownloadMessage, AtomTheme> {
         let text_size = text_size - 4.0;
         let file_name_col = self.get_file_name_view(text_size);
         let file_size_col = self.get_file_size_view(text_size);
@@ -398,7 +408,10 @@ impl AtomDownload {
         col!().push(main_row).into()
     }
 
-    fn get_extended_file_name_view(&self, text_size: f32) -> Element<DownloadMessage, AtomTheme> {
+    fn get_extended_file_name_view(
+        &self,
+        text_size: f32,
+    ) -> Element<'_, DownloadMessage, AtomTheme> {
         let text_icon_size = text_size - 6.0;
         let path_buf = PathBuf::from(&self.file_name);
         let extension = path_buf
@@ -406,18 +419,14 @@ impl AtomDownload {
             .map(|extension| extension.to_string_lossy().to_string())
             .unwrap_or_else(String::default);
 
-        let file_name = if self.file_name.len() > 50 {
-            format!("{}....{}", &self.file_name[0..41], extension)
-        } else {
-            self.file_name.clone()
-        };
-
         row![col![
             row![
                 file_type_icon(&extension)
                     .size(text_size - 2.0)
                     .class(AtomStyleText::Accented),
-                text(file_name).size(text_size - 2.0),
+                text(&self.file_name)
+                    .size(text_size - 2.0)
+                    .wrapping(text::Wrapping::WordOrGlyph),
             ]
             .spacing(5)
             .align_y(iced::Alignment::Center),
@@ -450,7 +459,7 @@ impl AtomDownload {
     fn get_extended_file_size_view(
         &self,
         text_size: f32,
-    ) -> Element<DownloadMessage, AtomTheme, Renderer> {
+    ) -> Element<'_, DownloadMessage, AtomTheme> {
         let downloaded = self.get_formatted_size(self.downloaded);
         let size = self.get_formatted_size(self.size);
         let icon_size = text_size - 4.0;
@@ -485,14 +494,11 @@ impl AtomDownload {
         .align_x(Alignment::Center)]
         .spacing(0)
         .align_x(Alignment::Center)
-        .width(FillPortion(2))
+        .width(FillPortion(3))
         .into()
     }
 
-    fn get_extended_speed_view(
-        &self,
-        text_size: f32,
-    ) -> Element<DownloadMessage, AtomTheme, Renderer> {
+    fn get_extended_speed_view(&self, text_size: f32) -> Element<'_, DownloadMessage, AtomTheme> {
         let icon_size = text_size - 4.0;
         let text_size = text_size - 4.0;
 
@@ -525,10 +531,7 @@ impl AtomDownload {
         .into()
     }
 
-    fn get_extended_eta_view(
-        &self,
-        text_size: f32,
-    ) -> Element<DownloadMessage, AtomTheme, Renderer> {
+    fn get_extended_eta_view(&self, text_size: f32) -> Element<'_, DownloadMessage, AtomTheme> {
         let icon_size = text_size - 4.0;
         let text_size = text_size - 4.0;
 
@@ -559,10 +562,7 @@ impl AtomDownload {
         .into()
     }
 
-    fn get_extended_status_view(
-        &self,
-        text_size: f32,
-    ) -> Element<DownloadMessage, AtomTheme, Renderer> {
+    fn get_extended_status_view(&self, text_size: f32) -> Element<'_, DownloadMessage, AtomTheme> {
         let icon_size = text_size - 4.0;
         let text_size = text_size - 4.0;
 
@@ -593,18 +593,16 @@ impl AtomDownload {
         .into()
     }
 
-    fn vertical_line(&self) -> Element<DownloadMessage, AtomTheme, Renderer> {
-        col![
-            container(vertical_space().height(Fixed(30.0)).width(Fixed(1.0)),)
-                .class(AtomStyleContainer::ListItemContainer)
-                .width(Fixed(1.0))
-        ]
+    fn vertical_line(&self) -> Element<'_, DownloadMessage, AtomTheme> {
+        col![container(vertical().height(Fixed(30.0)).width(Fixed(1.0)),)
+            .class(AtomStyleContainer::ListItemContainer)
+            .width(Fixed(1.0))]
         .align_x(Alignment::Center)
         .width(Shrink)
         .into()
     }
 
-    fn list_extended_view(&self, text_size: f32) -> Element<DownloadMessage, AtomTheme, Renderer> {
+    fn list_extended_view(&self, text_size: f32) -> Element<'_, DownloadMessage, AtomTheme> {
         let actions_col = self.get_actions_view(Length::Shrink);
 
         col![row![
@@ -632,7 +630,7 @@ impl AtomDownload {
         &self,
         settings: &AtomSettings,
         responsive: bool,
-    ) -> Element<DownloadMessage, AtomTheme, Renderer> {
+    ) -> Element<'_, DownloadMessage, AtomTheme> {
         let text_size = settings.font_size - if responsive { 2.0 } else { 0.0 };
 
         let main_row = match settings.list_layout {
@@ -644,15 +642,11 @@ impl AtomDownload {
 
         let download_container = container(
             button(main_row)
-                .on_press(if self.deleted {
-                    DownloadMessage::Ignore
-                } else {
-                    DownloadMessage::DownloadSelected
-                })
+                .on_press(DownloadMessage::DownloadSelected)
                 .padding(0)
                 .class(AtomStyleButton::Neutral),
         )
-        .width(iced::Length::Shrink)
+        .width(iced::Length::Fill)
         .padding(0)
         .class(AtomStyleContainer::ListItemContainer);
 

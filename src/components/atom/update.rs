@@ -17,10 +17,10 @@ use crate::{
 };
 use iced::{
     keyboard::{self, key::Named},
-    window::{self, settings::PlatformSpecific, Settings},
+    window::{self, gain_focus, settings::PlatformSpecific, Settings},
     Event, Size, Task as Command,
 };
-use std::path::PathBuf;
+use std::{io::Write, path::PathBuf};
 use tracing::{debug, error, warn};
 
 impl Atom<'_> {
@@ -59,6 +59,7 @@ impl Atom<'_> {
             Message::WindowOpened(id, download) => {
                 let window = AtomDownloadForm::new(download.unwrap(), &self.settings);
                 self.windows.insert(id, ("", window));
+                return gain_focus(id);
             }
             Message::WindowClosed(id) => {
                 self.windows.remove(&id);
@@ -70,28 +71,36 @@ impl Atom<'_> {
                 return window::close(id);
             }
             Message::StatusBar(message) => self.status_bar_message = message,
+            Message::ListenerActive((active, message)) => {
+                self.listener_active = active;
+                self.status_bar_message = message;
+            }
             Message::EventsOccurred((ref event, window_id)) => {
                 if let Event::Keyboard(keyboard::Event::KeyReleased {
                     modifiers: _, key, ..
                 }) = event
                 {
                     if keyboard::Key::Named(Named::Alt) == *key {
-                        self.alt_pressed = false;
+                        self.ctrl_alt_pressed = false;
                         self.status_bar_message = "Ready".to_string();
                     }
                 }
 
                 if let Event::Keyboard(keyboard::Event::KeyPressed { modifiers, key, .. }) = event {
-                    if keyboard::Key::Named(Named::Alt) == *key {
-                        self.alt_pressed = true;
-                        self.status_bar_message = "Alt + Drag window to move".to_string();
+                    if keyboard::Key::Named(Named::Alt) == *key
+                        && (modifiers.control() || modifiers.command())
+                    {
+                        self.ctrl_alt_pressed = true;
+                        return Command::done(Message::StatusBar(
+                            "CTRL + ALT + Drag window to move".to_string(),
+                        ));
                     }
 
                     if keyboard::Key::Named(Named::Tab) == *key {
                         if modifiers.shift() {
-                            return iced::widget::focus_previous();
+                            return iced::widget::operation::focus_previous();
                         }
-                        return iced::widget::focus_next();
+                        return iced::widget::operation::focus_next();
                     }
 
                     if modifiers.control() || modifiers.command() {
@@ -111,6 +120,12 @@ impl Atom<'_> {
                             keyboard::Key::Character("r") => {
                                 Message::Sidebar(SidebarMessage::ResumeAll)
                             }
+                            keyboard::Key::Character("b") => match self.sidebar.state {
+                                SideBarState::Collapsed => Message::Sidebar(SidebarMessage::Expand),
+                                SideBarState::Expanded => {
+                                    Message::Sidebar(SidebarMessage::Collapse)
+                                }
+                            },
                             keyboard::Key::Character("h") => Message::GotoHomePage,
                             keyboard::Key::Character("d") => {
                                 if self.downloads.is_empty() {
@@ -155,9 +170,9 @@ impl Atom<'_> {
                                 ));
                             }
                             keyboard::Key::Character("f") => {
-                                return iced::widget::text_input::focus(
-                                    iced::widget::text_input::Id::new("search"),
-                                );
+                                return iced::widget::operation::focus(iced::widget::Id::new(
+                                    "search",
+                                ));
                             }
                             keyboard::Key::Character("g") => {
                                 self.titlebar.search_text.clear();
@@ -172,7 +187,7 @@ impl Atom<'_> {
                                     SettingsMessage::SaveSettings(false),
                                 ))
                                 .chain(
-                                    window::get_size(window_id)
+                                    window::size(window_id)
                                         .map(move |size| Message::WindowResized((window_id, size))),
                                 );
                             }
@@ -184,7 +199,7 @@ impl Atom<'_> {
                                     SettingsMessage::SaveSettings(false),
                                 ))
                                 .chain(
-                                    window::get_size(window_id)
+                                    window::size(window_id)
                                         .map(move |size| Message::WindowResized((window_id, size))),
                                 );
                             }
@@ -194,7 +209,7 @@ impl Atom<'_> {
                                     SettingsMessage::SaveSettings(false),
                                 ))
                                 .chain(
-                                    window::get_size(window_id)
+                                    window::size(window_id)
                                         .map(move |size| Message::WindowResized((window_id, size))),
                                 );
                             }
@@ -210,10 +225,10 @@ impl Atom<'_> {
                 {
                     if let Some(window) = self.windows.get(&window_id) {
                         if window.0 == "main" {
-                            if self.alt_pressed || self.mouse_over_titlebar {
+                            if self.ctrl_alt_pressed || self.mouse_over_titlebar {
                                 return window::drag(window_id);
                             }
-                        } else if self.alt_pressed || window.1.is_mouse_over_heading {
+                        } else if self.ctrl_alt_pressed || window.1.is_mouse_over_heading {
                             return window::drag(window_id);
                         }
                     }
@@ -235,21 +250,22 @@ impl Atom<'_> {
                     self.mouse_over_titlebar = on_titlebar
                 }
                 TitleBarMessage::AppMaximize => {
-                    return window::get_oldest().and_then(window::toggle_maximize);
+                    return window::oldest().and_then(window::toggle_maximize);
                 }
                 TitleBarMessage::AppMinimize => {
-                    return window::get_oldest().and_then(|id| window::minimize(id, true));
+                    return window::oldest().and_then(|id| window::minimize(id, true));
                 }
                 TitleBarMessage::AppHide => {
                     if !self.instance.as_ref().unwrap().is_single() {
                         return Command::done(Message::TitleBar(TitleBarMessage::AppExit));
                     }
-                    return window::get_oldest()
-                        .and_then(|id| window::change_mode(id, window::Mode::Hidden));
+                    return window::oldest()
+                        .and_then(|id| window::set_mode(id, window::Mode::Hidden));
                 }
                 TitleBarMessage::AppShow => {
-                    return window::get_oldest()
-                        .and_then(|id| window::change_mode(id, window::Mode::Windowed));
+                    return window::oldest()
+                        // .and_then(|id| window::set_mode(id, window::Mode::Windowed));
+                        .and_then(|id| window::maximize(id, true));
                 }
                 TitleBarMessage::AppExit => {
                     if !save_settings_toml(&self.settings) {
@@ -268,8 +284,12 @@ impl Atom<'_> {
                         |e| {
                             warn!("Error: TcpStream::connect(failed), error({e:#?})");
                         },
-                        |_| {
-                            debug!("Info: TcpStream::connect(success)");
+                        |mut stream| {
+                            if let Err(e) = stream.write_all(b"EXIT") {
+                                debug!("Info: TcpStream::connect(error) ({e:#?})");
+                            } else {
+                                debug!("Info: TcpStream::connect(success)");
+                            }
                         },
                     );
 
@@ -401,24 +421,24 @@ impl Atom<'_> {
                 DownloadMessage::RemoveDownload(force) => {
                     if force {
                         if let Some(download) = self.downloads.remove(&index) {
-                            if (download.downloaded < download.size) || download.deleted {
-                                if !download.sequential {
-                                    // let path =
-                                    //     PathBuf::from(download.file_path).join(download.file_name);
-                                    // if let Err(e) = std::fs::remove_file(&path) {
-                                    //     warn!("Error deleting file {path:#?} : {e:#?}");
-                                    // }
+                            if ((download.downloaded < download.size) || download.deleted)
+                                && !download.sequential
+                            {
+                                // let path =
+                                //     PathBuf::from(download.file_path).join(download.file_name);
+                                // if let Err(e) = std::fs::remove_file(&path) {
+                                //     warn!("Error deleting file {path:#?} : {e:#?}");
+                                // }
 
-                                    let path = PathBuf::from(&self.settings.cache_dir)
-                                        .join(&download.file_name);
-                                    for i in 1..=download.threads {
-                                        let path = path.with_file_name(format!(
-                                            "{}.atom.{}",
-                                            download.file_name, i
-                                        ));
-                                        if let Err(e) = std::fs::remove_file(&path) {
-                                            warn!("Error deleting file {path:#?} : {e:#?}");
-                                        }
+                                let path = PathBuf::from(&self.settings.cache_dir)
+                                    .join(&download.file_name);
+                                for i in 1..=download.threads {
+                                    let path = path.with_file_name(format!(
+                                        "{}.atom.{}",
+                                        download.file_name, i
+                                    ));
+                                    if let Err(e) = std::fs::remove_file(&path) {
+                                        warn!("Error deleting file {path:#?} : {e:#?}");
                                     }
                                 }
                             }
@@ -483,7 +503,7 @@ impl Atom<'_> {
                                 resizable: false,
                                 decorations: false,
                                 transparent: false,
-                                level: window::Level::AlwaysOnTop,
+                                level: window::Level::Normal,
                                 exit_on_close_request: true,
                                 size: Size {
                                     width: 800.0,
@@ -570,15 +590,14 @@ impl Atom<'_> {
             }
             Message::DownloadForm(message, window_id) => {
                 self.metadata.enabled = false;
-                if window_id.is_some() {
-                    if let Some(window) = self.windows.get_mut(&window_id.unwrap()) {
+                if let Some(window_id) = window_id {
+                    if let Some(window) = self.windows.get_mut(&window_id) {
                         match message {
                             crate::messages::DownloadFormMessage::Minimize => {
-                                return window::minimize(window_id.unwrap(), true);
+                                return window::minimize(window_id, true);
                             }
                             crate::messages::DownloadFormMessage::AddNewDownload
                             | crate::messages::DownloadFormMessage::DownloadLater => {
-                                let window_id = window_id.unwrap();
                                 if let Some(window) = self.windows.get_mut(&window_id) {
                                     if let Ok(mut download) = window.1.make_download() {
                                         if matches!(
@@ -595,15 +614,13 @@ impl Atom<'_> {
                                 }
                             }
                             crate::messages::DownloadFormMessage::ClosePane => {
-                                let window_id = window_id.unwrap();
                                 self.status_bar_message = "Ready".to_string();
                                 return Command::done(Message::WindowClosed(window_id));
                             }
                             _ => {
-                                return window
-                                    .1
-                                    .update(message, &self.settings)
-                                    .map(move |message| Message::DownloadForm(message, window_id))
+                                return window.1.update(message, &self.settings).map(
+                                    move |message| Message::DownloadForm(message, Some(window_id)),
+                                )
                             }
                         }
                     }
@@ -762,10 +779,27 @@ impl Atom<'_> {
             }
             Message::FontLoaded(result) => {
                 if result.is_err() {
-                    error!("{result:#?}");
+                    error!("Font loading errored: {result:#?}");
+                } else {
+                    debug!("Font loaded: {result:#?}");
                 }
             }
-            Message::LoadingComplete => {}
+            Message::LoadingComplete => {
+                if self.settings.maximized {
+                    if let Some(entry) = self.windows.first_entry() {
+                        let window_id = *entry.key();
+                        return window::oldest()
+                            .and_then(iced::window::toggle_maximize)
+                            .chain(
+                                iced::window::size(window_id)
+                                    .map(move |size| Message::WindowResized((window_id, size))),
+                            );
+                    } else {
+                        return window::oldest().and_then(iced::window::toggle_maximize);
+                    }
+                }
+                self.loaded = true;
+            }
         }
         Command::none()
     }

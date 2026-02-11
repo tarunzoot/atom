@@ -7,7 +7,11 @@ use crate::{
     style::{button::AtomStyleButton, container::AtomStyleContainer, AtomStyleText, AtomTheme},
 };
 use iced::{
-    widget::{button, column as col, container, horizontal_space, row, text, vertical_space, Text},
+    widget::{
+        button, column as col, container, row,
+        space::{horizontal, vertical},
+        text, Text,
+    },
     Alignment, Element,
     Length::{Fill, FillPortion, Fixed, Shrink},
     Padding,
@@ -26,6 +30,7 @@ pub fn view<'a>(settings: &AtomSettings) -> Element<'a, Message, AtomTheme> {
         ("search downloads", "F", icons::search),
         ("cycle through themes", "T", icons::theme),
         ("toggle list layout", "L", icons::list),
+        ("toggle sidebar", "B", icons::navigation),
         ("clear search", "G", icons::close_circled),
         ("decrease scaling by 0.10", "-", icons::minus),
         ("increase scaling by 0.10", "=", icons::plus),
@@ -37,7 +42,7 @@ pub fn view<'a>(settings: &AtomSettings) -> Element<'a, Message, AtomTheme> {
         .spacing(10)
         .padding(Padding::new(10.0).top(0))
         .width(iced::Length::Fill)
-        .push(vertical_space().height(10));
+        .push(vertical().height(10));
 
     let text_size = 12;
     let chunk_len = 3;
@@ -74,11 +79,9 @@ pub fn view<'a>(settings: &AtomSettings) -> Element<'a, Message, AtomTheme> {
                                 .spacing(20)
                                 .align_x(Alignment::Start)
                                 .width(FillPortion(3)),
-                                col![container(
-                                    vertical_space().height(Fixed(30.0)).width(Fixed(1.0)),
-                                )
-                                .class(AtomStyleContainer::ListItemContainer)
-                                .width(Fixed(1.0))]
+                                col![container(vertical().height(Fixed(30.0)).width(Fixed(1.0)),)
+                                    .class(AtomStyleContainer::ListItemContainer)
+                                    .width(Fixed(1.0))]
                                 .align_x(iced::Alignment::Center)
                                 .width(Shrink),
                                 col![
@@ -122,7 +125,7 @@ pub fn view<'a>(settings: &AtomSettings) -> Element<'a, Message, AtomTheme> {
 
             if chunk_size < chunk_len {
                 for _ in 0..(chunk_len - chunk_size) {
-                    row = row.push(horizontal_space().width(Fill));
+                    row = row.push(horizontal().width(Fill));
                 }
             }
             column.push(row)
